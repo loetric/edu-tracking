@@ -62,15 +62,20 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
             {messages.length === 0 && (
               <p className="text-center text-gray-400 text-sm py-8">لا توجد رسائل</p>
             )}
-            {messages.map((msg) => {
-              const isMe = msg.sender === currentUserName;
+            {messages.length > 0 && messages.map((msg) => {
+              const isMe = (msg.sender || '').trim() === (currentUserName || '').trim();
               return (
               <div key={msg.id} className={`flex flex-col ${isMe ? 'items-start' : 'items-end'}`}>
                 <div className={`p-2.5 md:p-3 rounded-lg max-w-[85%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800' : 'bg-teal-100 text-teal-900'}`}>
-                  <p className="font-bold text-[10px] md:text-xs text-teal-600 mb-1">{msg.sender}</p>
-                  <p className="break-words">{msg.text}</p>
+                  <p className="font-bold text-[10px] md:text-xs text-teal-600 mb-1">{msg.sender || 'مستخدم'}</p>
+                  <p className="break-words">{msg.text || ''}</p>
                 </div>
-                <span className="text-[9px] md:text-[10px] text-gray-400 mt-1">{msg.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span className="text-[9px] md:text-[10px] text-gray-400 mt-1">
+                  {msg.timestamp instanceof Date 
+                    ? msg.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+                    : new Date(msg.timestamp).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+                  }
+                </span>
               </div>
             )})}
           </div>

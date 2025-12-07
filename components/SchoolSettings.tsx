@@ -146,13 +146,15 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
   const handleAddSession = () => {
       if (newSession.day && newSession.period && newSession.subject && newSession.classRoom && newSession.teacher && onUpdateSchedule) {
+          // Trim and normalize teacher name to ensure consistency
+          const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
           const sessionToAdd: ScheduleItem = {
               id: Date.now().toString(),
               day: newSession.day,
               period: newSession.period,
-              subject: newSession.subject,
-              classRoom: newSession.classRoom,
-              teacher: newSession.teacher
+              subject: newSession.subject.trim(),
+              classRoom: newSession.classRoom.trim(),
+              teacher: normalizedTeacher
           };
           onUpdateSchedule([...schedule, sessionToAdd]);
           setNewSession({ ...newSession, subject: '', classRoom: '' }); // Keep day/teacher/period possibly

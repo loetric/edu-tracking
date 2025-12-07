@@ -152,6 +152,39 @@ const App: React.FC = () => {
     }
   }, [currentUser]);
 
+  // --- Real-time subscription for chat messages ---
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const channel = supabase
+      .channel('chat_messages')
+      .on('postgres_changes', 
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_messages' 
+        }, 
+        (payload) => {
+          const newMessage = {
+            ...payload.new,
+            timestamp: new Date(payload.new.timestamp)
+          } as ChatMessage;
+          setChatMessages(prev => {
+            // Avoid duplicates
+            if (prev.some(m => m.id === newMessage.id)) {
+              return prev;
+            }
+            return [...prev, newMessage].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser]);
+
   // --- API Action Wrappers ---
 
   const handleAddLog = async (action: string, details: string) => {
@@ -282,14 +315,35 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = async (text: string) => {
+      if (!currentUser) return;
+      
       const newMessage: ChatMessage = {
           id: Date.now().toString(),
-          sender: currentUser?.name || 'مستخدم',
-          text: text,
+          sender: currentUser.name,
+          text: text.trim(),
           timestamp: new Date()
       };
-      setChatMessages(prev => [...prev, newMessage]); // Optimistic
-      await api.sendMessage(newMessage);
+      
+      // Optimistic update
+      setChatMessages(prev => {
+          // Avoid duplicates
+          if (prev.some(m => m.id === newMessage.id)) {
+              return prev;
+          }
+          return [...prev, newMessage].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      });
+      
+      try {
+          await api.sendMessage(newMessage);
+          // Reload messages to ensure consistency
+          const updatedMessages = await api.getMessages();
+          setChatMessages(updatedMessages);
+      } catch (error) {
+          console.error('Error sending message:', error);
+          // Remove optimistic update on error
+          setChatMessages(prev => prev.filter(m => m.id !== newMessage.id));
+          alert('فشل في إرسال الرسالة. يرجى المحاولة مرة أخرى.');
+      }
   };
 
   const handleBulkReportClick = (records: Record<string, DailyRecord>) => {
@@ -359,9 +413,19 @@ const App: React.FC = () => {
 
   const effectiveSchedule = getEffectiveSchedule();
   
-  // Filter for the logged-in teacher using their name
+  // Filter for the logged-in teacher using their name (case-insensitive, trim whitespace, and normalize)
   const currentSchedule = currentUser.role === 'teacher' 
-      ? effectiveSchedule.filter(item => item.teacher === currentUser.name) 
+      ? effectiveSchedule.filter(item => {
+          if (!item.teacher) return false;
+          const itemTeacher = (item.teacher || '').trim().replace(/\s+/g, ' ');
+          const currentUserName = (currentUser.name || '').trim().replace(/\s+/g, ' ');
+          // Exact match (case-insensitive)
+          if (itemTeacher.toLowerCase() === currentUserName.toLowerCase()) return true;
+          // Also check if names match when normalized (remove extra spaces)
+          const normalizedItem = itemTeacher.toLowerCase().replace(/\s+/g, ' ').trim();
+          const normalizedUser = currentUserName.toLowerCase().replace(/\s+/g, ' ').trim();
+          return normalizedItem === normalizedUser;
+        }) 
       : effectiveSchedule;
 
   const allTeachers = Array.from(new Set([
