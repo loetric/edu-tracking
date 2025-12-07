@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChatMessage, Role } from '../types';
 import { MessageSquare, Send, X, Bell } from 'lucide-react';
 
@@ -14,18 +14,32 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [unread, setUnread] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
       if (!isOpen && messages.length > 0) {
           // Logic for unread would typically check against last viewed ID
           setUnread(true);
+      } else if (isOpen) {
+          setUnread(false);
+      }
+  }, [messages, isOpen]);
+
+  // Auto-scroll to bottom when new messages arrive or window opens
+  useEffect(() => {
+      if (isOpen && messagesEndRef.current) {
+          setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
       }
   }, [messages, isOpen]);
 
   const handleSend = () => {
-    if (inputText.trim()) {
-      onSendMessage(inputText);
-      setInputText('');
+    const text = inputText.trim();
+    if (text) {
+      setInputText(''); // Clear input immediately
+      onSendMessage(text);
     }
   };
 
@@ -58,26 +72,27 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
             </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[200px] md:h-64">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[200px] md:h-64">
             {messages.length === 0 && (
               <p className="text-center text-gray-400 text-sm py-8">لا توجد رسائل</p>
             )}
-            {messages.length > 0 && messages.map((msg) => {
+            {messages.length > 0 && messages.map((msg, index) => {
               const isMe = (msg.sender || '').trim() === (currentUserName || '').trim();
+              const msgTimestamp = msg.timestamp instanceof Date 
+                ? msg.timestamp 
+                : new Date(msg.timestamp);
               return (
-              <div key={msg.id} className={`flex flex-col ${isMe ? 'items-start' : 'items-end'}`}>
+              <div key={`msg-${msg.id}-${index}`} className={`flex flex-col ${isMe ? 'items-start' : 'items-end'}`}>
                 <div className={`p-2.5 md:p-3 rounded-lg max-w-[85%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800' : 'bg-teal-100 text-teal-900'}`}>
                   <p className="font-bold text-[10px] md:text-xs text-teal-600 mb-1">{msg.sender || 'مستخدم'}</p>
-                  <p className="break-words">{msg.text || ''}</p>
+                  <p className="break-words whitespace-pre-wrap">{msg.text || ''}</p>
                 </div>
                 <span className="text-[9px] md:text-[10px] text-gray-400 mt-1">
-                  {msg.timestamp instanceof Date 
-                    ? msg.timestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-                    : new Date(msg.timestamp).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-                  }
+                  {msgTimestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
             )})}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="p-2.5 md:p-3 bg-white border-t border-gray-100 flex gap-2 flex-shrink-0">

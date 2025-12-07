@@ -756,15 +756,24 @@ export const api = {
 
     sendMessage: async (message: ChatMessage): Promise<void> => {
         try {
-            await supabase
+            // Let database generate UUID - don't pass id if empty
+            const insertData: any = {
+                sender: message.sender,
+                text: message.text,
+                timestamp: message.timestamp?.toISOString() || new Date().toISOString(),
+                isSystem: message.isSystem || false
+            };
+            
+            // Only include id if it's a valid UUID (not empty string)
+            if (message.id && message.id.trim() !== '') {
+                insertData.id = message.id;
+            }
+            
+            const { error } = await supabase
                 .from('chat_messages')
-                .insert([{
-                    id: message.id,
-                    sender: message.sender,
-                    text: message.text,
-                    timestamp: message.timestamp?.toISOString() || new Date().toISOString(),
-                    isSystem: message.isSystem || false
-                }]);
+                .insert([insertData]);
+                
+            if (error) throw error;
         } catch (error) {
             console.error('Send message error:', error);
             throw error;
