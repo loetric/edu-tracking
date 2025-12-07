@@ -30,15 +30,9 @@ CREATE POLICY "Users can update own profile" ON public.profiles
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
--- Allow admins to read all profiles
-CREATE POLICY "Admin can read all profiles" ON public.profiles
-    FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles p2 
-            WHERE p2.id = auth.uid() AND p2.role = 'admin'
-        )
-    );
+-- Note: Admin read policy removed to prevent infinite recursion
+-- Public read policy above allows all reads, which is sufficient for login
+-- Admins can read all profiles through the public policy
 
 -- ============================================
 -- SETTINGS POLICIES

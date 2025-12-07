@@ -42,7 +42,19 @@ export const api = {
 
     signUp: async (email: string, password: string, profile: { username: string; name: string; role: Role; avatar?: string; }): Promise<User | null> => {
         try {
-            const res = await supabase.auth.signUp({ email, password });
+            // Sign up with user metadata so trigger can use it
+            const res = await supabase.auth.signUp({ 
+                email, 
+                password,
+                options: {
+                    data: {
+                        username: profile.username,
+                        full_name: profile.name,
+                        role: profile.role,
+                        avatar_url: profile.avatar
+                    }
+                }
+            });
             if (res.error) {
                 console.error('Supabase auth signUp error:', res.error);
                 return null;
@@ -50,7 +62,8 @@ export const api = {
             const user = res.data.user;
             if (!user) return null;
             
-            // Create profile
+            // Trigger will auto-create profile, but we update it with exact values
+            // This ensures correct username, role, etc. (trigger might use defaults)
             const payload = {
                 id: user.id,
                 username: profile.username,
@@ -59,9 +72,13 @@ export const api = {
                 avatar: profile.avatar
             };
             
-            const { error: pErr } = await supabase.from('profiles').insert([payload]);
+            // Upsert to handle case where trigger already created it
+            const { error: pErr } = await supabase
+                .from('profiles')
+                .upsert([payload], { onConflict: 'id' });
+            
             if (pErr) {
-                console.error('Error creating profile:', pErr);
+                console.error('Error creating/updating profile:', pErr);
                 return null;
             }
             
@@ -498,7 +515,8 @@ export const api = {
                 user: log.user
             };
             
-            if (log.id) payload.id = log.id;
+            // Don't include id - let database generate UUID automatically
+            // The id field in LogEntry is for frontend use only
 
             const { error } = await supabase
                 .from('logs')

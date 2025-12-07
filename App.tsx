@@ -109,7 +109,7 @@ const App: React.FC = () => {
 
   const handleAddLog = async (action: string, details: string) => {
     const newLog: LogEntry = {
-      id: Date.now().toString(),
+      id: '', // Let database generate UUID
       timestamp: new Date(),
       action,
       details,
