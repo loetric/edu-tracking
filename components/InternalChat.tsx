@@ -47,34 +47,48 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
     <>
       <button
         onClick={() => { setIsOpen(!isOpen); setUnread(false); }}
-        className="fixed bottom-4 left-4 md:bottom-6 md:left-6 bg-teal-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-teal-700 transition-transform hover:scale-105 z-50 flex items-center gap-2"
+        className="fixed bottom-4 left-4 md:bottom-6 md:left-6 bg-teal-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-teal-700 active:bg-teal-800 transition-all hover:scale-105 active:scale-95 z-50 flex items-center gap-2"
+        aria-label="فتح التواصل الداخلي"
       >
-        <MessageSquare size={20} className="md:w-6 md:h-6" />
+        <MessageSquare size={18} className="md:w-6 md:h-6 flex-shrink-0" />
         {unread && (
-            <span className="absolute top-0 right-0 w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-white"></span>
+            <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         )}
         <span className="font-bold hidden md:inline text-sm">التواصل الداخلي</span>
       </button>
 
+      {/* Mobile Backdrop */}
       {isOpen && (
-        <div className="fixed bottom-20 left-4 right-4 md:bottom-24 md:left-6 md:right-auto md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden max-h-[70vh] md:max-h-[500px]">
-          <div className="bg-teal-600 p-3 md:p-4 text-white flex justify-between items-center flex-shrink-0">
-            <h3 className="font-bold flex items-center gap-2 text-sm md:text-base">
-                <Bell size={14} className="md:w-4 md:h-4" />
-                <span className="hidden sm:inline">غرفة تواصل المعلمين والإدارة</span>
-                <span className="sm:hidden">التواصل الداخلي</span>
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {isOpen && (
+        <div className="fixed bottom-16 left-2 right-2 md:bottom-24 md:left-6 md:right-auto md:w-96 bg-white rounded-xl md:rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden h-[calc(100vh-5rem)] md:max-h-[500px] md:h-auto">
+          {/* Header */}
+          <div className="bg-teal-600 p-2.5 md:p-4 text-white flex justify-between items-center flex-shrink-0">
+            <h3 className="font-bold flex items-center gap-1.5 md:gap-2 text-xs md:text-base">
+                <Bell size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                <span className="hidden sm:inline truncate">غرفة تواصل المعلمين والإدارة</span>
+                <span className="sm:hidden truncate">التواصل الداخلي</span>
             </h3>
             <button 
               onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-teal-700 rounded transition-colors"
+              className="p-1.5 md:p-1 hover:bg-teal-700 rounded transition-colors flex-shrink-0 active:scale-95"
+              aria-label="إغلاق"
             >
-              <X size={16} className="md:w-[18px] md:h-[18px]" />
+              <X size={14} className="md:w-[18px] md:h-[18px]" />
             </button>
           </div>
           
-          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 bg-gray-50 min-h-[200px] md:h-64">
+          {/* Messages Container */}
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2 md:p-4 space-y-2 md:space-y-4 bg-gray-50 min-h-0">
             {messages.length === 0 && (
-              <p className="text-center text-gray-400 text-sm py-8">لا توجد رسائل</p>
+              <div className="flex items-center justify-center h-full">
+                <p className="text-center text-gray-400 text-xs md:text-sm py-8">لا توجد رسائل</p>
+              </div>
             )}
             {messages.length > 0 && messages.map((msg, index) => {
               const isMe = (msg.sender || '').trim() === (currentUserName || '').trim();
@@ -83,11 +97,11 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
                 : new Date(msg.timestamp);
               return (
               <div key={`msg-${msg.id}-${index}`} className={`flex flex-col ${isMe ? 'items-start' : 'items-end'}`}>
-                <div className={`p-2.5 md:p-3 rounded-lg max-w-[85%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800' : 'bg-teal-100 text-teal-900'}`}>
-                  <p className="font-bold text-[10px] md:text-xs text-teal-600 mb-1">{msg.sender || 'مستخدم'}</p>
-                  <p className="break-words whitespace-pre-wrap">{msg.text || ''}</p>
+                <div className={`p-2 md:p-3 rounded-lg max-w-[90%] md:max-w-[85%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800 shadow-sm' : 'bg-teal-100 text-teal-900 shadow-sm'}`}>
+                  <p className="font-bold text-[9px] md:text-xs text-teal-600 mb-0.5 md:mb-1 truncate">{msg.sender || 'مستخدم'}</p>
+                  <p className="break-words whitespace-pre-wrap leading-relaxed text-[11px] md:text-sm">{msg.text || ''}</p>
                 </div>
-                <span className="text-[9px] md:text-[10px] text-gray-400 mt-1">
+                <span className="text-[8px] md:text-[10px] text-gray-400 mt-0.5 md:mt-1 px-1">
                   {msgTimestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -95,20 +109,23 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-2.5 md:p-3 bg-white border-t border-gray-100 flex gap-2 flex-shrink-0">
+          {/* Input Area */}
+          <div className="p-2 md:p-3 bg-white border-t border-gray-100 flex gap-1.5 md:gap-2 flex-shrink-0">
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="اكتب رسالة..."
-              className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs md:text-sm focus:outline-none focus:border-teal-500"
+              className="flex-1 border border-gray-300 rounded-lg px-2.5 md:px-3 py-2 md:py-2.5 text-xs md:text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             />
             <button 
               onClick={handleSend}
-              className="bg-teal-600 text-white p-2 rounded-lg hover:bg-teal-700 transition-colors flex-shrink-0"
+              disabled={!inputText.trim()}
+              className="bg-teal-600 text-white p-2 md:p-2.5 rounded-lg hover:bg-teal-700 active:bg-teal-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex-shrink-0 active:scale-95"
+              aria-label="إرسال"
             >
-              <Send size={16} className="md:w-[18px] md:h-[18px] rtl:rotate-180" />
+              <Send size={14} className="md:w-[18px] md:h-[18px] rtl:rotate-180" />
             </button>
           </div>
         </div>
