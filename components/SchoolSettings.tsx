@@ -45,17 +45,27 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
       setIsAddingUser(false);
       try {
-          const created = await api.signUp(newUser.email!, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
-          if (!created) {
-              alert('فشل في إنشاء حساب المستخدم');
+          const result = await api.signUp(newUser.email!, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
+          
+          if (result.error) {
+              alert(result.error);
+              setIsAddingUser(true); // Re-open form on error
               return;
           }
-          onUpdateUsers([...users, created]);
+          
+          if (!result.user) {
+              alert('فشل في إنشاء حساب المستخدم');
+              setIsAddingUser(true);
+              return;
+          }
+          
+          onUpdateUsers([...users, result.user]);
           setNewUser({ role: 'teacher', name: '', username: '', password: '', email: '' });
           alert('تم إضافة المستخدم بنجاح');
-      } catch (err) {
+      } catch (err: any) {
           console.error('Add user error', err);
-          alert('حدث خطأ أثناء إنشاء المستخدم');
+          alert(err?.message || 'حدث خطأ أثناء إنشاء المستخدم');
+          setIsAddingUser(true);
       }
   };
 

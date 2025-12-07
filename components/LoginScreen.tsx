@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 import { UserCog, Lock, User, Eye, EyeOff, LogIn, PlusCircle, School } from 'lucide-react';
 import { Role, SchoolSettings, User as UserType } from '../types';
@@ -28,6 +28,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
     const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  
+  // Real-time validation state
+  const [emailError, setEmailError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  
+  // Debounce timers
+  const emailCheckTimer = useRef<NodeJS.Timeout | null>(null);
+  const usernameCheckTimer = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,24 +46,110 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
 
         // Call API login (handles username-to-email resolution)
         try {
-            const user = await api.login(username, password);
-            if (user) {
-                await onLogin(user);
+            const result = await api.login(username, password);
+            if (result.error) {
+                setError(result.error);
+            } else if (result.user) {
+                await onLogin(result.user);
             } else {
                 setError('بيانات الدخول غير صحيحة');
             }
-        } catch (err) {
-            setError('خطأ في تسجيل الدخول');
+        } catch (err: any) {
+            setError(err?.message || 'خطأ في تسجيل الدخول');
             console.error('Login error', err);
         } finally {
             setLoading(false);
         }
   };
 
+  // Real-time email validation
+  useEffect(() => {
+    if (emailCheckTimer.current) {
+      clearTimeout(emailCheckTimer.current);
+    }
+
+    if (!regEmail || !isRegistering) {
+      setEmailError('');
+      return;
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(regEmail)) {
+      setEmailError('صيغة البريد الإلكتروني غير صحيحة');
+      return;
+    }
+
+    setIsCheckingEmail(true);
+    emailCheckTimer.current = setTimeout(async () => {
+      const exists = await api.checkEmailExists(regEmail);
+      if (exists) {
+        setEmailError('البريد الإلكتروني مسجل مسبقاً');
+      } else {
+        setEmailError('');
+      }
+      setIsCheckingEmail(false);
+    }, 500); // Debounce 500ms
+
+    return () => {
+      if (emailCheckTimer.current) {
+        clearTimeout(emailCheckTimer.current);
+      }
+    };
+  }, [regEmail, isRegistering]);
+
+  // Real-time username validation
+  useEffect(() => {
+    if (usernameCheckTimer.current) {
+      clearTimeout(usernameCheckTimer.current);
+    }
+
+    if (!regUsername || !isRegistering) {
+      setUsernameError('');
+      return;
+    }
+
+    // Check local users first (faster)
+    if (users.some(u => u.username.toLowerCase() === regUsername.toLowerCase())) {
+      setUsernameError('اسم المستخدم مسجل مسبقاً');
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    usernameCheckTimer.current = setTimeout(async () => {
+      const exists = await api.checkUsernameExists(regUsername);
+      if (exists) {
+        setUsernameError('اسم المستخدم مسجل مسبقاً');
+      } else {
+        setUsernameError('');
+      }
+      setIsCheckingUsername(false);
+    }, 500); // Debounce 500ms
+
+    return () => {
+      if (usernameCheckTimer.current) {
+        clearTimeout(usernameCheckTimer.current);
+      }
+    };
+  }, [regUsername, isRegistering, users]);
+
   const handleRegister = (e: React.FormEvent) => {
       e.preventDefault();
       setError('');
       setLoading(true);
+
+      // Check for real-time validation errors
+      if (emailError) {
+          setError(emailError);
+          setLoading(false);
+          return;
+      }
+
+      if (usernameError) {
+          setError(usernameError);
+          setLoading(false);
+          return;
+      }
 
       if (regPassword !== regConfirmPassword) {
           setError('كلمات المرور غير متطابقة');
@@ -70,13 +166,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
       // Password validation (Supabase requires at least 6 characters)
       if (regPassword.length < 6) {
           setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-          setLoading(false);
-          return;
-      }
-
-      // Basic client side validation before sending to API
-      if (users.some(u => u.username.toLowerCase() === regUsername.toLowerCase())) {
-          setError('اسم المستخدم مسجل مسبقاً');
           setLoading(false);
           return;
       }
@@ -162,9 +251,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                                 type="text" 
                                 value={regUsername}
                                 onChange={(e) => setRegUsername(e.target.value)}
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm"
+                                className={`w-full px-4 py-2 rounded-lg border outline-none text-sm ${
+                                    usernameError 
+                                        ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
+                                        : 'border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500'
+                                }`}
                                 placeholder="admin_school"
                             />
+                            {isCheckingUsername && (
+                                <p className="text-xs text-gray-400 mt-1">جاري التحقق...</p>
+                            )}
+                            {usernameError && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-red-500"></span>
+                                    {usernameError}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
@@ -172,9 +274,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                                 type="email"
                                 value={regEmail}
                                 onChange={(e) => setRegEmail(e.target.value)}
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm"
+                                className={`w-full px-4 py-2 rounded-lg border outline-none text-sm ${
+                                    emailError 
+                                        ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
+                                        : 'border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500'
+                                }`}
                                 placeholder="admin@example.com"
                             />
+                            {isCheckingEmail && (
+                                <p className="text-xs text-gray-400 mt-1">جاري التحقق...</p>
+                            )}
+                            {emailError && (
+                                <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                                    <span className="w-1 h-1 rounded-full bg-red-500"></span>
+                                    {emailError}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور</label>

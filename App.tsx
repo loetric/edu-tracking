@@ -140,9 +140,16 @@ const App: React.FC = () => {
         }
 
         // Create Auth user and profile via API
-        const created = await api.signUp(email, user.password || '', { username: user.username, name: user.name, role: user.role, avatar: user.avatar });
-        if (!created) {
-          alert('فشل في إنشاء حساب المسؤول. تأكد من أن كلمة المرور 6 أحرف على الأقل والبريد الإلكتروني صحيح.');
+        const result = await api.signUp(email, user.password || '', { username: user.username, name: user.name, role: user.role, avatar: user.avatar });
+        
+        if (result.error) {
+          alert(result.error);
+          setIsAppLoading(false);
+          return;
+        }
+        
+        if (!result.user) {
+          alert('فشل في إنشاء حساب المسؤول. يرجى المحاولة مرة أخرى.');
           setIsAppLoading(false);
           return;
         }
@@ -152,13 +159,13 @@ const App: React.FC = () => {
 
         const newSettings = await api.getSettings();
         setSettings(newSettings);
-        setUsers(prev => [...prev, created]);
-        setCurrentUser(created);
+        setUsers(prev => [...prev, result.user!]);
+        setCurrentUser(result.user);
         setActiveTab('dashboard');
         handleAddLog('تسجيل مدرسة جديدة', `تم تسجيل مدرسة ${schoolName} بواسطة ${adminName}`);
-      } catch (e) {
+      } catch (e: any) {
         console.error('Registration error', e);
-        alert('فشل التسجيل');
+        alert(e?.message || 'فشل التسجيل. يرجى المحاولة مرة أخرى');
       } finally {
         setIsAppLoading(false);
       }

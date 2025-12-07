@@ -40,12 +40,11 @@ export const api = {
         }
     },
 
-    signUp: async (email: string, password: string, profile: { username: string; name: string; role: Role; avatar?: string; }): Promise<User | null> => {
+    signUp: async (email: string, password: string, profile: { username: string; name: string; role: Role; avatar?: string; }): Promise<{ user: User | null; error: string | null }> => {
         try {
             // Validate password length
             if (!password || password.length < 6) {
-                console.error('Password must be at least 6 characters');
-                return null;
+                return { user: null, error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' };
             }
 
             // Sign up with user metadata so trigger can use it
@@ -61,23 +60,120 @@ export const api = {
                     }
                 }
             });
+            
             if (res.error) {
                 console.error('Supabase auth signUp error:', res.error);
-                // Return more specific error info if needed
-                return null;
+                
+                // Handle specific error types
+                if (res.error.status === 429) {
+                    // Rate limiting error
+                    const message = res.error.message || 'تم تجاوز عدد المحاولات المسموح بها';
+                    const waitTime = message.match(/(\d+)\s*seconds?/)?.[1] || '18';
+                    return { 
+                        user: null, 
+                        error: `تم تجاوز عدد المحاولات. يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى` 
+                    };
+                }
+                
+                if (res.error.message?.includes('already registered') || res.error.message?.includes('already exists') || res.error.message?.includes('User already registered')) {
+                    // User exists in auth, check if profile exists
+                    const { data: existingProfile } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('email', email)
+                        .single();
+                    
+                    if (existingProfile) {
+                        // Profile exists, return the user
+                        return {
+                            user: {
+                                id: existingProfile.id,
+                                username: existingProfile.username,
+                                name: existingProfile.name,
+                                role: existingProfile.role as Role,
+                                avatar: existingProfile.avatar
+                            } as User,
+                            error: null
+                        };
+                    }
+                    return { user: null, error: 'البريد الإلكتروني مسجل مسبقاً' };
+                }
+                
+                if (res.error.message?.includes('Invalid email')) {
+                    return { user: null, error: 'البريد الإلكتروني غير صحيح' };
+                }
+                
+                if (res.error.message?.includes('Password')) {
+                    return { user: null, error: 'كلمة المرور غير صحيحة. يجب أن تكون 6 أحرف على الأقل' };
+                }
+                
+                // Generic error
+                return { user: null, error: res.error.message || 'فشل في إنشاء الحساب. يرجى المحاولة مرة أخرى' };
             }
-            const user = res.data.user;
-            if (!user) return null;
+            
+            // Handle case where user is created but email confirmation is pending
+            // In this case, res.data.user might be null but user exists in auth.users
+            let userId: string | null = null;
+            
+            if (res.data.user) {
+                userId = res.data.user.id;
+            } else {
+                // User might be created but email confirmation pending
+                // Wait a bit for trigger to create profile, then check by email
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const { data: profileByEmail } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('email', email)
+                    .single();
+                if (profileByEmail) {
+                    userId = profileByEmail.id;
+                }
+            }
+            
+            if (!userId) {
+                // Check if profile was created by trigger (by email)
+                const { data: profileCheck } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('email', email)
+                    .single();
+                
+                if (profileCheck) {
+                    // Profile exists, return it
+                    return {
+                        user: {
+                            id: profileCheck.id,
+                            username: profileCheck.username,
+                            name: profileCheck.name,
+                            role: profileCheck.role as Role,
+                            avatar: profileCheck.avatar
+                        } as User,
+                        error: null
+                    };
+                }
+                
+                // User created in auth but profile not found - might need email confirmation
+                // Check if we can find user by trying to sign in (if email confirmation disabled)
+                // Otherwise, return helpful message
+                return { 
+                    user: null, 
+                    error: 'تم إنشاء المستخدم. إذا كان البريد الإلكتروني يحتاج تأكيد، يرجى التحقق من بريدك الإلكتروني. أو حاول تسجيل الدخول مباشرة' 
+                };
+            }
             
             // Trigger will auto-create profile, but we update it with exact values
             // This ensures correct username, role, etc. (trigger might use defaults)
             const payload = {
-                id: user.id,
+                id: userId,
                 username: profile.username,
                 name: profile.name,
                 role: profile.role,
                 avatar: profile.avatar
             };
+            
+            // Wait a moment for trigger to potentially create profile
+            await new Promise(resolve => setTimeout(resolve, 300));
             
             // Upsert to handle case where trigger already created it
             const { error: pErr } = await supabase
@@ -86,19 +182,47 @@ export const api = {
             
             if (pErr) {
                 console.error('Error creating/updating profile:', pErr);
-                return null;
+                
+                // Check if profile exists anyway (maybe trigger created it)
+                const { data: existingProfile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+                
+                if (existingProfile) {
+                    // Profile exists, return it even though upsert failed
+                    return {
+                        user: {
+                            id: existingProfile.id,
+                            username: existingProfile.username,
+                            name: existingProfile.name,
+                            role: existingProfile.role as Role,
+                            avatar: existingProfile.avatar
+                        } as User,
+                        error: null
+                    };
+                }
+                
+                return { user: null, error: 'فشل في إنشاء ملف المستخدم. يرجى المحاولة مرة أخرى' };
             }
             
             return {
-                id: payload.id,
-                username: payload.username,
-                name: payload.name,
-                role: payload.role,
-                avatar: payload.avatar
-            } as User;
-        } catch (error) {
+                user: {
+                    id: payload.id,
+                    username: payload.username,
+                    name: payload.name,
+                    role: payload.role,
+                    avatar: payload.avatar
+                } as User,
+                error: null
+            };
+        } catch (error: any) {
             console.error('signUp exception:', error);
-            return null;
+            return { 
+                user: null, 
+                error: error?.message || 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى' 
+            };
         }
     },
 
@@ -110,8 +234,52 @@ export const api = {
         }
     },
 
+    // Check if email already exists
+    checkEmailExists: async (email: string): Promise<boolean> => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', email.toLowerCase().trim())
+                .limit(1)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error checking email:', error);
+                return false;
+            }
+            
+            return !!data;
+        } catch (error) {
+            console.error('checkEmailExists exception:', error);
+            return false;
+        }
+    },
+
+    // Check if username already exists
+    checkUsernameExists: async (username: string): Promise<boolean> => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('username', username.toLowerCase().trim())
+                .limit(1)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error checking username:', error);
+                return false;
+            }
+            
+            return !!data;
+        } catch (error) {
+            console.error('checkUsernameExists exception:', error);
+            return false;
+        }
+    },
+
     // --- Authentication & Users ---
-    login: async (username: string, password: string): Promise<User | null> => {
+    login: async (username: string, password: string): Promise<{ user: User | null; error: string | null }> => {
         try {
             // Resolve email from username via profiles table
             const { data: profileRow, error: profileErr } = await supabase
@@ -133,18 +301,35 @@ export const api = {
 
             if (!email) {
                 console.warn('No email found for username:', username);
-                return null;
+                return { user: null, error: 'اسم المستخدم غير موجود' };
             }
 
             // Sign in with email and password
             const res = await supabase.auth.signInWithPassword({ email, password });
             if (res.error) {
                 console.error('Supabase signIn error:', res.error);
-                return null;
+                
+                // Handle specific error types
+                if (res.error.message?.includes('Invalid login credentials') || res.error.message?.includes('Wrong password')) {
+                    return { user: null, error: 'كلمة المرور غير صحيحة' };
+                }
+                
+                if (res.error.status === 429) {
+                    const message = res.error.message || 'تم تجاوز عدد المحاولات المسموح بها';
+                    const waitTime = message.match(/(\d+)\s*seconds?/)?.[1] || '18';
+                    return { 
+                        user: null, 
+                        error: `تم تجاوز عدد المحاولات. يرجى الانتظار ${waitTime} ثانية قبل المحاولة مرة أخرى` 
+                    };
+                }
+                
+                return { user: null, error: 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى' };
             }
             
             const supUser = res.data.user;
-            if (!supUser) return null;
+            if (!supUser) {
+                return { user: null, error: 'فشل في تسجيل الدخول' };
+            }
 
             // Fetch profile
             const { data: finalProfile, error: profileError } = await supabase
@@ -155,19 +340,22 @@ export const api = {
 
             if (profileError || !finalProfile) {
                 console.error('Profile not found after login:', profileError);
-                return null;
+                return { user: null, error: 'ملف المستخدم غير موجود' };
             }
 
             return {
-                id: finalProfile.id,
-                username: finalProfile.username,
-                name: finalProfile.name,
-                role: finalProfile.role as Role,
-                avatar: finalProfile.avatar
-            } as User;
-        } catch (err) {
+                user: {
+                    id: finalProfile.id,
+                    username: finalProfile.username,
+                    name: finalProfile.name,
+                    role: finalProfile.role as Role,
+                    avatar: finalProfile.avatar
+                } as User,
+                error: null
+            };
+        } catch (err: any) {
             console.error('Login exception:', err);
-            return null;
+            return { user: null, error: err?.message || 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى' };
         }
     },
 
