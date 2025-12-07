@@ -66,7 +66,14 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
       )}
 
       {isOpen && (
-        <div className="fixed left-2 right-2 bottom-2 md:bottom-24 md:left-6 md:right-auto md:w-96 md:inset-x-auto md:top-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden max-h-[60vh] md:max-h-[500px]">
+        <div 
+          className="fixed left-1 right-1 bottom-2 md:bottom-24 md:left-6 md:right-auto md:w-96 md:inset-x-auto md:top-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[500px]"
+          style={{
+            maxHeight: 'calc(100svh - 1rem)',
+            height: 'auto',
+            maxWidth: 'calc(100vw - 0.5rem)'
+          }}
+        >
           {/* Header */}
           <div className="bg-teal-600 p-2.5 md:p-4 text-white flex justify-between items-center flex-shrink-0">
             <h3 className="font-bold flex items-center gap-1.5 md:gap-2 text-xs md:text-base">

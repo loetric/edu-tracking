@@ -180,13 +180,20 @@ const App: React.FC = () => {
             } as ChatMessage;
             
             setChatMessages(prev => {
-              // Remove any temp messages with same sender and text (in case real-time arrives before API response)
-              const withoutTemp = prev.filter(m => !m.id.startsWith('temp-'));
-              
-              // Avoid duplicates by checking ID
-              if (withoutTemp.some(m => m.id === newMessage.id)) {
-                return withoutTemp;
+              // Avoid duplicates by checking ID first
+              if (prev.some(m => m.id === newMessage.id)) {
+                return prev;
               }
+              
+              // Remove any temp messages with same sender and text (in case real-time arrives after API response)
+              const withoutTemp = prev.filter(m => {
+                // Keep temp messages that don't match this new message
+                if (m.id.startsWith('temp-')) {
+                  // Remove temp message if it matches sender and text
+                  return !(m.sender === newMessage.sender && m.text === newMessage.text);
+                }
+                return true;
+              });
               
               // Add new message and sort by timestamp
               const updated = [...withoutTemp, newMessage];
@@ -376,8 +383,8 @@ const App: React.FC = () => {
           });
       });
       
-      // Force a micro-task to ensure state update is visible
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Force a micro-task to ensure state update is visible immediately
+      await new Promise(resolve => requestAnimationFrame(resolve));
       
       try {
           // Send message - database will generate UUID
