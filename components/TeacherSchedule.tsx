@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { ScheduleItem, Role } from '../types';
-import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen } from 'lucide-react';
+import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle } from 'lucide-react';
 
 interface TeacherScheduleProps {
   schedule: ScheduleItem[];
@@ -286,7 +286,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                     <div key={session.id} className={`p-2.5 md:p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex items-center justify-between mb-2 gap-2">
                         <span className="text-[10px] md:text-xs bg-gray-200 px-2 py-1 rounded font-bold text-gray-600">حصة {session.period}</span>
-                        {isCompleted && <CheckCircle2 size={14} className="text-green-600 flex-shrink-0 md:w-4 md:h-4" />}
+                        {isCompleted && <CheckCircle size={14} className="text-green-600 flex-shrink-0 md:w-4 md:h-4" />}
                       </div>
                       <p className="font-bold text-blue-800 mb-1 text-sm md:text-base">{session.subject}</p>
                       <p className="text-xs md:text-sm text-gray-600">{session.classRoom}</p>

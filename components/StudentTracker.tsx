@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Student, DailyRecord, StatusType, AttendanceStatus, Role, ScheduleItem } from '../types';
 import { getStatusColor, getStatusLabel, getChallengeColor, getChallengeLabel } from '../constants';
-import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass, CheckCircle2 } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass } from 'lucide-react';
 
 interface StudentTrackerProps {
   students: Student[];
@@ -203,7 +203,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                               <span className={`text-[10px] font-bold px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
                               {isAdmin && (
                                   completed 
-                                  ? <CheckCircle2 size={14} className="text-green-500" />
+                                  ? <CheckCircle size={14} className="text-green-500" />
                                   : <Hourglass size={14} className="text-orange-400" />
                               )}
                           </div>
@@ -250,7 +250,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
               )}
                {isAdmin && isSessionCompleted(selectedSession.id) && (
                   <span className="font-bold bg-green-100 px-3 py-1 rounded-full text-xs shadow-sm flex items-center gap-1 text-green-700 border border-green-200">
-                      <CheckCircle2 size={14} />
+                      <CheckCircle size={14} />
                       مكتمل وجاهز للإرسال
                   </span>
               )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Student, DailyRecord, Role, ScheduleItem } from '../types';
-import { CheckCircle2, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check } from 'lucide-react';
 
 interface DashboardStatsProps {
   students: Student[];
@@ -154,7 +154,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         <td className="px-6 py-4">
                                             {item.isReady ? (
                                                 <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full w-fit">
-                                                    <CheckCircle2 size={16} />
+                                                    <CheckCircle size={16} />
                                                     <span className="font-bold text-xs">جاهز للإرسال</span>
                                                 </div>
                                             ) : (
@@ -199,7 +199,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                             <div key={item.className} className={`bg-white border rounded-lg p-3 md:p-4 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
                                 <div className="flex items-center justify-between mb-2 gap-2">
                                     <p className="font-bold text-gray-800 text-sm md:text-base truncate flex-1">{item.className}</p>
-                                    {item.isReady && <CheckCircle2 size={16} className="text-green-600 flex-shrink-0 md:w-5 md:h-5" />}
+                                    {item.isReady && <CheckCircle size={16} className="text-green-600 flex-shrink-0 md:w-5 md:h-5" />}
                                 </div>
                                 <p className="text-xs text-gray-500 mb-3 line-clamp-2">المعلمين: {item.teachers.join('، ')}</p>
                                 <div className="mb-3">
