@@ -7,6 +7,8 @@ export const api = {
     // --- Authentication & Users ---
     login: async (username: string, password: string): Promise<User | null> => {
         try {
+            console.log('Login attempt:', { username: username.toLowerCase(), passwordLength: password.length });
+            
             const { data, error } = await supabase
                 .from('users')
                 .select('*')
@@ -14,10 +16,20 @@ export const api = {
                 .eq('password', password)
                 .single();
 
-            if (error || !data) return null;
+            if (error) {
+                console.error('Supabase login error:', error);
+                return null;
+            }
+            
+            if (!data) {
+                console.error('No user found with provided credentials');
+                return null;
+            }
+            
+            console.log('Login successful for user:', data.username);
             return data as User;
         } catch (error) {
-            console.error('Login error:', error);
+            console.error('Login exception:', error);
             return null;
         }
     },
