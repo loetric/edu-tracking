@@ -62,24 +62,31 @@ const App: React.FC = () => {
 
   // --- Listen to auth state changes ---
   useEffect(() => {
+    let isMounted = true;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
+      if (!isMounted) return;
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // User signed in or token refreshed - update user state
         if (session?.user) {
           const user = await api.getCurrentUser();
-          if (user) {
+          if (user && isMounted) {
             setCurrentUser(user);
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        setCurrentUser(null);
-        setStudents([]);
-        setLogs([]);
+        // User signed out - clear state
+        if (isMounted) {
+          setCurrentUser(null);
+          setStudents([]);
+          setLogs([]);
+        }
       }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);

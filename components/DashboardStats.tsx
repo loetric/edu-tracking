@@ -231,12 +231,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                 <div className="flex justify-between items-center mb-4 md:mb-6">
                     <h3 className="text-base md:text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
                 </div>
-                <div className="flex-1 min-h-[250px] w-full -mx-2 md:-mx-4 px-2 md:px-4">
+                <div className="flex-1 min-h-[250px] w-full overflow-hidden">
                     {/* Give ResponsiveContainer an explicit height to avoid width/height -1 warnings */}
                     <ResponsiveContainer width="100%" height={250}>
                         <AreaChart 
                             data={data}
-                            margin={{ top: 10, right: 10, left: -20, bottom: 10 }}
+                            margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
                         >
                             <defs>
                                 <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">
@@ -256,13 +256,13 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                 tickLine={false} 
                                 tick={{fontSize: 11, fill: '#6b7280', fontWeight: 500}} 
                                 dy={10}
-                                padding={{ left: 10, right: 10 }}
+                                padding={{ left: 5, right: 5 }}
                             />
                             <YAxis 
                                 axisLine={false} 
                                 tickLine={false} 
                                 tick={{fontSize: 11, fill: '#6b7280', fontWeight: 500}}
-                                width={40}
+                                width={45}
                                 domain={[0, 100]}
                             />
                             <Tooltip 
@@ -271,11 +271,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     border: '1px solid #e5e7eb', 
                                     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
                                     backgroundColor: '#ffffff',
-                                    padding: '8px 12px'
+                                    padding: '8px 12px',
+                                    direction: 'rtl',
+                                    textAlign: 'right'
                                 }}
                                 cursor={{ stroke: '#0d9488', strokeWidth: 1, strokeDasharray: '4 4' }}
                                 labelStyle={{ color: '#374151', fontWeight: 'bold', marginBottom: '4px' }}
-                                itemStyle={{ color: '#0d9488', fontWeight: 'bold' }}
+                                formatter={(value: number) => [`${value}%`, 'الأداء']}
+                                labelFormatter={(label) => `اليوم: ${label}`}
                             />
                             <Area 
                                 type="monotone" 
