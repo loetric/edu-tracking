@@ -1,42 +1,163 @@
 
-import { Student, DailyRecord, LogEntry, SchoolSettings, ScheduleItem, ChatMessage, User, Substitution } from '../types';
+import { Student, DailyRecord, LogEntry, SchoolSettings, ScheduleItem, ChatMessage, User, Substitution, Role } from '../types';
 import { INITIAL_SETTINGS, INITIAL_USERS } from '../constants';
 import { supabase } from './supabase';
 
 export const api = {
-    // --- Authentication & Users ---
-    login: async (username: string, password: string): Promise<User | null> => {
+    // --- Auth (Supabase Auth) ---
+    signIn: async (email: string, password: string): Promise<User | null> => {
         try {
-            console.log('Login attempt:', { username: username.toLowerCase(), passwordLength: password.length });
-            
-            const { data, error } = await supabase
-                .from('users')
+            const res = await supabase.auth.signInWithPassword({ email, password });
+            if (res.error) {
+                console.error('Supabase auth signIn error:', res.error);
+                return null;
+            }
+            const user = res.data.user;
+            if (!user) return null;
+            // Fetch profile from profiles table
+            const { data: profile, error: pErr } = await supabase
+                .from('profiles')
                 .select('*')
-                .eq('username', username.toLowerCase())
-                .eq('password', password)
+                .eq('id', user.id)
                 .single();
-
-            if (error) {
-                console.error('Supabase login error:', error);
+            if (pErr) {
+                console.warn('No profile found for user id', user.id, pErr);
                 return null;
             }
-            
-            if (!data) {
-                console.error('No user found with provided credentials');
-                return null;
-            }
-            
-            console.log('Login successful for user:', data.username);
-            return data as User;
+            return {
+                id: profile.id,
+                username: profile.username,
+                name: profile.name,
+                role: profile.role,
+                avatar: profile.avatar
+            } as User;
         } catch (error) {
-            console.error('Login exception:', error);
+            console.error('signIn exception:', error);
             return null;
         }
     },
 
-    registerSchool: async (schoolName: string, adminName: string, adminUser: User): Promise<void> => {
+    signUp: async (email: string, password: string, profile: { username: string; name: string; role: Role; avatar?: string; }): Promise<User | null> => {
         try {
-            // Update settings
+            const res = await supabase.auth.signUp({ email, password });
+            if (res.error) {
+                console.error('Supabase auth signUp error:', res.error);
+                return null;
+            }
+            const user = res.data.user;
+            if (!user) return null;
+            // create profile
+            const payload = {
+                id: user.id,
+                username: profile.username,
+                name: profile.name,
+                role: profile.role,
+                avatar: profile.avatar
+            };
+            const { error: pErr } = await supabase.from('profiles').insert([payload]);
+            if (pErr) {
+                console.error('Error creating profile:', pErr);
+            }
+            return {
+                id: payload.id,
+                username: payload.username,
+                name: payload.name,
+                role: payload.role,
+                avatar: payload.avatar
+            } as User;
+        } catch (error) {
+            console.error('signUp exception:', error);
+            return null;
+        }
+    },
+
+    signOut: async (): Promise<void> => {
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error('signOut error:', error);
+        }
+    },
+    // --- Authentication & Users ---
+    login: async (username: string, password: string): Promise<User | null> => {
+        try {
+            // Try to resolve an email for this username via `profiles` table
+            const { data: profileRow, error: profileErr } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('username', username)
+                .limit(1)
+                .single();
+
+            let email: string | undefined = undefined;
+            if (profileRow && (profileRow as any).email) {
+                email = (profileRow as any).email;
+            }
+
+            // If the provided username looks like an email, use it
+            if (!email && username.includes('@')) {
+                email = username;
+            }
+
+            // Fallback: check legacy `users` table for an email field
+            if (!email) {
+                const { data: legacyUser } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('username', username)
+                    .limit(1)
+                    .single();
+                if (legacyUser && (legacyUser as any).email) email = (legacyUser as any).email;
+            }
+
+            if (!email) {
+                console.warn('No email found for username; cannot sign in via Supabase Auth:', username);
+                return null;
+            }
+
+            const res = await supabase.auth.signInWithPassword({ email, password });
+            if (res.error) {
+                console.error('Supabase signIn error:', res.error);
+                return null;
+            }
+            const supUser = res.data.user;
+            if (!supUser) return null;
+
+            // Fetch canonical profile
+            const { data: finalProfile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', supUser.id)
+                .limit(1)
+                .single();
+
+            if (!finalProfile) {
+                // If no profile, return a minimal User object using auth user data
+                return {
+                    id: supUser.id,
+                    username: username,
+                    name: supUser.user_metadata?.full_name || username,
+                    role: null,
+                    avatar: supUser.user_metadata?.avatar_url || undefined
+                } as User;
+            }
+
+            return {
+                id: finalProfile.id,
+                username: finalProfile.username,
+                name: finalProfile.name,
+                role: (finalProfile.role || null) as Role,
+                avatar: finalProfile.avatar
+            } as User;
+        } catch (err) {
+            console.error('Login exception:', err);
+            return null;
+        }
+    },
+
+    registerSchool: async (schoolName: string, adminName: string, adminUser?: User): Promise<void> => {
+        try {
+            // Update settings only
             const { data: settingsData } = await supabase
                 .from('settings')
                 .select('id')
@@ -54,10 +175,7 @@ export const api = {
                     .insert([{ name: schoolName, ...INITIAL_SETTINGS }]);
             }
 
-            // Insert admin user
-            await supabase
-                .from('users')
-                .insert([adminUser]);
+            // NOTE: user profiles should be created via Supabase Auth + profiles table
         } catch (error) {
             console.error('Register school error:', error);
             throw error;

@@ -129,19 +129,29 @@ const App: React.FC = () => {
       handleAddLog('تسجيل دخول', `قام ${user.name} بتسجيل الدخول`);
   };
 
-  const handleRegister = async (schoolName: string, adminName: string, user: User) => {
+  const handleRegister = async (schoolName: string, adminName: string, user: User, email: string) => {
       setIsAppLoading(true);
       try {
-        await api.registerSchool(schoolName, adminName, user);
-        // Reload settings
+        // Create Auth user and profile via API
+        const created = await api.signUp(email, user.password || '', { username: user.username, name: user.name, role: user.role, avatar: user.avatar });
+        if (!created) {
+          alert('فشل في إنشاء حساب المسؤول');
+          setIsAppLoading(false);
+          return;
+        }
+
+        // Create/Update settings
+        await api.registerSchool(schoolName, adminName);
+
         const newSettings = await api.getSettings();
         setSettings(newSettings);
-        setUsers(prev => [...prev, user]);
-        setCurrentUser(user);
+        setUsers(prev => [...prev, created]);
+        setCurrentUser(created);
         setActiveTab('dashboard');
         handleAddLog('تسجيل مدرسة جديدة', `تم تسجيل مدرسة ${schoolName} بواسطة ${adminName}`);
       } catch (e) {
-        alert("فشل التسجيل");
+        console.error('Registration error', e);
+        alert('فشل التسجيل');
       } finally {
         setIsAppLoading(false);
       }

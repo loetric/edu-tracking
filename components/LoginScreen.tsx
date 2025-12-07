@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
+import { api } from '../services/api';
 import { UserCog, Lock, User, Eye, EyeOff, LogIn, PlusCircle, School } from 'lucide-react';
 import { Role, SchoolSettings, User as UserType } from '../types';
 
 interface LoginScreenProps {
-  onLogin: (user: UserType) => void;
-  onRegister?: (schoolName: string, adminName: string, user: UserType) => void;
+    onLogin: (user: UserType) => void;
+    onRegister?: (schoolName: string, adminName: string, user: UserType, email: string) => void;
   settings: SchoolSettings;
   users: UserType[];
 }
@@ -13,8 +14,8 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, settings, users }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   
-  // Login State
-  const [username, setUsername] = useState('');
+    // Login State
+    const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +25,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
   const [schoolName, setSchoolName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [regUsername, setRegUsername] = useState('');
+    const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
@@ -32,13 +34,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
     setError('');
     setLoading(true);
 
-    // Pass the credentials to parent (App.tsx) which calls the API
-    // We construct a partial user object to pass credentials
-    const credentials = { username, password } as UserType;
-    await onLogin(credentials);
-    
-    // If onLogin returns (meaning failed or handled), stop loading
-    setLoading(false);
+        // Call API signIn (Supabase Auth) directly from the component
+        try {
+            const user = await api.signIn(username, password);
+            if (user) {
+                await onLogin(user);
+            } else {
+                setError('بيانات الدخول غير صحيحة');
+            }
+        } catch (err) {
+            setError('خطأ في تسجيل الدخول');
+            console.error('Login error', err);
+        } finally {
+            setLoading(false);
+        }
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -52,7 +61,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
           return;
       }
       
-      if (!schoolName || !adminName || !regUsername || !regPassword) {
+      if (!schoolName || !adminName || !regUsername || !regPassword || !regEmail) {
           setError('جميع الحقول مطلوبة');
           setLoading(false);
           return;
@@ -74,7 +83,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
             role: 'admin',
             avatar: `https://ui-avatars.com/api/?name=${adminName.replace(' ', '+')}&background=0D9488&color=fff`
         };
-        onRegister(schoolName, adminName, newUser);
+        onRegister && onRegister(schoolName, adminName, newUser, regEmail);
       }
   };
 
@@ -148,6 +157,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                                 onChange={(e) => setRegUsername(e.target.value)}
                                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm"
                                 placeholder="admin_school"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
+                            <input
+                                type="email"
+                                value={regEmail}
+                                onChange={(e) => setRegEmail(e.target.value)}
+                                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none text-sm"
+                                placeholder="admin@example.com"
                             />
                         </div>
                         <div>
