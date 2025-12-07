@@ -13,7 +13,7 @@ import { CounselorView } from './components/CounselorView';
 import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User } from './types';
-import { AVAILABLE_TEACHERS } from './constants';
+import { AVAILABLE_TEACHERS, INITIAL_SETTINGS } from './constants';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
 import { supabase } from './services/supabase';
@@ -49,12 +49,20 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const user = await api.getCurrentUser();
+        // Add timeout to prevent hanging (reduced to 2 seconds)
+        const timeoutPromise = new Promise<null>((resolve) => 
+          setTimeout(() => resolve(null), 2000)
+        );
+        
+        const userPromise = api.getCurrentUser();
+        const user = await Promise.race([userPromise, timeoutPromise]);
+        
         if (user) {
           setCurrentUser(user);
         }
       } catch (error) {
         console.error("Error checking session:", error);
+        // Don't block - allow app to continue
       }
     };
     checkSession();
@@ -95,15 +103,27 @@ const App: React.FC = () => {
   useEffect(() => {
     const initSystem = async () => {
       try {
-        const [fetchedSettings, fetchedUsers] = await Promise.all([
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise<{settings: SchoolSettings, users: User[]}>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        );
+        
+        const dataPromise = Promise.all([
           api.getSettings(),
           api.getUsers()
-        ]);
-        setSettings(fetchedSettings);
-        setUsers(fetchedUsers);
+        ]).then(([fetchedSettings, fetchedUsers]) => ({
+          settings: fetchedSettings,
+          users: fetchedUsers
+        }));
+        
+        const result = await Promise.race([dataPromise, timeoutPromise]);
+        setSettings(result.settings);
+        setUsers(result.users);
       } catch (error) {
         console.error("Failed to load system data", error);
-        alert("فشل في الاتصال بقاعدة البيانات");
+        // Use default settings instead of blocking
+        setSettings(INITIAL_SETTINGS);
+        setUsers([]);
       } finally {
         setIsAppLoading(false);
       }
@@ -117,15 +137,12 @@ const App: React.FC = () => {
       const loadDashboardData = async () => {
         setIsDataLoading(true);
         try {
-          const [
-            fetchedStudents, 
-            fetchedSchedule, 
-            fetchedRecords, 
-            fetchedLogs, 
-            fetchedMessages,
-            fetchedCompleted,
-            fetchedSubs
-          ] = await Promise.all([
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise<never>((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          );
+          
+          const dataPromise = Promise.all([
             api.getStudents(),
             api.getSchedule(),
             api.getDailyRecords(),
@@ -134,6 +151,16 @@ const App: React.FC = () => {
             api.getCompletedSessions(),
             api.getSubstitutions()
           ]);
+          
+          const [
+            fetchedStudents, 
+            fetchedSchedule, 
+            fetchedRecords, 
+            fetchedLogs, 
+            fetchedMessages,
+            fetchedCompleted,
+            fetchedSubs
+          ] = await Promise.race([dataPromise, timeoutPromise]);
 
           setStudents(fetchedStudents);
           setSchedule(fetchedSchedule);
@@ -144,6 +171,14 @@ const App: React.FC = () => {
           setSubstitutions(fetchedSubs);
         } catch (error) {
           console.error("Error loading dashboard data", error);
+          // Set empty arrays on timeout/error to allow app to continue
+          setStudents([]);
+          setSchedule([]);
+          setCurrentRecords({});
+          setLogs([]);
+          setChatMessages([]);
+          setCompletedSessions([]);
+          setSubstitutions([]);
         } finally {
           setIsDataLoading(false);
         }
