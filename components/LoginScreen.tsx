@@ -34,9 +34,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
     setError('');
     setLoading(true);
 
-        // Call API signIn (Supabase Auth) directly from the component
+        // Call API login (handles username-to-email resolution)
         try {
-            const user = await api.signIn(username, password);
+            const user = await api.login(username, password);
             if (user) {
                 await onLogin(user);
             } else {

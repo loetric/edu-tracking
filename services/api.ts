@@ -209,7 +209,13 @@ export const api = {
             const ids = payload.map(p => p.id).filter(Boolean);
             // Remove profiles not present in new list
             if (ids.length > 0) {
-                await supabase.from('profiles').delete().not('id', 'in', `(${ids.map(id => `'${id}'`).join(',')})`);
+                // Get all existing profile IDs
+                const { data: allProfiles } = await supabase.from('profiles').select('id');
+                const allIds = (allProfiles || []).map(p => p.id);
+                const idsToDelete = allIds.filter(id => !ids.includes(id));
+                if (idsToDelete.length > 0) {
+                    await supabase.from('profiles').delete().in('id', idsToDelete);
+                }
             }
             // Upsert remaining/updated profiles
             if (payload.length > 0) {
@@ -374,7 +380,12 @@ export const api = {
 
     saveDailyRecords: async (records: Record<string, DailyRecord>): Promise<void> => {
         try {
-            const recordsArray = Object.values(records);
+            const recordsArray = Object.values(records).map(r => ({
+                ...r,
+                // Generate ID if missing (format: studentId_date)
+                id: r.id || `${r.studentId}_${r.date}`
+            }));
+            
             const { data: existingRecords } = await supabase
                 .from('daily_records')
                 .select('id');
@@ -436,8 +447,11 @@ export const api = {
 
             if (error) throw error;
             return (data as any[]).map(m => ({
-                ...m,
-                timestamp: new Date(m.timestamp)
+                id: m.id,
+                sender: m.sender,
+                text: m.text || m.message, // Support both 'text' and legacy 'message' column
+                timestamp: new Date(m.timestamp),
+                isSystem: m.isSystem || false
             })) as ChatMessage[];
         } catch (error) {
             console.error('Get messages error:', error);
@@ -450,8 +464,11 @@ export const api = {
             await supabase
                 .from('chat_messages')
                 .insert([{
-                    ...message,
-                    timestamp: message.timestamp?.toISOString() || new Date().toISOString()
+                    id: message.id,
+                    sender: message.sender,
+                    text: message.text, // Use 'text' not 'message' to match schema
+                    timestamp: message.timestamp?.toISOString() || new Date().toISOString(),
+                    isSystem: message.isSystem || false
                 }]);
         } catch (error) {
             console.error('Send message error:', error);

@@ -282,12 +282,7 @@ const App: React.FC = () => {
   if (!currentUser) {
     return (
       <LoginScreen 
-        onLogin={async (user) => {
-           // Verify login via API here if LoginScreen didn't already
-           const validUser = await api.login(user.username, user.password || '');
-           if(validUser) handleLogin(validUser);
-           else alert("بيانات الدخول غير صحيحة");
-        }} 
+        onLogin={handleLogin} 
         onRegister={handleRegister} 
         settings={settings} 
         users={users} 
