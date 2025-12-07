@@ -90,31 +90,58 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       });
   };
 
-  const handleSaveEdit = async () => {
-      if (!editingUser) return;
-      
-      try {
-          const updated = await api.updateUserProfile(editingUser.id, {
-              name: editFormData.name,
-              username: editFormData.username,
-              role: editFormData.role,
-              avatar: editFormData.avatar
-          });
-          
-          if (updated) {
-              const updatedUsers = users.map(u => u.id === editingUser.id ? updated : u);
-              onUpdateUsers(updatedUsers);
-              setEditingUser(null);
-              setEditFormData({});
-              alert('تم تحديث بيانات المستخدم بنجاح');
-          } else {
-              alert('فشل في تحديث بيانات المستخدم');
-          }
-      } catch (err: any) {
-          console.error('Edit user error', err);
-          alert(err?.message || 'حدث خطأ أثناء تحديث بيانات المستخدم');
-      }
-  };
+    const handleSaveEdit = async () => {
+        if (!editingUser) return;
+        
+        // Show confirmation dialog
+        const confirmMessage = `هل أنت متأكد من تحديث بيانات ${editingUser.name}؟\n\nالاسم: ${editFormData.name || editingUser.name}\nاسم المستخدم: ${editFormData.username || editingUser.username}\nالصلاحية: ${editFormData.role === 'admin' ? 'مدير' : editFormData.role === 'counselor' ? 'موجه' : 'معلم'}`;
+        
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+        
+        try {
+            const updated = await api.updateUserProfile(editingUser.id, {
+                name: editFormData.name,
+                username: editFormData.username,
+                role: editFormData.role,
+                avatar: editFormData.avatar
+            });
+            
+            if (updated) {
+                const updatedUsers = users.map(u => u.id === editingUser.id ? updated : u);
+                onUpdateUsers(updatedUsers);
+                setEditingUser(null);
+                setEditFormData({});
+                
+                // Show success message
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+                successMsg.innerHTML = '<span>✓</span> <span>تم تحديث بيانات المستخدم بنجاح</span>';
+                document.body.appendChild(successMsg);
+                setTimeout(() => {
+                    successMsg.remove();
+                }, 3000);
+            } else {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+                errorMsg.innerHTML = '<span>✗</span> <span>فشل في تحديث بيانات المستخدم. يرجى التحقق من الصلاحيات</span>';
+                document.body.appendChild(errorMsg);
+                setTimeout(() => {
+                    errorMsg.remove();
+                }, 4000);
+            }
+        } catch (err: any) {
+            console.error('Edit user error', err);
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+            errorMsg.innerHTML = `<span>✗</span> <span>${err?.message || 'حدث خطأ أثناء تحديث بيانات المستخدم'}</span>`;
+            document.body.appendChild(errorMsg);
+            setTimeout(() => {
+                errorMsg.remove();
+            }, 4000);
+        }
+    };
 
 
   const handleAddSession = () => {

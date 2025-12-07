@@ -227,40 +227,71 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             )}
 
             {/* Performance Chart (Takes up full width if not admin) */}
-            <div className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col ${role !== 'admin' ? 'lg:col-span-3' : ''}`}>
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
+            <div className={`bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden ${role !== 'admin' ? 'lg:col-span-3' : ''}`}>
+                <div className="flex justify-between items-center mb-4 md:mb-6">
+                    <h3 className="text-base md:text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
                 </div>
-                <div className="flex-1 min-h-[250px] w-full">
+                <div className="flex-1 min-h-[250px] w-full -mx-2 md:-mx-4 px-2 md:px-4">
                     {/* Give ResponsiveContainer an explicit height to avoid width/height -1 warnings */}
                     <ResponsiveContainer width="100%" height={250}>
-                        <AreaChart data={data}>
+                        <AreaChart 
+                            data={data}
+                            margin={{ top: 10, right: 10, left: -20, bottom: 10 }}
+                        >
                             <defs>
                                 <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="#0d9488" stopOpacity={0.1}/>
                                     <stop offset="95%" stopColor="#0d9488" stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} dy={10} />
-                            <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#9ca3af'}} />
+                            <CartesianGrid 
+                                strokeDasharray="3 3" 
+                                vertical={false} 
+                                stroke="#e5e7eb" 
+                                strokeWidth={1}
+                            />
+                            <XAxis 
+                                dataKey="name" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{fontSize: 11, fill: '#6b7280', fontWeight: 500}} 
+                                dy={10}
+                                padding={{ left: 10, right: 10 }}
+                            />
+                            <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{fontSize: 11, fill: '#6b7280', fontWeight: 500}}
+                                width={40}
+                                domain={[0, 100]}
+                            />
                             <Tooltip 
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                contentStyle={{ 
+                                    borderRadius: '12px', 
+                                    border: '1px solid #e5e7eb', 
+                                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                    backgroundColor: '#ffffff',
+                                    padding: '8px 12px'
+                                }}
                                 cursor={{ stroke: '#0d9488', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                labelStyle={{ color: '#374151', fontWeight: 'bold', marginBottom: '4px' }}
+                                itemStyle={{ color: '#0d9488', fontWeight: 'bold' }}
                             />
                             <Area 
                                 type="monotone" 
                                 dataKey="performance" 
                                 stroke="#0d9488" 
-                                strokeWidth={3}
+                                strokeWidth={2.5}
                                 fillOpacity={1} 
-                                fill="url(#colorPerf)" 
+                                fill="url(#colorPerf)"
+                                dot={{ fill: '#0d9488', strokeWidth: 2, r: 4 }}
+                                activeDot={{ r: 6, stroke: '#0d9488', strokeWidth: 2 }}
                             />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
-                <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-500">متوسط الأداء لهذا الأسبوع <span className="text-teal-600 font-bold">78%</span></p>
+                <div className="mt-3 md:mt-4 text-center">
+                    <p className="text-xs md:text-sm text-gray-500">متوسط الأداء لهذا الأسبوع <span className="text-teal-600 font-bold">78%</span></p>
                 </div>
             </div>
         </div>

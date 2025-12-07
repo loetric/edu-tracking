@@ -119,33 +119,33 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-md" dir="rtl">
-      <div className="flex items-center gap-2 mb-6">
-        <RotateCcw className="text-teal-600" size={24} />
-        <h3 className="text-xl font-bold text-gray-800">إعادة تعيين كلمة المرور</h3>
+    <div className="bg-white rounded-lg p-4 md:p-6 shadow-md" dir="rtl">
+      <div className="flex items-center gap-2 mb-4 md:mb-6">
+        <RotateCcw className="text-teal-600" size={20} />
+        <h3 className="text-lg md:text-xl font-bold text-gray-800">إعادة تعيين كلمة المرور</h3>
       </div>
 
       {message && (
         <div
-          className={`flex items-center gap-2 p-3 rounded-lg mb-4 ${
+          className={`flex items-center gap-2 p-3 rounded-lg mb-4 text-sm md:text-base ${
             message.type === 'success'
               ? 'bg-green-50 text-green-700 border border-green-200'
               : 'bg-red-50 text-red-700 border border-red-200'
           }`}
         >
           {message.type === 'success' ? (
-            <Check size={20} />
+            <Check size={18} className="flex-shrink-0" />
           ) : (
-            <X size={20} />
+            <X size={18} className="flex-shrink-0" />
           )}
-          {message.text}
+          <span className="break-words">{message.text}</span>
         </div>
       )}
 
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute right-3 top-3 text-gray-400" size={18} />
+          <Search className="absolute right-3 top-3 text-gray-400" size={16} />
           <input
             type="text"
             value={searchTerm}
@@ -156,80 +156,141 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="overflow-hidden rounded-lg border border-gray-200">
-        <table className="w-full text-right text-sm">
-          <thead className="bg-gray-50 text-gray-500 font-bold">
-            <tr>
-              <th className="p-3 md:p-4 text-xs md:text-sm">الاسم</th>
-              <th className="p-3 md:p-4 text-xs md:text-sm">اسم المستخدم</th>
-              <th className="p-3 md:p-4 text-xs md:text-sm">البريد الإلكتروني</th>
-              <th className="p-3 md:p-4 text-xs md:text-sm">الصلاحية</th>
-              <th className="p-3 md:p-4 text-xs md:text-sm">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filteredUsers.length === 0 ? (
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto -mx-4 md:mx-0">
+        <div className="inline-block min-w-full align-middle">
+          <table className="w-full text-right text-sm">
+            <thead className="bg-gray-50 text-gray-500 font-bold">
               <tr>
-                <td colSpan={5} className="p-8 text-center text-gray-400">
-                  {searchTerm ? 'لم يتم العثور على مستخدمين' : 'لا يوجد مستخدمين'}
-                </td>
+                <th className="p-3 md:p-4 text-xs md:text-sm">الاسم</th>
+                <th className="p-3 md:p-4 text-xs md:text-sm">اسم المستخدم</th>
+                <th className="p-3 md:p-4 text-xs md:text-sm">البريد الإلكتروني</th>
+                <th className="p-3 md:p-4 text-xs md:text-sm">الصلاحية</th>
+                <th className="p-3 md:p-4 text-xs md:text-sm">إجراءات</th>
               </tr>
-            ) : (
-              filteredUsers.map(user => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-                        <User size={16} className="text-teal-600" />
-                      </div>
-                      <span className="font-bold text-gray-800">{user.name}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 font-mono text-gray-600">{user.username}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Mail size={16} className="text-gray-400" />
-                      <span className={user.email === 'غير متوفر' ? 'text-gray-400 italic' : 'text-gray-700'}>
-                        {user.email}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-bold ${getRoleColor(user.role)}`}>
-                      {getRoleLabel(user.role)}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <button
-                      onClick={() => handleResetPassword(user)}
-                      disabled={resettingFor === user.id || user.email === 'غير متوفر'}
-                      className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${
-                        resettingFor === user.id || user.email === 'غير متوفر'
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-95'
-                      }`}
-                    >
-                      {resettingFor === user.id ? (
-                        <>
-                          <Loader2 size={14} className="animate-spin md:w-4 md:h-4" />
-                          <span className="hidden sm:inline">جاري الإرسال...</span>
-                          <span className="sm:hidden">جاري...</span>
-                        </>
-                      ) : (
-                        <>
-                          <RotateCcw size={14} className="md:w-4 md:h-4" />
-                          <span className="hidden sm:inline">إرسال رابط</span>
-                          <span className="sm:hidden">إرسال</span>
-                        </>
-                      )}
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-gray-400">
+                    {searchTerm ? 'لم يتم العثور على مستخدمين' : 'لا يوجد مستخدمين'}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredUsers.map(user => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="p-3 md:p-4">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                          <User size={14} className="text-teal-600 md:w-4 md:h-4" />
+                        </div>
+                        <span className="font-bold text-gray-800 text-sm md:text-base">{user.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-3 md:p-4 font-mono text-gray-600 text-xs md:text-sm">{user.username}</td>
+                    <td className="p-3 md:p-4">
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <Mail size={14} className="text-gray-400 md:w-4 md:h-4 flex-shrink-0" />
+                        <span className={`text-xs md:text-sm break-all ${user.email === 'غير متوفر' ? 'text-gray-400 italic' : 'text-gray-700'}`}>
+                          {user.email}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-3 md:p-4">
+                      <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-bold ${getRoleColor(user.role)}`}>
+                        {getRoleLabel(user.role)}
+                      </span>
+                    </td>
+                    <td className="p-3 md:p-4">
+                      <button
+                        onClick={() => handleResetPassword(user)}
+                        disabled={resettingFor === user.id || user.email === 'غير متوفر'}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${
+                          resettingFor === user.id || user.email === 'غير متوفر'
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-95'
+                        }`}
+                      >
+                        {resettingFor === user.id ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">جاري الإرسال...</span>
+                            <span className="sm:hidden">جاري...</span>
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw size={14} className="md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">إرسال رابط</span>
+                            <span className="sm:hidden">إرسال</span>
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {filteredUsers.length === 0 ? (
+          <div className="text-center p-8 text-gray-400">
+            {searchTerm ? 'لم يتم العثور على مستخدمين' : 'لا يوجد مستخدمين'}
+          </div>
+        ) : (
+          filteredUsers.map(user => (
+            <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+              <div className="flex items-center justify-between mb-3 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
+                    <User size={16} className="text-teal-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-gray-800 text-sm truncate">{user.name}</p>
+                    <p className="text-xs text-gray-500 font-mono truncate">{user.username}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-[10px] font-bold flex-shrink-0 ${getRoleColor(user.role)}`}>
+                  {getRoleLabel(user.role)}
+                </span>
+              </div>
+              
+              <div className="mb-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-1.5">
+                  <Mail size={14} className="text-gray-400 flex-shrink-0" />
+                  <span className={`text-xs break-all ${user.email === 'غير متوفر' ? 'text-gray-400 italic' : 'text-gray-700'}`}>
+                    {user.email}
+                  </span>
+                </div>
+              </div>
+              
+              <button
+                onClick={() => handleResetPassword(user)}
+                disabled={resettingFor === user.id || user.email === 'غير متوفر'}
+                className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  resettingFor === user.id || user.email === 'غير متوفر'
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-95'
+                }`}
+              >
+                {resettingFor === user.id ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>جاري الإرسال...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw size={14} />
+                    <span>إرسال رابط إعادة التعيين</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ))
+        )}
       </div>
 
       <p className="text-sm text-gray-500 text-right mt-4 p-3 bg-gray-50 rounded-lg">
