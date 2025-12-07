@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { SchoolSettings, User, Role, ScheduleItem } from '../types';
+import { PasswordReset } from './PasswordReset';
 import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Clock, Calendar, Check } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
 
@@ -16,7 +17,7 @@ interface SchoolSettingsProps {
 
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'setup'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup'>('general');
   
   // User Management State
   const [newUser, setNewUser] = useState<Partial<User>>({ role: 'teacher', name: '', username: '', password: '' });
@@ -108,6 +109,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
         <button onClick={() => setActiveTab('general')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
         <button onClick={() => setActiveTab('users')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
+        <button onClick={() => setActiveTab('password')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
         <button onClick={() => setActiveTab('setup')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
       </div>
 
@@ -331,6 +333,13 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                </div>
            </div>
         )}
+
+                {activeTab === 'password' && (
+                    <div className="space-y-6 animate-in fade-in">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">إدارة إعادة تعيين كلمات المرور</h2>
+                        <PasswordReset users={users.map(u => ({ id: u.id, username: u.username, email: (u as any).email, name: u.name, role: u.role }))} />
+                    </div>
+                )}
 
         {activeTab === 'setup' && (
           <div className="space-y-6 animate-in fade-in">
