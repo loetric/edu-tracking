@@ -351,17 +351,22 @@ export const api = {
     addLog: async (log: LogEntry): Promise<void> => {
         try {
             const payload: any = {
-                id: log.id,
                 timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
                 action: log.action,
                 details: log.details
             };
+            // Only include id if provided (avoid inserting null into UUID column)
+            if (log.id) payload.id = log.id;
             // Map frontend 'user' field to DB 'username' column
             if ((log as any).user) payload.username = (log as any).user;
 
-            await supabase
+            const { data, error } = await supabase
                 .from('logs')
                 .insert([payload]);
+            if (error) {
+                console.error('Supabase insert log error:', error);
+                throw error;
+            }
         } catch (error) {
             console.error('Add log error:', error);
         }
