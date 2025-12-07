@@ -19,7 +19,7 @@ CREATE POLICY "Public can select profiles for login" ON public.profiles
     FOR SELECT
     USING (true);
 
--- Allow authenticated users to insert their own profile
+-- Allow authenticated users to insert profiles (soft policy)
 CREATE POLICY "Allow insert for authenticated" ON public.profiles
     FOR INSERT
     WITH CHECK (auth.role() = 'authenticated');
@@ -46,25 +46,11 @@ CREATE POLICY "Public read settings" ON public.settings
     FOR SELECT
     USING (true);
 
--- Admin can update settings
-CREATE POLICY "Admin can update settings" ON public.settings
-    FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles p 
-            WHERE p.id = auth.uid() AND p.role = 'admin'
-        )
-    );
-
--- Admin can insert settings
-CREATE POLICY "Admin can insert settings" ON public.settings
-    FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.profiles p 
-            WHERE p.id = auth.uid() AND p.role = 'admin'
-        )
-    );
+-- Authenticated users can modify settings (soft policy)
+CREATE POLICY "Authenticated can modify settings" ON public.settings
+    FOR ALL
+    USING (auth.role() = 'authenticated')
+    WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================
 -- STUDENTS POLICIES
