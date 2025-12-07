@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد التسجيل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #14b8a6 0%, #065f46 100%);
+            direction: rtl;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .email-header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        .email-body {
+            padding: 40px 30px;
+            color: #1f2937;
+            line-height: 1.8;
+        }
+        .email-body h2 {
+            color: #0d9488;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        .email-body p {
+            font-size: 16px;
+            color: #374151;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .confirm-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+        .confirm-button:hover {
+            background: linear-gradient(135deg, #0d9488 0%, #047857 100%);
+            box-shadow: 0 6px 16px rgba(13, 148, 136, 0.4);
+            transform: translateY(-2px);
+        }
+        .email-footer {
+            background: #f9fafb;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+        .email-footer p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 30px 0;
+        }
+        .info-box {
+            background: #f0fdfa;
+            border-right: 4px solid #14b8a6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .info-box p {
+            margin: 0;
+            color: #065f46;
+            font-size: 14px;
+            text-align: right;
+        }
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 20px;
+                border-radius: 12px;
+            }
+            .email-header {
+                padding: 30px 20px;
+            }
+            .email-body {
+                padding: 30px 20px;
+            }
+            .confirm-button {
+                padding: 14px 30px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>نظام التتبع التعليمي</h1>
+            <p>مرحباً بك في نظامنا الذكي</p>
+        </div>
+        
+        <div class="email-body">
+            <h2>تأكيد التسجيل</h2>
+            
+            <p>شكراً لك على التسجيل في نظام التتبع التعليمي!</p>
+            
+            <p>لإكمال عملية التسجيل وإنشاء حسابك، يرجى النقر على الزر أدناه لتأكيد بريدك الإلكتروني:</p>
+            
+            <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="confirm-button">تأكيد البريد الإلكتروني</a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="info-box">
+                <p><strong>ملاحظة:</strong> إذا لم تطلب هذا الحساب، يمكنك تجاهل هذا البريد الإلكتروني بأمان.</p>
+            </div>
+            
+            <p style="font-size: 14px; color: #6b7280; margin-top: 30px;">
+                إذا لم يعمل الزر أعلاه، يمكنك نسخ الرابط التالي ولصقه في متصفحك:<br>
+                <a href="{{ .ConfirmationURL }}" style="color: #14b8a6; word-break: break-all;">{{ .ConfirmationURL }}</a>
+            </p>
+        </div>
+        
+        <div class="email-footer">
+            <p><strong>نظام التتبع التعليمي</strong></p>
+            <p>متابعة • تقارير • تواصل</p>
+            <p style="font-size: 12px; margin-top: 15px; color: #9ca3af;">
+                هذا بريد إلكتروني تلقائي، يرجى عدم الرد عليه
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

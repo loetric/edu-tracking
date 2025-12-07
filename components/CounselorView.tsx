@@ -176,7 +176,9 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
           </div>
 
           {filteredStudents.length > 0 ? (
-            <div className="overflow-x-auto">
+            <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-right">
                     <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider">
                         <tr>
@@ -226,6 +228,41 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                     </tbody>
                 </table>
             </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+                {filteredStudents.map(student => {
+                    const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
+                    return (
+                        <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <img src={student.avatar} alt={student.name} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
+                                    <div>
+                                        <p className="font-bold text-gray-800">{student.name}</p>
+                                        <p className="text-xs text-gray-400 font-mono">{student.parentPhone}</p>
+                                    </div>
+                                </div>
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${challengeInfo.color}`}>
+                                    <challengeInfo.icon size={12} />
+                                    {challengeInfo.label}
+                                </span>
+                            </div>
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <span className="text-sm font-medium text-gray-600">{student.classGrade}</span>
+                                <button 
+                                    onClick={() => setSelectedStudentForEdit(student)}
+                                    className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
+                                >
+                                    <Edit size={14} />
+                                    تعديل الحالة
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+            </>
           ) : (
              <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                  <Search size={48} className="mb-4 opacity-20" />

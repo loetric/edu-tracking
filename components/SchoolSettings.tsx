@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { api } from '../services/api';
+import { supabase } from '../services/supabase';
 import { SchoolSettings, User, Role, ScheduleItem } from '../types';
 import { PasswordReset } from './PasswordReset';
-import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Clock, Calendar, Check } from 'lucide-react';
+import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Clock, Calendar, Check, Edit2, KeyRound } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
 
 interface SchoolSettingsProps {
@@ -23,6 +24,11 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   // User Management State
     const [newUser, setNewUser] = useState<Partial<User & { email?: string }>>({ role: 'teacher', name: '', username: '', password: '', email: '' });
   const [isAddingUser, setIsAddingUser] = useState(false);
+  
+  // Edit User State
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<User>>({});
+  const [resettingPasswordFor, setResettingPasswordFor] = useState<string | null>(null);
 
   // Schedule Management State
   const [newSession, setNewSession] = useState<Partial<ScheduleItem>>({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
@@ -72,6 +78,79 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const handleDeleteUser = (id: string) => {
       if(window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
           onUpdateUsers(users.filter(u => u.id !== id));
+      }
+  };
+
+  const handleEditUser = (user: User) => {
+      setEditingUser(user);
+      setEditFormData({
+          name: user.name,
+          username: user.username,
+          role: user.role,
+          avatar: user.avatar
+      });
+  };
+
+  const handleSaveEdit = async () => {
+      if (!editingUser) return;
+      
+      try {
+          const updated = await api.updateUserProfile(editingUser.id, {
+              name: editFormData.name,
+              username: editFormData.username,
+              role: editFormData.role,
+              avatar: editFormData.avatar
+          });
+          
+          if (updated) {
+              const updatedUsers = users.map(u => u.id === editingUser.id ? updated : u);
+              onUpdateUsers(updatedUsers);
+              setEditingUser(null);
+              setEditFormData({});
+              alert('تم تحديث بيانات المستخدم بنجاح');
+          } else {
+              alert('فشل في تحديث بيانات المستخدم');
+          }
+      } catch (err: any) {
+          console.error('Edit user error', err);
+          alert(err?.message || 'حدث خطأ أثناء تحديث بيانات المستخدم');
+      }
+  };
+
+  const handleResetPassword = async (user: User) => {
+      if (!window.confirm(`هل تريد إرسال رابط إعادة تعيين كلمة المرور إلى ${user.name}؟`)) {
+          return;
+      }
+      
+      // Get user email from profiles or use a placeholder
+      // Note: We need to get email from the profile
+      setResettingPasswordFor(user.id);
+      try {
+          // First, get the user's email from profiles
+          const { data: profile } = await supabase
+              .from('profiles')
+              .select('email')
+              .eq('id', user.id)
+              .single();
+          
+          if (!profile?.email) {
+              alert('لا يمكن العثور على البريد الإلكتروني للمستخدم');
+              setResettingPasswordFor(null);
+              return;
+          }
+          
+          const result = await api.resetUserPassword(profile.email);
+          
+          if (result.success) {
+              alert(`تم إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني: ${profile.email}`);
+          } else {
+              alert(result.error || 'فشل في إرسال رابط إعادة تعيين كلمة المرور');
+          }
+      } catch (err: any) {
+          console.error('Reset password error', err);
+          alert(err?.message || 'حدث خطأ أثناء إعادة تعيين كلمة المرور');
+      } finally {
+          setResettingPasswordFor(null);
       }
   };
 
@@ -163,7 +242,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">السطر الثاني (الوزارة)</label>
                     <input
@@ -312,7 +391,73 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                    </div>
                )}
 
-               <div className="overflow-hidden rounded-lg border border-gray-200">
+               {/* Edit User Modal */}
+               {editingUser && (
+                   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 space-y-4">
+                           <div className="flex justify-between items-center border-b pb-3">
+                               <h3 className="text-xl font-bold text-gray-800">تعديل بيانات المستخدم</h3>
+                               <button onClick={() => { setEditingUser(null); setEditFormData({}); }} className="text-gray-400 hover:text-gray-600">
+                                   <X size={20} />
+                               </button>
+                           </div>
+                           
+                           <div className="space-y-4">
+                               <div>
+                                   <label className="block text-xs font-bold text-gray-500 mb-1">الاسم الكامل</label>
+                                   <input 
+                                       type="text" 
+                                       value={editFormData.name || ''} 
+                                       onChange={e => setEditFormData({...editFormData, name: e.target.value})} 
+                                       className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
+                                       placeholder="مثال: أ. محمد العلي" 
+                                   />
+                               </div>
+                               <div>
+                                   <label className="block text-xs font-bold text-gray-500 mb-1">اسم المستخدم</label>
+                                   <input 
+                                       type="text" 
+                                       value={editFormData.username || ''} 
+                                       onChange={e => setEditFormData({...editFormData, username: e.target.value})} 
+                                       className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono" 
+                                       placeholder="username" 
+                                   />
+                               </div>
+                               <div>
+                                   <label className="block text-xs font-bold text-gray-500 mb-1">الدور / الصلاحية</label>
+                                   <select 
+                                       value={editFormData.role || 'teacher'} 
+                                       onChange={e => setEditFormData({...editFormData, role: e.target.value as Role})} 
+                                       className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                   >
+                                       <option value="teacher">معلم</option>
+                                       <option value="counselor">موجه طلابي</option>
+                                       <option value="admin">مدير / إداري</option>
+                                   </select>
+                               </div>
+                           </div>
+                           
+                           <div className="flex justify-end gap-2 pt-4 border-t">
+                               <button 
+                                   onClick={() => { setEditingUser(null); setEditFormData({}); }} 
+                                   className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg font-bold"
+                               >
+                                   إلغاء
+                               </button>
+                               <button 
+                                   onClick={handleSaveEdit} 
+                                   className="px-4 py-2 text-sm bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 flex items-center gap-2"
+                               >
+                                   <Save size={16} />
+                                   حفظ التعديلات
+                               </button>
+                           </div>
+                       </div>
+                   </div>
+               )}
+
+               {/* Desktop Table */}
+               <div className="hidden md:block overflow-hidden rounded-lg border border-gray-200">
                    <table className="w-full text-right text-sm">
                        <thead className="bg-gray-50 text-gray-500 font-bold">
                            <tr>
@@ -340,14 +485,96 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                        </span>
                                    </td>
                                    <td className="p-4">
-                                       <button onClick={() => handleDeleteUser(user.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors">
-                                           <Trash2 size={16} />
-                                       </button>
+                                       <div className="flex items-center gap-2">
+                                           <button 
+                                               onClick={() => handleEditUser(user)} 
+                                               className="text-teal-600 hover:text-teal-700 bg-teal-50 p-2 rounded-full transition-colors"
+                                               title="تعديل"
+                                           >
+                                               <Edit2 size={16} />
+                                           </button>
+                                           <button 
+                                               onClick={() => handleResetPassword(user)} 
+                                               className="text-blue-600 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition-colors"
+                                               title="إعادة تعيين كلمة المرور"
+                                               disabled={resettingPasswordFor === user.id}
+                                           >
+                                               {resettingPasswordFor === user.id ? (
+                                                   <Clock size={16} className="animate-spin" />
+                                               ) : (
+                                                   <KeyRound size={16} />
+                                               )}
+                                           </button>
+                                           <button 
+                                               onClick={() => handleDeleteUser(user.id)} 
+                                               className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors"
+                                               title="حذف"
+                                           >
+                                               <Trash2 size={16} />
+                                           </button>
+                                       </div>
                                    </td>
                                </tr>
                            ))}
                        </tbody>
                    </table>
+               </div>
+
+               {/* Mobile Cards */}
+               <div className="md:hidden space-y-3">
+                   {users.map(user => (
+                       <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                           <div className="flex items-center justify-between mb-3">
+                               <div className="flex items-center gap-3">
+                                   <img src={user.avatar} className="w-10 h-10 rounded-full" alt="" />
+                                   <div>
+                                       <p className="font-bold text-gray-800">{user.name}</p>
+                                       <p className="text-xs text-gray-500 font-mono">{user.username}</p>
+                                   </div>
+                               </div>
+                               <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                   user.role === 'admin' ? 'bg-red-100 text-red-700' :
+                                   user.role === 'counselor' ? 'bg-purple-100 text-purple-700' :
+                                   'bg-blue-100 text-blue-700'
+                               }`}>
+                                   {user.role === 'admin' ? 'مدير' : user.role === 'counselor' ? 'موجه' : 'معلم'}
+                               </span>
+                           </div>
+                           <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                               <button 
+                                   onClick={() => handleEditUser(user)} 
+                                   className="flex-1 flex items-center justify-center gap-2 text-teal-600 hover:text-teal-700 bg-teal-50 py-2 rounded-lg transition-colors text-sm font-bold"
+                               >
+                                   <Edit2 size={16} />
+                                   تعديل
+                               </button>
+                               <button 
+                                   onClick={() => handleResetPassword(user)} 
+                                   className="flex-1 flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 bg-blue-50 py-2 rounded-lg transition-colors text-sm font-bold"
+                                   disabled={resettingPasswordFor === user.id}
+                               >
+                                   {resettingPasswordFor === user.id ? (
+                                       <>
+                                           <Clock size={16} className="animate-spin" />
+                                           جاري...
+                                       </>
+                                   ) : (
+                                       <>
+                                           <KeyRound size={16} />
+                                           إعادة تعيين
+                                       </>
+                                   )}
+                               </button>
+                               <button 
+                                   onClick={() => handleDeleteUser(user.id)} 
+                                   className="flex-1 flex items-center justify-center gap-2 text-red-500 hover:text-red-700 bg-red-50 py-2 rounded-lg transition-colors text-sm font-bold"
+                               >
+                                   <Trash2 size={16} />
+                                   حذف
+                               </button>
+                           </div>
+                       </div>
+                   ))}
                </div>
            </div>
         )}
@@ -355,7 +582,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                 {activeTab === 'password' && (
                     <div className="space-y-6 animate-in fade-in">
                         <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">إدارة إعادة تعيين كلمات المرور</h2>
-                        <PasswordReset users={users.map(u => ({ id: u.id, username: u.username, email: (u as any).email, name: u.name, role: u.role }))} />
+                        <PasswordReset users={users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role }))} />
                     </div>
                 )}
 
@@ -441,8 +668,8 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                  </div>
              )}
 
-             {/* Schedule List */}
-             <div className="overflow-hidden rounded-lg border border-gray-200">
+             {/* Schedule List - Desktop */}
+             <div className="hidden md:block overflow-hidden rounded-lg border border-gray-200">
                 {schedule.length > 0 ? (
                  <table className="w-full text-right text-sm">
                      <thead className="bg-gray-50 text-gray-500 font-bold">
@@ -483,6 +710,40 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                  </table>
                 ) : (
                     <div className="p-8 text-center text-gray-400">
+                        <Calendar size={48} className="mx-auto mb-2 opacity-20" />
+                        <p>لم يتم إضافة أي حصص للجدول حتى الآن</p>
+                    </div>
+                )}
+             </div>
+
+             {/* Schedule List - Mobile */}
+             <div className="md:hidden space-y-3">
+                {schedule.length > 0 ? (
+                    schedule.sort((a,b) => {
+                        const dayOrder: Record<string, number> = { 'الأحد': 1, 'الاثنين': 2, 'الثلاثاء': 3, 'الأربعاء': 4, 'الخميس': 5 };
+                        const diff = (dayOrder[a.day] || 0) - (dayOrder[b.day] || 0);
+                        if (diff !== 0) return diff;
+                        return a.period - b.period;
+                    }).map(item => (
+                        <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-bold text-gray-700">{item.day}</span>
+                                    <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">حصة {item.period}</span>
+                                </div>
+                                <button onClick={() => handleDeleteSession(item.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                            <div className="space-y-1 text-sm">
+                                <p><span className="font-bold text-blue-800">المادة:</span> {item.subject}</p>
+                                <p><span className="font-bold text-gray-600">الفصل:</span> {item.classRoom}</p>
+                                <p><span className="font-bold text-gray-600">المعلم:</span> {item.teacher}</p>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="p-8 text-center text-gray-400 bg-white rounded-lg border border-gray-200">
                         <Calendar size={48} className="mx-auto mb-2 opacity-20" />
                         <p>لم يتم إضافة أي حصص للجدول حتى الآن</p>
                     </div>

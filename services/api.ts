@@ -234,6 +234,53 @@ export const api = {
         }
     },
 
+    // Update single user profile
+    updateUserProfile: async (userId: string, updates: { username?: string; name?: string; role?: Role; avatar?: string }): Promise<User | null> => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .update(updates)
+                .eq('id', userId)
+                .select()
+                .single();
+            
+            if (error) {
+                console.error('Update user profile error:', error);
+                return null;
+            }
+            
+            return {
+                id: data.id,
+                username: data.username,
+                name: data.name,
+                role: data.role as Role,
+                avatar: data.avatar
+            } as User;
+        } catch (error) {
+            console.error('Update user profile exception:', error);
+            return null;
+        }
+    },
+
+    // Reset user password (admin function)
+    resetUserPassword: async (email: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`
+            });
+            
+            if (error) {
+                console.error('Reset password error:', error);
+                return { success: false, error: error.message };
+            }
+            
+            return { success: true };
+        } catch (error: any) {
+            console.error('Reset password exception:', error);
+            return { success: false, error: error?.message || 'فشل في إرسال رابط إعادة تعيين كلمة المرور' };
+        }
+    },
+
     // Check if email already exists
     checkEmailExists: async (email: string): Promise<boolean> => {
         try {

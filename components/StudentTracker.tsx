@@ -288,7 +288,8 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                 </div>
             )}
             
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right border-collapse">
                 <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
@@ -406,6 +407,115 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                 )}
                 </tbody>
             </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+                {displayedStudents.length > 0 ? displayedStudents.map((student) => {
+                    const record = getRecord(student.id);
+                    const challengeClass = student.challenge !== 'none' ? getChallengeColor(student.challenge) : '';
+                    const isAbsent = record.attendance !== 'present';
+
+                    return (
+                        <div key={student.id} className={`bg-white border rounded-lg p-4 shadow-sm ${challengeClass}`}>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <img className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" src={student.avatar} alt="" />
+                                    <div>
+                                        <p className="font-bold text-gray-800">{student.name}</p>
+                                        {student.challenge !== 'none' && (
+                                            <p className="text-xs text-gray-500">{getChallengeLabel(student.challenge)}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                {isAbsent && (
+                                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">غائب</span>
+                                )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">الحضور</p>
+                                    <select
+                                        value={record.attendance}
+                                        onChange={(e) => handleStatusChange(student.id, 'attendance', e.target.value as AttendanceStatus)}
+                                        className="w-full text-sm border rounded p-2"
+                                    >
+                                        <option value="present">حاضر</option>
+                                        <option value="absent">غائب</option>
+                                        <option value="late">متأخر</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">المشاركة</p>
+                                    <select
+                                        value={record.participation}
+                                        onChange={(e) => handleStatusChange(student.id, 'participation', e.target.value as StatusType)}
+                                        className="w-full text-sm border rounded p-2"
+                                    >
+                                        <option value="excellent">ممتاز</option>
+                                        <option value="good">جيد</option>
+                                        <option value="average">متوسط</option>
+                                        <option value="poor">ضعيف</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">الواجبات</p>
+                                    <select
+                                        value={record.homework}
+                                        onChange={(e) => handleStatusChange(student.id, 'homework', e.target.value as StatusType)}
+                                        className="w-full text-sm border rounded p-2"
+                                    >
+                                        <option value="excellent">ممتاز</option>
+                                        <option value="good">جيد</option>
+                                        <option value="average">متوسط</option>
+                                        <option value="poor">ضعيف</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">السلوك</p>
+                                    <select
+                                        value={record.behavior}
+                                        onChange={(e) => handleStatusChange(student.id, 'behavior', e.target.value as StatusType)}
+                                        className="w-full text-sm border rounded p-2"
+                                    >
+                                        <option value="excellent">ممتاز</option>
+                                        <option value="good">جيد</option>
+                                        <option value="average">متوسط</option>
+                                        <option value="poor">ضعيف</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-3">
+                                <p className="text-xs text-gray-500 mb-1">ملاحظات</p>
+                                <textarea
+                                    value={record.notes || ''}
+                                    onChange={(e) => handleStatusChange(student.id, 'notes', e.target.value)}
+                                    placeholder="أضف ملاحظات..."
+                                    className="w-full text-sm border rounded p-2 min-h-[60px]"
+                                />
+                            </div>
+
+                            {isAdmin && (
+                                <div className="flex gap-2 pt-2 border-t">
+                                    <button
+                                        onClick={() => onSendReport(student, record)}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700"
+                                    >
+                                        <Send size={16} />
+                                        إرسال تقرير
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                }) : (
+                    <div className="p-8 text-center text-gray-400 bg-white rounded-lg border">
+                        <Users size={40} className="mx-auto mb-2 opacity-20" />
+                        <p>لا يوجد طلاب مسجلين في هذا الفصل ({selectedSession?.classRoom})</p>
+                    </div>
+                )}
             </div>
         </div>
       )}

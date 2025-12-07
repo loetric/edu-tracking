@@ -102,7 +102,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
             {/* Teachers Monitoring Table (Only for Admin) */}
             {role === 'admin' && (
                 <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
@@ -116,7 +116,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                         </div>
                     </div>
                     
-                    <div className="overflow-x-auto">
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-right text-sm">
                             <thead className="bg-gray-50 text-gray-500">
                                 <tr>
@@ -190,6 +191,36 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                 )}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3 p-4">
+                        {classStatus.map((item) => (
+                            <div key={item.className} className={`bg-white border rounded-lg p-4 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="font-bold text-gray-800">{item.className}</p>
+                                    {item.isReady && <CheckCircle2 size={20} className="text-green-600" />}
+                                </div>
+                                <p className="text-xs text-gray-500 mb-3">المعلمين: {item.teachers.join('، ')}</p>
+                                <div className="mb-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs font-bold text-gray-600">نسبة الإنجاز</span>
+                                        <span className="text-xs font-bold text-gray-600">{item.progress}/{item.total}</span>
+                                    </div>
+                                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
+                                            style={{ width: `${(item.progress / item.total) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                                {item.isReady && (
+                                    <button className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700">
+                                        عرض التقرير
+                                    </button>
+                                )}
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}

@@ -193,7 +193,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
+      {/* Desktop Schedule */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full border-collapse">
           <thead>
             <tr>
@@ -267,6 +268,35 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Schedule - Simplified List */}
+      <div className="md:hidden space-y-4">
+        {days.map(day => {
+          const daySessions = schedule.filter(s => s.day === day).sort((a, b) => a.period - b.period);
+          if (daySessions.length === 0) return null;
+          
+          return (
+            <div key={day} className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-bold text-gray-800 mb-3 text-lg">{day}</h3>
+              <div className="space-y-2">
+                {daySessions.map(session => {
+                  const isCompleted = completedSessions.includes(session.id);
+                  return (
+                    <div key={session.id} className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs bg-gray-200 px-2 py-1 rounded font-bold text-gray-600">حصة {session.period}</span>
+                        {isCompleted && <CheckCircle2 size={16} className="text-green-600" />}
+                      </div>
+                      <p className="font-bold text-blue-800 mb-1">{session.subject}</p>
+                      <p className="text-sm text-gray-600">{session.classRoom}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
