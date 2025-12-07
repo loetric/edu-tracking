@@ -1,6 +1,6 @@
-
+// API Service - Clean implementation matching database schema
 import { Student, DailyRecord, LogEntry, SchoolSettings, ScheduleItem, ChatMessage, User, Substitution, Role } from '../types';
-import { INITIAL_SETTINGS, INITIAL_USERS } from '../constants';
+import { INITIAL_SETTINGS } from '../constants';
 import { supabase } from './supabase';
 
 export const api = {
@@ -14,21 +14,24 @@ export const api = {
             }
             const user = res.data.user;
             if (!user) return null;
+            
             // Fetch profile from profiles table
             const { data: profile, error: pErr } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', user.id)
                 .single();
-            if (pErr) {
+            
+            if (pErr || !profile) {
                 console.warn('No profile found for user id', user.id, pErr);
                 return null;
             }
+            
             return {
                 id: profile.id,
                 username: profile.username,
                 name: profile.name,
-                role: profile.role,
+                role: profile.role as Role,
                 avatar: profile.avatar
             } as User;
         } catch (error) {
@@ -46,7 +49,8 @@ export const api = {
             }
             const user = res.data.user;
             if (!user) return null;
-            // create profile
+            
+            // Create profile
             const payload = {
                 id: user.id,
                 username: profile.username,
@@ -54,10 +58,13 @@ export const api = {
                 role: profile.role,
                 avatar: profile.avatar
             };
+            
             const { error: pErr } = await supabase.from('profiles').insert([payload]);
             if (pErr) {
                 console.error('Error creating profile:', pErr);
+                return null;
             }
+            
             return {
                 id: payload.id,
                 username: payload.username,
@@ -78,75 +85,60 @@ export const api = {
             console.error('signOut error:', error);
         }
     },
+
     // --- Authentication & Users ---
     login: async (username: string, password: string): Promise<User | null> => {
         try {
-            // Try to resolve an email for this username via `profiles` table
+            // Resolve email from username via profiles table
             const { data: profileRow, error: profileErr } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('email')
                 .eq('username', username)
                 .limit(1)
                 .single();
 
             let email: string | undefined = undefined;
-            if (profileRow && (profileRow as any).email) {
-                email = (profileRow as any).email;
+            if (profileRow?.email) {
+                email = profileRow.email;
             }
 
-            // If the provided username looks like an email, use it
+            // If username looks like an email, use it directly
             if (!email && username.includes('@')) {
                 email = username;
             }
 
-            // Fallback: check legacy `users` table for an email field
             if (!email) {
-                const { data: legacyUser } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('username', username)
-                    .limit(1)
-                    .single();
-                if (legacyUser && (legacyUser as any).email) email = (legacyUser as any).email;
-            }
-
-            if (!email) {
-                console.warn('No email found for username; cannot sign in via Supabase Auth:', username);
+                console.warn('No email found for username:', username);
                 return null;
             }
 
+            // Sign in with email and password
             const res = await supabase.auth.signInWithPassword({ email, password });
             if (res.error) {
                 console.error('Supabase signIn error:', res.error);
                 return null;
             }
+            
             const supUser = res.data.user;
             if (!supUser) return null;
 
-            // Fetch canonical profile
-            const { data: finalProfile } = await supabase
+            // Fetch profile
+            const { data: finalProfile, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', supUser.id)
-                .limit(1)
                 .single();
 
-            if (!finalProfile) {
-                // If no profile, return a minimal User object using auth user data
-                return {
-                    id: supUser.id,
-                    username: username,
-                    name: supUser.user_metadata?.full_name || username,
-                    role: null,
-                    avatar: supUser.user_metadata?.avatar_url || undefined
-                } as User;
+            if (profileError || !finalProfile) {
+                console.error('Profile not found after login:', profileError);
+                return null;
             }
 
             return {
                 id: finalProfile.id,
                 username: finalProfile.username,
                 name: finalProfile.name,
-                role: (finalProfile.role || null) as Role,
+                role: finalProfile.role as Role,
                 avatar: finalProfile.avatar
             } as User;
         } catch (err) {
@@ -157,7 +149,6 @@ export const api = {
 
     registerSchool: async (schoolName: string, adminName: string, adminUser?: User): Promise<void> => {
         try {
-            // Update settings only
             const { data: settingsData } = await supabase
                 .from('settings')
                 .select('id')
@@ -174,8 +165,6 @@ export const api = {
                     .from('settings')
                     .insert([{ name: schoolName, ...INITIAL_SETTINGS }]);
             }
-
-            // NOTE: user profiles should be created via Supabase Auth + profiles table
         } catch (error) {
             console.error('Register school error:', error);
             throw error;
@@ -193,7 +182,7 @@ export const api = {
                 id: p.id,
                 username: p.username,
                 name: p.name,
-                role: (p.role || null) as Role,
+                role: p.role as Role,
                 avatar: p.avatar,
             })) as User[];
         } catch (error) {
@@ -204,19 +193,26 @@ export const api = {
 
     updateUsers: async (users: User[]): Promise<void> => {
         try {
-            // Upsert into profiles table. This expects that these users are profiles linked to auth.users.
-            const payload = users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, avatar: u.avatar }));
+            const payload = users.map(u => ({ 
+                id: u.id, 
+                username: u.username, 
+                name: u.name, 
+                role: u.role, 
+                avatar: u.avatar 
+            }));
+            
             const ids = payload.map(p => p.id).filter(Boolean);
-            // Remove profiles not present in new list
-            if (ids.length > 0) {
-                // Get all existing profile IDs
-                const { data: allProfiles } = await supabase.from('profiles').select('id');
-                const allIds = (allProfiles || []).map(p => p.id);
-                const idsToDelete = allIds.filter(id => !ids.includes(id));
-                if (idsToDelete.length > 0) {
-                    await supabase.from('profiles').delete().in('id', idsToDelete);
-                }
+            
+            // Get all existing profile IDs
+            const { data: allProfiles } = await supabase.from('profiles').select('id');
+            const allIds = new Set((allProfiles || []).map(p => p.id));
+            const idsToDelete = Array.from(allIds).filter(id => !ids.includes(id));
+            
+            // Delete profiles not in new list
+            if (idsToDelete.length > 0) {
+                await supabase.from('profiles').delete().in('id', idsToDelete);
             }
+            
             // Upsert remaining/updated profiles
             if (payload.length > 0) {
                 await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
@@ -276,7 +272,7 @@ export const api = {
                 .select('*');
 
             if (error) throw error;
-            return data as Student[];
+            return (data || []) as Student[];
         } catch (error) {
             console.error('Get students error:', error);
             return [];
@@ -314,7 +310,7 @@ export const api = {
                 .select('*');
 
             if (error) throw error;
-            return data as ScheduleItem[];
+            return (data || []) as ScheduleItem[];
         } catch (error) {
             console.error('Get schedule error:', error);
             return [];
@@ -339,7 +335,7 @@ export const api = {
                 .select('*');
 
             if (error) throw error;
-            return data as Substitution[];
+            return (data || []) as Substitution[];
         } catch (error) {
             console.error('Get substitutions error:', error);
             return [];
@@ -368,7 +364,7 @@ export const api = {
             
             // Convert array to record object
             const records: Record<string, DailyRecord> = {};
-            (data as any[]).forEach(record => {
+            (data || []).forEach(record => {
                 records[record.id] = record as DailyRecord;
             });
             return records;
@@ -382,7 +378,6 @@ export const api = {
         try {
             const recordsArray = Object.values(records).map(r => ({
                 ...r,
-                // Generate ID if missing (format: studentId_date)
                 id: r.id || `${r.studentId}_${r.date}`
             }));
             
@@ -390,7 +385,7 @@ export const api = {
                 .from('daily_records')
                 .select('id');
 
-            const existingIds = new Set((existingRecords as any[])?.map(r => r.id) || []);
+            const existingIds = new Set((existingRecords || []).map(r => r.id));
             
             const toInsert = recordsArray.filter(r => !existingIds.has(r.id));
             const toUpdate = recordsArray.filter(r => existingIds.has(r.id));
@@ -419,7 +414,7 @@ export const api = {
                 .select('session_id');
 
             if (error) throw error;
-            return (data as any[]).map(item => item.session_id);
+            return (data || []).map(item => item.session_id);
         } catch (error) {
             console.error('Get completed sessions error:', error);
             return [];
@@ -446,12 +441,9 @@ export const api = {
                 .order('timestamp', { ascending: true });
 
             if (error) throw error;
-            return (data as any[]).map(m => ({
-                id: m.id,
-                sender: m.sender,
-                text: m.text || m.message, // Support both 'text' and legacy 'message' column
-                timestamp: new Date(m.timestamp),
-                isSystem: m.isSystem || false
+            return (data || []).map(m => ({
+                ...m,
+                timestamp: new Date(m.timestamp)
             })) as ChatMessage[];
         } catch (error) {
             console.error('Get messages error:', error);
@@ -466,7 +458,7 @@ export const api = {
                 .insert([{
                     id: message.id,
                     sender: message.sender,
-                    text: message.text, // Use 'text' not 'message' to match schema
+                    text: message.text,
                     timestamp: message.timestamp?.toISOString() || new Date().toISOString(),
                     isSystem: message.isSystem || false
                 }]);
@@ -484,12 +476,12 @@ export const api = {
                 .order('timestamp', { ascending: false });
 
             if (error) throw error;
-            return (data as any[]).map(l => ({
+            return (data || []).map(l => ({
                 id: l.id,
                 timestamp: new Date(l.timestamp),
                 action: l.action,
-                details: l.details,
-                user: l.username || l.user || ''
+                details: l.details || '',
+                user: l.user || ''
             })) as LogEntry[];
         } catch (error) {
             console.error('Get logs error:', error);
@@ -502,16 +494,16 @@ export const api = {
             const payload: any = {
                 timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
                 action: log.action,
-                details: log.details
+                details: log.details || '',
+                user: log.user
             };
-            // Only include id if provided (avoid inserting null into UUID column)
+            
             if (log.id) payload.id = log.id;
-            // Map frontend 'user' field to DB 'user' column (DB schema uses 'user')
-            if ((log as any).user) payload.user = (log as any).user;
 
-            const { data, error } = await supabase
+            const { error } = await supabase
                 .from('logs')
                 .insert([payload]);
+                
             if (error) {
                 console.error('Supabase insert log error:', error);
                 throw error;
@@ -521,3 +513,4 @@ export const api = {
         }
     }
 };
+

@@ -12,17 +12,8 @@ export const INITIAL_SETTINGS: SchoolSettings = {
   reportLink: ''
 };
 
-// مستخدم افتراضي واحد فقط للدخول أول مرة للنظام
-export const INITIAL_USERS: User[] = [
-    { 
-      id: '1', 
-      username: 'admin', 
-      password: '112233', 
-      name: 'مدير النظام', 
-      role: 'admin', 
-      avatar: 'https://ui-avatars.com/api/?name=Admin&background=0D9488&color=fff' 
-    }
-];
+// Note: Users are now managed via Supabase Auth and profiles table
+// INITIAL_USERS removed - users are created through registration or Supabase Auth
 
 // قائمة فارغة - المعلمون يجب إضافتهم من لوحة الإعدادات
 export const AVAILABLE_TEACHERS: string[] = [];
