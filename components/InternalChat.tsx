@@ -67,7 +67,7 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
 
       {isOpen && (
         <div 
-          className="fixed left-3 right-3 md:bottom-20 md:left-auto md:right-6 md:w-72 md:inset-x-auto md:top-auto bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[320px]"
+          className="fixed left-3 right-3 md:bottom-20 md:left-6 md:right-auto md:w-72 md:inset-x-auto md:top-auto bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[320px]"
           style={{
             bottom: 'max(0.5rem, env(safe-area-inset-bottom))',
             maxHeight: 'calc(50vh - max(0.5rem, env(safe-area-inset-bottom)))',

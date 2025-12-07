@@ -49,16 +49,21 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // Add timeout to prevent hanging (reduced to 2 seconds)
-        const timeoutPromise = new Promise<null>((resolve) => 
-          setTimeout(() => resolve(null), 2000)
-        );
+        // First check if there's a session in storage (faster)
+        const { data: { session } } = await supabase.auth.getSession();
         
-        const userPromise = api.getCurrentUser();
-        const user = await Promise.race([userPromise, timeoutPromise]);
-        
-        if (user) {
-          setCurrentUser(user);
+        if (session?.user) {
+          // If session exists, get user profile (with longer timeout)
+          const timeoutPromise = new Promise<null>((resolve) => 
+            setTimeout(() => resolve(null), 5000)
+          );
+          
+          const userPromise = api.getCurrentUser();
+          const user = await Promise.race([userPromise, timeoutPromise]);
+          
+          if (user) {
+            setCurrentUser(user);
+          }
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -75,12 +80,16 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // User signed in or token refreshed - update user state
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        // User signed in, token refreshed, or initial session loaded - update user state
         if (session?.user) {
-          const user = await api.getCurrentUser();
-          if (user && isMounted) {
-            setCurrentUser(user);
+          try {
+            const user = await api.getCurrentUser();
+            if (user && isMounted) {
+              setCurrentUser(user);
+            }
+          } catch (error) {
+            console.error("Error getting user in auth state change:", error);
           }
         }
       } else if (event === 'SIGNED_OUT') {
