@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { api } from '../services/api';
 import { SchoolSettings, User, Role, ScheduleItem } from '../types';
 import { PasswordReset } from './PasswordReset';
 import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Clock, Calendar, Check } from 'lucide-react';
@@ -20,7 +21,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup'>('general');
   
   // User Management State
-  const [newUser, setNewUser] = useState<Partial<User>>({ role: 'teacher', name: '', username: '', password: '' });
+    const [newUser, setNewUser] = useState<Partial<User & { email?: string }>>({ role: 'teacher', name: '', username: '', password: '', email: '' });
   const [isAddingUser, setIsAddingUser] = useState(false);
 
   // Schedule Management State
@@ -36,22 +37,25 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     alert('تم حفظ إعدادات المدرسة بنجاح');
   };
 
-  const handleAddUser = () => {
-      if (newUser.username && newUser.password && newUser.name && newUser.role) {
-          const userToAdd: User = {
-              id: Date.now().toString(),
-              username: newUser.username,
-              password: newUser.password,
-              name: newUser.name,
-              role: newUser.role as Role,
-              avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random`
-          };
-          onUpdateUsers([...users, userToAdd]);
-          setNewUser({ role: 'teacher', name: '', username: '', password: '' });
-          setIsAddingUser(false);
-          alert('تم إضافة المستخدم بنجاح');
-      } else {
+  const handleAddUser = async () => {
+      if (!newUser.username || !newUser.password || !newUser.name || !newUser.role || !newUser.email) {
           alert('الرجاء تعبئة جميع الحقول');
+          return;
+      }
+
+      setIsAddingUser(false);
+      try {
+          const created = await api.signUp(newUser.email!, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
+          if (!created) {
+              alert('فشل في إنشاء حساب المستخدم');
+              return;
+          }
+          onUpdateUsers([...users, created]);
+          setNewUser({ role: 'teacher', name: '', username: '', password: '', email: '' });
+          alert('تم إضافة المستخدم بنجاح');
+      } catch (err) {
+          console.error('Add user error', err);
+          alert('حدث خطأ أثناء إنشاء المستخدم');
       }
   };
 
@@ -273,6 +277,10 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                            <div>
                                <label className="block text-xs font-bold text-gray-500 mb-1">اسم المستخدم (للدخول)</label>
                                <input type="text" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} className="w-full border rounded p-2 text-sm" placeholder="username" />
+                           </div>
+                           <div>
+                               <label className="block text-xs font-bold text-gray-500 mb-1">البريد الإلكتروني</label>
+                               <input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full border rounded p-2 text-sm" placeholder="user@example.com" />
                            </div>
                            <div>
                                <label className="block text-xs font-bold text-gray-500 mb-1">كلمة المرور</label>

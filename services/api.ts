@@ -185,11 +185,17 @@ export const api = {
     getUsers: async (): Promise<User[]> => {
         try {
             const { data, error } = await supabase
-                .from('users')
-                .select('*');
+                .from('profiles')
+                .select('id, username, email, name, role, avatar');
 
             if (error) throw error;
-            return data as User[];
+            return (data || []).map((p: any) => ({
+                id: p.id,
+                username: p.username,
+                name: p.name,
+                role: (p.role || null) as Role,
+                avatar: p.avatar,
+            })) as User[];
         } catch (error) {
             console.error('Get users error:', error);
             return [];
@@ -198,9 +204,17 @@ export const api = {
 
     updateUsers: async (users: User[]): Promise<void> => {
         try {
-            // Delete existing users and insert new ones
-            await supabase.from('users').delete().neq('id', '');
-            await supabase.from('users').insert(users);
+            // Upsert into profiles table. This expects that these users are profiles linked to auth.users.
+            const payload = users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role, avatar: u.avatar }));
+            const ids = payload.map(p => p.id).filter(Boolean);
+            // Remove profiles not present in new list
+            if (ids.length > 0) {
+                await supabase.from('profiles').delete().not('id', 'in', `(${ids.map(id => `'${id}'`).join(',')})`);
+            }
+            // Upsert remaining/updated profiles
+            if (payload.length > 0) {
+                await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+            }
         } catch (error) {
             console.error('Update users error:', error);
             throw error;
