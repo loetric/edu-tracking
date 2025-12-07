@@ -1,7 +1,7 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Student, DailyRecord, Role, ScheduleItem } from '../types';
-import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText } from 'lucide-react';
 
 interface DashboardStatsProps {
   students: Student[];
