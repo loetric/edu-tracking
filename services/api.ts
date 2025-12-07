@@ -357,8 +357,8 @@ export const api = {
             };
             // Only include id if provided (avoid inserting null into UUID column)
             if (log.id) payload.id = log.id;
-            // Map frontend 'user' field to DB 'username' column
-            if ((log as any).user) payload.username = (log as any).user;
+            // Map frontend 'user' field to DB 'user' column (DB schema uses 'user')
+            if ((log as any).user) payload.user = (log as any).user;
 
             const { data, error } = await supabase
                 .from('logs')

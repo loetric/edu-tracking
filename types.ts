@@ -37,6 +37,7 @@ export type StatusType = 'excellent' | 'good' | 'average' | 'poor' | 'none';
 export type AttendanceStatus = 'present' | 'absent' | 'excused';
 
 export interface DailyRecord {
+  id?: string;
   studentId: string;
   date: string;
   attendance: AttendanceStatus;
