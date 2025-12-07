@@ -67,11 +67,12 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
 
       {isOpen && (
         <div 
-          className="fixed left-1 right-1 bottom-2 md:bottom-24 md:left-6 md:right-auto md:w-96 md:inset-x-auto md:top-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[500px]"
+          className="fixed left-2 right-2 md:bottom-24 md:left-6 md:right-auto md:w-80 md:inset-x-auto md:top-auto bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[400px]"
           style={{
-            maxHeight: 'calc(100svh - 1rem)',
+            bottom: 'max(0.5rem, env(safe-area-inset-bottom))',
+            maxHeight: 'calc(100dvh - max(1rem, env(safe-area-inset-bottom) * 2))',
             height: 'auto',
-            maxWidth: 'calc(100vw - 0.5rem)'
+            maxWidth: 'calc(100vw - 1rem)'
           }}
         >
           {/* Header */}
@@ -91,7 +92,7 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
           </div>
           
           {/* Messages Container */}
-          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2.5 md:p-4 space-y-2.5 md:space-y-4 bg-gray-50 min-h-0" style={{ maxHeight: 'calc(100% - 120px)' }}>
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-2.5 md:p-4 space-y-2.5 md:space-y-4 bg-gray-50 min-h-0" style={{ maxHeight: 'calc(100% - 90px)' }}>
             {messages.length === 0 && (
               <div className="flex items-center justify-center h-full min-h-[150px]">
                 <p className="text-center text-gray-400 text-xs md:text-sm py-8">لا توجد رسائل</p>
