@@ -200,7 +200,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     <h3 className="text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
                 </div>
                 <div className="flex-1 min-h-[250px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                    {/* Give ResponsiveContainer an explicit height to avoid width/height -1 warnings */}
+                    <ResponsiveContainer width="100%" height={250}>
                         <AreaChart data={data}>
                             <defs>
                                 <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">

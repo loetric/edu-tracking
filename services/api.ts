@@ -336,8 +336,11 @@ export const api = {
 
             if (error) throw error;
             return (data as any[]).map(l => ({
-                ...l,
-                timestamp: new Date(l.timestamp)
+                id: l.id,
+                timestamp: new Date(l.timestamp),
+                action: l.action,
+                details: l.details,
+                user: l.username || l.user || ''
             })) as LogEntry[];
         } catch (error) {
             console.error('Get logs error:', error);
@@ -347,12 +350,18 @@ export const api = {
 
     addLog: async (log: LogEntry): Promise<void> => {
         try {
+            const payload: any = {
+                id: log.id,
+                timestamp: log.timestamp?.toISOString() || new Date().toISOString(),
+                action: log.action,
+                details: log.details
+            };
+            // Map frontend 'user' field to DB 'username' column
+            if ((log as any).user) payload.username = (log as any).user;
+
             await supabase
                 .from('logs')
-                .insert([{
-                    ...log,
-                    timestamp: log.timestamp?.toISOString() || new Date().toISOString()
-                }]);
+                .insert([payload]);
         } catch (error) {
             console.error('Add log error:', error);
         }
