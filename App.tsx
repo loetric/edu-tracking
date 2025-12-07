@@ -351,21 +351,23 @@ const App: React.FC = () => {
       
       const messageText = text.trim();
       const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const now = new Date();
       
       // Create temporary message for immediate display
       const tempMessage: ChatMessage = {
           id: tempId,
           sender: currentUser.name,
           text: messageText,
-          timestamp: new Date()
+          timestamp: now
       };
       
-      // Optimistic update - add message immediately
+      // Optimistic update - add message immediately (synchronous)
       setChatMessages(prev => {
           // Avoid duplicates
           if (prev.some(m => m.id === tempId)) {
               return prev;
           }
+          // Add to end and sort
           const updated = [...prev, tempMessage];
           return updated.sort((a, b) => {
               const timeA = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
@@ -374,13 +376,16 @@ const App: React.FC = () => {
           });
       });
       
+      // Force a micro-task to ensure state update is visible
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       try {
           // Send message - database will generate UUID
           const createdMessage = await api.sendMessage({
               id: '',
               sender: currentUser.name,
               text: messageText,
-              timestamp: new Date()
+              timestamp: now
           });
           
           if (createdMessage) {
@@ -388,7 +393,7 @@ const App: React.FC = () => {
               setChatMessages(prev => {
                   // Remove temp message
                   const withoutTemp = prev.filter(m => m.id !== tempId);
-                  // Add real message (real-time subscription might have already added it)
+                  // Add real message only if not already present (from real-time)
                   if (!withoutTemp.some(m => m.id === createdMessage.id)) {
                       const updated = [...withoutTemp, createdMessage];
                       return updated.sort((a, b) => {
