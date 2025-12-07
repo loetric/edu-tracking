@@ -42,6 +42,12 @@ export const api = {
 
     signUp: async (email: string, password: string, profile: { username: string; name: string; role: Role; avatar?: string; }): Promise<User | null> => {
         try {
+            // Validate password length
+            if (!password || password.length < 6) {
+                console.error('Password must be at least 6 characters');
+                return null;
+            }
+
             // Sign up with user metadata so trigger can use it
             const res = await supabase.auth.signUp({ 
                 email, 
@@ -57,6 +63,7 @@ export const api = {
             });
             if (res.error) {
                 console.error('Supabase auth signUp error:', res.error);
+                // Return more specific error info if needed
                 return null;
             }
             const user = res.data.user;

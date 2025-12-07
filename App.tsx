@@ -132,10 +132,17 @@ const App: React.FC = () => {
   const handleRegister = async (schoolName: string, adminName: string, user: User, email: string) => {
       setIsAppLoading(true);
       try {
+        // Validate password length
+        if (!user.password || user.password.length < 6) {
+          alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+          setIsAppLoading(false);
+          return;
+        }
+
         // Create Auth user and profile via API
         const created = await api.signUp(email, user.password || '', { username: user.username, name: user.name, role: user.role, avatar: user.avatar });
         if (!created) {
-          alert('فشل في إنشاء حساب المسؤول');
+          alert('فشل في إنشاء حساب المسؤول. تأكد من أن كلمة المرور 6 أحرف على الأقل والبريد الإلكتروني صحيح.');
           setIsAppLoading(false);
           return;
         }

@@ -67,6 +67,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
           return;
       }
 
+      // Password validation (Supabase requires at least 6 characters)
+      if (regPassword.length < 6) {
+          setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+          setLoading(false);
+          return;
+      }
+
       // Basic client side validation before sending to API
       if (users.some(u => u.username.toLowerCase() === regUsername.toLowerCase())) {
           setError('اسم المستخدم مسجل مسبقاً');
