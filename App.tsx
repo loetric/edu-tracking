@@ -16,6 +16,7 @@ import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, Ch
 import { AVAILABLE_TEACHERS } from './constants';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
+import { supabase } from './services/supabase';
 
 const App: React.FC = () => {
   // Auth State
@@ -43,6 +44,45 @@ const App: React.FC = () => {
   // PDF & Modal States
   const [pdfData, setPdfData] = useState<{student: Student, record: DailyRecord} | null>(null);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+
+  // --- Check for existing session on mount ---
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const user = await api.getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      }
+    };
+    checkSession();
+  }, []);
+
+  // --- Listen to auth state changes ---
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (session?.user) {
+          const user = await api.getCurrentUser();
+          if (user) {
+            setCurrentUser(user);
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        setStudents([]);
+        setLogs([]);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // --- Initial System Load (Settings & Users) ---
   useEffect(() => {
@@ -171,10 +211,16 @@ const App: React.FC = () => {
       }
   };
 
-  const handleLogout = () => {
-      setCurrentUser(null);
-      setStudents([]); // Clear sensitive data from state
-      setLogs([]);
+  const handleLogout = async () => {
+      try {
+          await supabase.auth.signOut();
+      } catch (error) {
+          console.error('Logout error:', error);
+      } finally {
+          setCurrentUser(null);
+          setStudents([]); // Clear sensitive data from state
+          setLogs([]);
+      }
   };
 
   const handleImport = async (newStudents: Student[]) => {
@@ -286,7 +332,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
         <Loader2 size={48} className="text-teal-600 animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-gray-700">جاري الاتصال بقاعدة البيانات...</h2>
+        <h2 className="text-xl font-bold text-gray-700">جارٍ التحميل...</h2>
         <p className="text-gray-400 mt-2">يرجى الانتظار قليلاً</p>
       </div>
     );
@@ -321,7 +367,7 @@ const App: React.FC = () => {
        return (
          <div className="flex flex-col items-center justify-center h-96">
             <Loader2 size={40} className="text-teal-500 animate-spin mb-4" />
-            <p className="text-gray-500 font-bold">جاري جلب البيانات...</p>
+            <p className="text-gray-500 font-bold">جارٍ التحميل...</p>
          </div>
        );
     }
@@ -434,22 +480,22 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row overflow-x-hidden" dir="rtl">
       {/* Mobile Header */}
-      <div className="md:hidden bg-white p-4 shadow-sm border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex items-center gap-2">
+      <div className="md:hidden bg-white p-3 shadow-sm border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
             <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 -mr-2 text-gray-600 hover:bg-gray-50 rounded-lg"
+                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg flex-shrink-0"
             >
-                <Menu size={24} />
+                <Menu size={22} />
             </button>
-            <span className="font-bold text-gray-800 truncate max-w-[200px]">{settings.name}</span>
+            <span className="font-bold text-gray-800 truncate text-sm">{settings.name}</span>
         </div>
-        <div className="flex items-center gap-3">
-             <div className="relative">
+        <div className="flex items-center gap-2 flex-shrink-0">
+             <div className="relative p-1">
                 <Bell size={20} className="text-gray-500" />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
              </div>
-             <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full border border-gray-200" />
+             <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full border border-gray-200 flex-shrink-0" />
         </div>
       </div>
 

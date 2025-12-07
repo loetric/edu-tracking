@@ -132,37 +132,38 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4 print:hidden">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">
-              {isAdmin ? 'متابعة التقارير اليومية (لوحة المدير)' : 'المتابعة اليومية (الرصد)'}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 md:gap-4 print:hidden">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg md:text-xl font-bold text-gray-800">
+              {isAdmin ? 'متابعة التقارير اليومية' : 'المتابعة اليومية'}
           </h2>
-          <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
-              <Calendar size={14}/> 
-              {dayName} - {new Date().toLocaleDateString('ar-SA')}
+          <p className="text-gray-500 text-xs md:text-sm flex items-center gap-1 mt-1">
+              <Calendar size={12} className="md:w-[14px] md:h-[14px] flex-shrink-0"/> 
+              <span className="truncate">{dayName} - {new Date().toLocaleDateString('ar-SA')}</span>
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
             {/* Print Button for All Users */}
             <button
                 onClick={handlePrintList}
                 disabled={!selectedSession}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors shadow-sm font-bold border ${!selectedSession ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'}`}
+                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors shadow-sm font-bold border text-sm ${!selectedSession ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'}`}
                 title="طباعة قائمة الطلاب"
             >
-                <Printer size={18} />
-                <span className="hidden md:inline">طباعة القائمة</span>
+                <Printer size={16} className="md:w-[18px] md:h-[18px]" />
+                <span className="hidden sm:inline text-xs md:text-sm">طباعة القائمة</span>
             </button>
 
             {isAdmin && onBulkReport && (
                 <button
                     onClick={() => onBulkReport(records)}
                     disabled={!selectedSession || !isSessionCompleted(selectedSession.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-shadow shadow-md text-sm font-bold ${(!selectedSession || !isSessionCompleted(selectedSession.id)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg transition-shadow shadow-md text-xs md:text-sm font-bold ${(!selectedSession || !isSessionCompleted(selectedSession.id)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
-                    <Users size={16} />
-                    <span>إرسال تقارير جماعية</span>
+                    <Users size={14} className="md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">إرسال تقارير جماعية</span>
+                    <span className="sm:hidden">جماعي</span>
                 </button>
             )}
 
@@ -293,14 +294,14 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             <table className="w-full text-right border-collapse">
                 <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الطالب</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الحضور</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">المشاركة</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الواجبات</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">السلوك</th>
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">ملاحظات</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الطالب</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الحضور</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">المشاركة</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الواجبات</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">السلوك</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">ملاحظات</th>
                     {isAdmin && (
-                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider print:hidden">إجراءات</th>
+                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:hidden">إجراءات</th>
                     )}
                 </tr>
                 </thead>
@@ -433,7 +434,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                                 )}
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3">
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">الحضور</p>
                                     <select

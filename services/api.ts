@@ -5,6 +5,39 @@ import { supabase } from './supabase';
 
 export const api = {
     // --- Auth (Supabase Auth) ---
+    // Get current authenticated user from session
+    getCurrentUser: async (): Promise<User | null> => {
+        try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !session?.user) {
+                return null;
+            }
+            
+            // Fetch profile from profiles table
+            const { data: profile, error: pErr } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+            
+            if (pErr || !profile) {
+                console.warn('No profile found for user id', session.user.id, pErr);
+                return null;
+            }
+            
+            return {
+                id: profile.id,
+                username: profile.username,
+                name: profile.name,
+                role: profile.role as Role,
+                avatar: profile.avatar
+            } as User;
+        } catch (error) {
+            console.error('getCurrentUser exception:', error);
+            return null;
+        }
+    },
+
     signIn: async (email: string, password: string): Promise<User | null> => {
         try {
             const res = await supabase.auth.signInWithPassword({ email, password });
@@ -237,15 +270,26 @@ export const api = {
     // Update single user profile
     updateUserProfile: async (userId: string, updates: { username?: string; name?: string; role?: Role; avatar?: string }): Promise<User | null> => {
         try {
-            const { data, error } = await supabase
+            // First, update the profile
+            const { error: updateError } = await supabase
                 .from('profiles')
                 .update(updates)
+                .eq('id', userId);
+            
+            if (updateError) {
+                console.error('Update user profile error:', updateError);
+                return null;
+            }
+            
+            // Then, fetch the updated profile
+            const { data, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*')
                 .eq('id', userId)
-                .select()
                 .single();
             
-            if (error) {
-                console.error('Update user profile error:', error);
+            if (fetchError || !data) {
+                console.error('Fetch updated profile error:', fetchError);
                 return null;
             }
             

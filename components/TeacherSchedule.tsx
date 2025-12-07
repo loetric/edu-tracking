@@ -214,12 +214,12 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           <tbody>
             {days.map(day => (
               <tr key={day} className="hover:bg-gray-50/30 transition-colors">
-                <td className="p-4 border-b border-gray-200 font-bold text-gray-800 bg-white sticky right-0 z-10">{day}</td>
+                <td className="p-2 md:p-4 border-b border-gray-200 font-bold text-gray-800 bg-white sticky right-0 z-10 text-xs md:text-sm">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-2 border-b border-r border-gray-100 align-top h-32 w-40 bg-gray-50/10">
+                    <td key={`${day}-${period}`} className="p-1 md:p-2 border-b border-r border-gray-100 align-top h-24 md:h-32 w-32 md:w-40 bg-gray-50/10">
                       {sessions.length > 0 ? (
                         <div className="flex flex-col gap-2">
                             {sessions.map((session, idx) => {
@@ -277,19 +277,19 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           if (daySessions.length === 0) return null;
           
           return (
-            <div key={day} className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-bold text-gray-800 mb-3 text-lg">{day}</h3>
+            <div key={day} className="bg-white border border-gray-200 rounded-lg p-3 md:p-4">
+              <h3 className="font-bold text-gray-800 mb-3 text-base md:text-lg">{day}</h3>
               <div className="space-y-2">
                 {daySessions.map(session => {
                   const isCompleted = completedSessions.includes(session.id);
                   return (
-                    <div key={session.id} className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs bg-gray-200 px-2 py-1 rounded font-bold text-gray-600">حصة {session.period}</span>
-                        {isCompleted && <CheckCircle2 size={16} className="text-green-600" />}
+                    <div key={session.id} className={`p-2.5 md:p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                      <div className="flex items-center justify-between mb-2 gap-2">
+                        <span className="text-[10px] md:text-xs bg-gray-200 px-2 py-1 rounded font-bold text-gray-600">حصة {session.period}</span>
+                        {isCompleted && <CheckCircle2 size={14} className="text-green-600 flex-shrink-0 md:w-4 md:h-4" />}
                       </div>
-                      <p className="font-bold text-blue-800 mb-1">{session.subject}</p>
-                      <p className="text-sm text-gray-600">{session.classRoom}</p>
+                      <p className="font-bold text-blue-800 mb-1 text-sm md:text-base">{session.subject}</p>
+                      <p className="text-xs md:text-sm text-gray-600">{session.classRoom}</p>
                     </div>
                   );
                 })}

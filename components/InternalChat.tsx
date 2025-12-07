@@ -33,17 +33,17 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
     <>
       <button
         onClick={() => { setIsOpen(!isOpen); setUnread(false); }}
-        className="fixed bottom-6 left-6 bg-teal-600 text-white p-4 rounded-full shadow-lg hover:bg-teal-700 transition-transform hover:scale-105 z-50 flex items-center gap-2"
+        className="fixed bottom-4 left-4 md:bottom-6 md:left-6 bg-teal-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-teal-700 transition-transform hover:scale-105 z-50 flex items-center gap-2"
       >
-        <MessageSquare size={24} />
+        <MessageSquare size={20} className="md:w-6 md:h-6" />
         {unread && (
-            <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white"></span>
+            <span className="absolute top-0 right-0 w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-white"></span>
         )}
-        <span className="font-bold hidden md:inline">التواصل الداخلي</span>
+        <span className="font-bold hidden md:inline text-sm">التواصل الداخلي</span>
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 left-6 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden max-h-[500px]">
+        <div className="fixed bottom-20 left-4 right-4 md:bottom-24 md:left-6 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden max-h-[500px]">
           <div className="bg-teal-600 p-4 text-white flex justify-between items-center">
             <h3 className="font-bold flex items-center gap-2">
                 <Bell size={16} />

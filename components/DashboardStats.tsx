@@ -121,10 +121,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                         <table className="w-full text-right text-sm">
                             <thead className="bg-gray-50 text-gray-500">
                                 <tr>
-                                    <th className="px-6 py-4 font-bold">الفصل</th>
-                                    <th className="px-6 py-4 font-bold">نسبة الإنجاز</th>
-                                    <th className="px-6 py-4 font-bold">حالة التقرير</th>
-                                    <th className="px-6 py-4 font-bold">إجراء</th>
+                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">الفصل</th>
+                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">نسبة الإنجاز</th>
+                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">حالة التقرير</th>
+                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">إجراء</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -196,16 +196,16 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3 p-4">
                         {classStatus.map((item) => (
-                            <div key={item.className} className={`bg-white border rounded-lg p-4 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="font-bold text-gray-800">{item.className}</p>
-                                    {item.isReady && <CheckCircle2 size={20} className="text-green-600" />}
+                            <div key={item.className} className={`bg-white border rounded-lg p-3 md:p-4 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-2 gap-2">
+                                    <p className="font-bold text-gray-800 text-sm md:text-base truncate flex-1">{item.className}</p>
+                                    {item.isReady && <CheckCircle2 size={16} className="text-green-600 flex-shrink-0 md:w-5 md:h-5" />}
                                 </div>
-                                <p className="text-xs text-gray-500 mb-3">المعلمين: {item.teachers.join('، ')}</p>
+                                <p className="text-xs text-gray-500 mb-3 line-clamp-2">المعلمين: {item.teachers.join('، ')}</p>
                                 <div className="mb-3">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-xs font-bold text-gray-600">نسبة الإنجاز</span>
-                                        <span className="text-xs font-bold text-gray-600">{item.progress}/{item.total}</span>
+                                        <span className="text-[10px] md:text-xs font-bold text-gray-600">نسبة الإنجاز</span>
+                                        <span className="text-[10px] md:text-xs font-bold text-gray-600">{item.progress}/{item.total}</span>
                                     </div>
                                     <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                                         <div 
@@ -215,8 +215,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     </div>
                                 </div>
                                 {item.isReady && (
-                                    <button className="w-full bg-teal-600 text-white py-2 rounded-lg text-sm font-bold hover:bg-teal-700">
-                                        عرض التقرير
+                                    <button className="w-full bg-teal-600 text-white py-2.5 md:py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-teal-700 flex items-center justify-center gap-1.5">
+                                        <FileText size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                                        <span>عرض التقرير</span>
                                     </button>
                                 )}
                             </div>

@@ -234,28 +234,28 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                 {filteredStudents.map(student => {
                     const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
                     return (
-                        <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    <img src={student.avatar} alt={student.name} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
-                                    <div>
-                                        <p className="font-bold text-gray-800">{student.name}</p>
-                                        <p className="text-xs text-gray-400 font-mono">{student.parentPhone}</p>
+                        <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-3 md:p-4 shadow-sm">
+                            <div className="flex items-center justify-between mb-3 gap-2">
+                                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                                    <img src={student.avatar} alt={student.name} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-gray-800 text-sm md:text-base truncate">{student.name}</p>
+                                        <p className="text-xs text-gray-400 font-mono truncate">{student.parentPhone}</p>
                                     </div>
                                 </div>
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${challengeInfo.color}`}>
-                                    <challengeInfo.icon size={12} />
-                                    {challengeInfo.label}
+                                <span className={`inline-flex items-center gap-1 px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold border ${challengeInfo.color} flex-shrink-0`}>
+                                    <challengeInfo.icon size={10} className="md:w-3 md:h-3" />
+                                    <span className="hidden sm:inline">{challengeInfo.label}</span>
                                 </span>
                             </div>
                             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                                 <span className="text-sm font-medium text-gray-600">{student.classGrade}</span>
                                 <button 
                                     onClick={() => setSelectedStudentForEdit(student)}
-                                    className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-4 py-2 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
+                                    className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 md:px-4 py-2 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 w-full md:w-auto justify-center"
                                 >
-                                    <Edit size={14} />
-                                    تعديل الحالة
+                                    <Edit size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                                    <span>تعديل الحالة</span>
                                 </button>
                             </div>
                         </div>

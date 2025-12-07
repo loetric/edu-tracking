@@ -161,11 +161,11 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
         <table className="w-full text-right text-sm">
           <thead className="bg-gray-50 text-gray-500 font-bold">
             <tr>
-              <th className="p-4">الاسم</th>
-              <th className="p-4">اسم المستخدم</th>
-              <th className="p-4">البريد الإلكتروني</th>
-              <th className="p-4">الصلاحية</th>
-              <th className="p-4">إجراءات</th>
+              <th className="p-3 md:p-4 text-xs md:text-sm">الاسم</th>
+              <th className="p-3 md:p-4 text-xs md:text-sm">اسم المستخدم</th>
+              <th className="p-3 md:p-4 text-xs md:text-sm">البريد الإلكتروني</th>
+              <th className="p-3 md:p-4 text-xs md:text-sm">الصلاحية</th>
+              <th className="p-3 md:p-4 text-xs md:text-sm">إجراءات</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -196,7 +196,7 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${getRoleColor(user.role)}`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-bold ${getRoleColor(user.role)}`}>
                       {getRoleLabel(user.role)}
                     </span>
                   </td>
@@ -204,7 +204,7 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
                     <button
                       onClick={() => handleResetPassword(user)}
                       disabled={resettingFor === user.id || user.email === 'غير متوفر'}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                      className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all flex items-center gap-1.5 md:gap-2 ${
                         resettingFor === user.id || user.email === 'غير متوفر'
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                           : 'bg-teal-600 text-white hover:bg-teal-700 active:scale-95'
@@ -212,13 +212,15 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
                     >
                       {resettingFor === user.id ? (
                         <>
-                          <Loader2 size={16} className="animate-spin" />
-                          جاري الإرسال...
+                          <Loader2 size={14} className="animate-spin md:w-4 md:h-4" />
+                          <span className="hidden sm:inline">جاري الإرسال...</span>
+                          <span className="sm:hidden">جاري...</span>
                         </>
                       ) : (
                         <>
-                          <RotateCcw size={16} />
-                          إرسال رابط
+                          <RotateCcw size={14} className="md:w-4 md:h-4" />
+                          <span className="hidden sm:inline">إرسال رابط</span>
+                          <span className="sm:hidden">إرسال</span>
                         </>
                       )}
                     </button>

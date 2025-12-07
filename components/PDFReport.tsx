@@ -94,13 +94,13 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-hidden print:bg-white print:p-0">
       
       {/* Controls - Hidden in Print */}
-      <div className="fixed top-4 left-4 flex flex-col gap-3 print:hidden bg-white p-5 rounded-xl shadow-2xl z-50 w-72 border border-gray-100 animate-in fade-in slide-in-from-left-4">
+      <div className="fixed top-4 left-2 right-2 md:left-4 md:w-72 flex flex-col gap-3 print:hidden bg-white p-4 md:p-5 rounded-xl shadow-2xl z-50 border border-gray-100 animate-in fade-in slide-in-from-left-4">
         <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
-            <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                <Printer size={18} className="text-teal-600"/>
-                لوحة التصدير
+            <h3 className="font-bold text-gray-800 flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
+                <Printer size={16} className="text-teal-600 md:w-[18px] md:h-[18px]"/>
+                <span>لوحة التصدير</span>
             </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-1 rounded-md"><X size={18}/></button>
+            <button onClick={onClose} className="text-gray-400 hover:text-red-500 transition-colors bg-gray-50 p-1.5 md:p-1 rounded-md flex-shrink-0"><X size={16} className="md:w-[18px] md:h-[18px]"/></button>
         </div>
         
         <div className="space-y-3">

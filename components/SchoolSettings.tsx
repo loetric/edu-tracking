@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { supabase } from '../services/supabase';
 import { SchoolSettings, User, Role, ScheduleItem } from '../types';
 import { PasswordReset } from './PasswordReset';
-import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Clock, Calendar, Check, Edit2, KeyRound } from 'lucide-react';
+import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2 } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
 
 interface SchoolSettingsProps {
@@ -28,7 +28,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   // Edit User State
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<User>>({});
-  const [resettingPasswordFor, setResettingPasswordFor] = useState<string | null>(null);
 
   // Schedule Management State
   const [newSession, setNewSession] = useState<Partial<ScheduleItem>>({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
@@ -117,42 +116,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       }
   };
 
-  const handleResetPassword = async (user: User) => {
-      if (!window.confirm(`هل تريد إرسال رابط إعادة تعيين كلمة المرور إلى ${user.name}؟`)) {
-          return;
-      }
-      
-      // Get user email from profiles or use a placeholder
-      // Note: We need to get email from the profile
-      setResettingPasswordFor(user.id);
-      try {
-          // First, get the user's email from profiles
-          const { data: profile } = await supabase
-              .from('profiles')
-              .select('email')
-              .eq('id', user.id)
-              .single();
-          
-          if (!profile?.email) {
-              alert('لا يمكن العثور على البريد الإلكتروني للمستخدم');
-              setResettingPasswordFor(null);
-              return;
-          }
-          
-          const result = await api.resetUserPassword(profile.email);
-          
-          if (result.success) {
-              alert(`تم إرسال رابط إعادة تعيين كلمة المرور إلى البريد الإلكتروني: ${profile.email}`);
-          } else {
-              alert(result.error || 'فشل في إرسال رابط إعادة تعيين كلمة المرور');
-          }
-      } catch (err: any) {
-          console.error('Reset password error', err);
-          alert(err?.message || 'حدث خطأ أثناء إعادة تعيين كلمة المرور');
-      } finally {
-          setResettingPasswordFor(null);
-      }
-  };
 
   const handleAddSession = () => {
       if (newSession.day && newSession.period && newSession.subject && newSession.classRoom && newSession.teacher && onUpdateSchedule) {
@@ -348,10 +311,11 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                    </div>
                    <button 
                     onClick={() => setIsAddingUser(!isAddingUser)}
-                    className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-teal-700 flex items-center gap-2 shadow-sm"
+                    className="bg-teal-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-teal-700 flex items-center gap-1.5 md:gap-2 shadow-sm"
                    >
-                       <UserPlus size={16} />
-                       إضافة مستخدم جديد
+                       <UserPlus size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                       <span className="hidden sm:inline">إضافة مستخدم جديد</span>
+                       <span className="sm:hidden">إضافة</span>
                    </button>
                </div>
 
@@ -470,13 +434,13 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                        <tbody className="divide-y divide-gray-100">
                            {users.map(user => (
                                <tr key={user.id} className="hover:bg-gray-50">
-                                   <td className="p-4 flex items-center gap-3">
-                                       <img src={user.avatar} className="w-8 h-8 rounded-full" alt="" />
-                                       <span className="font-bold text-gray-800">{user.name}</span>
+                                   <td className="p-3 md:p-4 flex items-center gap-2 md:gap-3">
+                                       <img src={user.avatar} className="w-7 h-7 md:w-8 md:h-8 rounded-full flex-shrink-0" alt="" />
+                                       <span className="font-bold text-gray-800 text-sm md:text-base">{user.name}</span>
                                    </td>
-                                   <td className="p-4 font-mono text-gray-600">{user.username}</td>
-                                   <td className="p-4">
-                                       <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                   <td className="p-3 md:p-4 font-mono text-gray-600 text-xs md:text-sm">{user.username}</td>
+                                   <td className="p-3 md:p-4">
+                                       <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-bold ${
                                            user.role === 'admin' ? 'bg-red-100 text-red-700' :
                                            user.role === 'counselor' ? 'bg-purple-100 text-purple-700' :
                                            'bg-blue-100 text-blue-700'
@@ -484,33 +448,21 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                            {user.role === 'admin' ? 'مدير' : user.role === 'counselor' ? 'موجه' : 'معلم'}
                                        </span>
                                    </td>
-                                   <td className="p-4">
-                                       <div className="flex items-center gap-2">
+                                   <td className="p-3 md:p-4">
+                                       <div className="flex items-center gap-1.5 md:gap-2">
                                            <button 
                                                onClick={() => handleEditUser(user)} 
-                                               className="text-teal-600 hover:text-teal-700 bg-teal-50 p-2 rounded-full transition-colors"
+                                               className="text-teal-600 hover:text-teal-700 bg-teal-50 p-1.5 md:p-2 rounded-full transition-colors flex-shrink-0"
                                                title="تعديل"
                                            >
-                                               <Edit2 size={16} />
-                                           </button>
-                                           <button 
-                                               onClick={() => handleResetPassword(user)} 
-                                               className="text-blue-600 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition-colors"
-                                               title="إعادة تعيين كلمة المرور"
-                                               disabled={resettingPasswordFor === user.id}
-                                           >
-                                               {resettingPasswordFor === user.id ? (
-                                                   <Clock size={16} className="animate-spin" />
-                                               ) : (
-                                                   <KeyRound size={16} />
-                                               )}
+                                               <Edit2 size={14} className="md:w-4 md:h-4" />
                                            </button>
                                            <button 
                                                onClick={() => handleDeleteUser(user.id)} 
-                                               className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors"
+                                               className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 md:p-2 rounded-full transition-colors flex-shrink-0"
                                                title="حذف"
                                            >
-                                               <Trash2 size={16} />
+                                               <Trash2 size={14} className="md:w-4 md:h-4" />
                                            </button>
                                        </div>
                                    </td>
@@ -547,23 +499,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                >
                                    <Edit2 size={16} />
                                    تعديل
-                               </button>
-                               <button 
-                                   onClick={() => handleResetPassword(user)} 
-                                   className="flex-1 flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 bg-blue-50 py-2 rounded-lg transition-colors text-sm font-bold"
-                                   disabled={resettingPasswordFor === user.id}
-                               >
-                                   {resettingPasswordFor === user.id ? (
-                                       <>
-                                           <Clock size={16} className="animate-spin" />
-                                           جاري...
-                                       </>
-                                   ) : (
-                                       <>
-                                           <KeyRound size={16} />
-                                           إعادة تعيين
-                                       </>
-                                   )}
                                </button>
                                <button 
                                    onClick={() => handleDeleteUser(user.id)} 
