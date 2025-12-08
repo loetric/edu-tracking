@@ -58,3 +58,4 @@ BEGIN
     RAISE NOTICE 'New users will automatically get profiles created.';
 END $$;
 
+

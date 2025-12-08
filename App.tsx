@@ -14,6 +14,7 @@ import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User } from './types';
 import { AVAILABLE_TEACHERS, INITIAL_SETTINGS } from './constants';
+import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
 import { supabase } from './services/supabase';
@@ -55,7 +56,7 @@ const App: React.FC = () => {
         if (session?.user) {
           // If session exists, get user profile (with longer timeout)
           const timeoutPromise = new Promise<null>((resolve) => 
-            setTimeout(() => resolve(null), 5000)
+            setTimeout(() => resolve(null), CONFIG.TIMEOUTS.SESSION_CHECK)
           );
           
           const userPromise = api.getCurrentUser();
@@ -114,7 +115,7 @@ const App: React.FC = () => {
       try {
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise<{settings: SchoolSettings, users: User[]}>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          setTimeout(() => reject(new Error(CONFIG.ERRORS.TIMEOUT)), CONFIG.TIMEOUTS.SESSION_CHECK)
         );
         
         const dataPromise = Promise.all([
@@ -148,7 +149,7 @@ const App: React.FC = () => {
         try {
           // Add timeout to prevent hanging
           const timeoutPromise = new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
+            setTimeout(() => reject(new Error(CONFIG.ERRORS.TIMEOUT)), CONFIG.TIMEOUTS.DATA_LOAD)
           );
           
           const dataPromise = Promise.all([
@@ -206,14 +207,14 @@ const App: React.FC = () => {
 
     let isMounted = true;
 
-    const channel = supabase
-      .channel('chat_messages_realtime')
+      const channel = supabase
+      .channel(CONFIG.REALTIME.CHANNEL_NAME)
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
-          schema: 'public', 
-          table: 'chat_messages' 
-        }, 
+          schema: CONFIG.REALTIME.SCHEMA, 
+          table: CONFIG.REALTIME.TABLE 
+        },
         async (payload) => {
           if (!isMounted) return;
           
@@ -232,7 +233,7 @@ const App: React.FC = () => {
               // Remove any temp messages with same sender and text (in case real-time arrives after API response)
               const withoutTemp = prev.filter(m => {
                 // Keep temp messages that don't match this new message
-                if (m.id.startsWith('temp-')) {
+                if (m.id.startsWith(CONFIG.TEMP_MESSAGE_PREFIX)) {
                   // Remove temp message if it matches sender and text
                   return !(m.sender === newMessage.sender && m.text === newMessage.text);
                 }
@@ -296,8 +297,8 @@ const App: React.FC = () => {
       setIsAppLoading(true);
       try {
         // Validate password length
-        if (!user.password || user.password.length < 6) {
-          alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+        if (!user.password || user.password.length < CONFIG.PASSWORD.MIN_LENGTH) {
+          alert(CONFIG.ERRORS.PASSWORD_TOO_SHORT);
           setIsAppLoading(false);
           return;
         }
@@ -312,7 +313,7 @@ const App: React.FC = () => {
         }
         
         if (!result.user) {
-          alert('فشل في إنشاء حساب المسؤول. يرجى المحاولة مرة أخرى.');
+          alert(CONFIG.ERRORS.REGISTRATION_FAILED);
           setIsAppLoading(false);
           return;
         }
@@ -328,7 +329,7 @@ const App: React.FC = () => {
         handleAddLog('تسجيل مدرسة جديدة', `تم تسجيل مدرسة ${schoolName} بواسطة ${adminName}`);
       } catch (e: any) {
         console.error('Registration error', e);
-        alert(e?.message || 'فشل التسجيل. يرجى المحاولة مرة أخرى');
+        alert(e?.message || CONFIG.ERRORS.GENERIC_ERROR);
       } finally {
         setIsAppLoading(false);
       }
@@ -344,6 +345,21 @@ const App: React.FC = () => {
           setStudents([]); // Clear sensitive data from state
           setLogs([]);
       }
+  };
+
+  const handleAddStudent = async (student: Student) => {
+    setIsDataLoading(true);
+    try {
+      await api.addStudent(student);
+      setStudents(prev => [...prev, student]);
+      handleAddLog('إضافة طالب', `تم إضافة الطالب ${student.name}`);
+      alert('تم إضافة الطالب بنجاح!');
+    } catch (error) {
+      console.error('Error adding student:', error);
+      alert('فشل في إضافة الطالب. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsDataLoading(false);
+    }
   };
 
   const handleImport = async (newStudents: Student[]) => {
@@ -365,7 +381,7 @@ const App: React.FC = () => {
       setCurrentRecords(prev => ({ ...prev, ...records }));
       const count = Object.keys(records).length;
       handleAddLog('حفظ بيانات يومية', `تم حفظ تقييمات لـ ${count} طلاب`);
-      alert('تم حفظ البيانات في قاعدة البيانات بنجاح!');
+      alert(CONFIG.SUCCESS.DATA_SAVED);
     } finally {
       setIsDataLoading(false);
     }
@@ -401,7 +417,7 @@ const App: React.FC = () => {
       if (!currentUser || !text.trim()) return;
       
       const messageText = text.trim();
-      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const tempId = `${CONFIG.TEMP_MESSAGE_PREFIX}${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date();
       
       // Create temporary message for immediate display
@@ -460,7 +476,7 @@ const App: React.FC = () => {
           console.error('Error sending message:', error);
           // Remove temp message on error
           setChatMessages(prev => prev.filter(m => m.id !== tempId));
-          alert('فشل في إرسال الرسالة. يرجى المحاولة مرة أخرى.');
+          alert(CONFIG.ERRORS.MESSAGE_SEND_FAILED);
       }
   };
 
@@ -469,9 +485,71 @@ const App: React.FC = () => {
       setBulkModalOpen(true);
   };
 
-  const handleResetData = () => {
-      if (confirm('تنبيه: هذه الميزة تتطلب إعادة تهيئة قاعدة البيانات من السيرفر. هل تريد تحديث الصفحة؟')) {
-          window.location.reload();
+  const handleResetData = async () => {
+      const confirmMessage = `⚠️ تحذير: سيتم حذف جميع البيانات التالية:\n\n` +
+        `• جميع بيانات الطلاب\n` +
+        `• جميع الحصص والجداول\n` +
+        `• جميع التقارير اليومية\n` +
+        `• جميع الرسائل الداخلية\n` +
+        `• جميع السجلات\n` +
+        `• جميع الجلسات المكتملة\n` +
+        `• جميع الاحتياطات\n\n` +
+        `⚠️ سيتم الحفاظ على:\n` +
+        `• بيانات المستخدمين والصلاحيات\n` +
+        `• إعدادات المدرسة\n\n` +
+        `هل أنت متأكد من حذف جميع هذه البيانات؟\n` +
+        `هذه العملية لا يمكن التراجع عنها!`;
+      
+      if (!confirm(confirmMessage)) {
+          return;
+      }
+
+      // Double confirmation
+      if (!confirm('⚠️ تأكيد نهائي: هل أنت متأكد تماماً من حذف جميع البيانات؟')) {
+          return;
+      }
+
+      setIsDataLoading(true);
+      try {
+          await api.deleteAllData();
+          
+          // Clear local state
+          setStudents([]);
+          setSchedule([]);
+          setCurrentRecords({});
+          setChatMessages([]);
+          setLogs([]);
+          setCompletedSessions([]);
+          setSubstitutions([]);
+          
+          handleAddLog('حذف البيانات', 'تم حذف جميع بيانات الطلاب والحصص والتقارير');
+          alert('✅ تم حذف جميع البيانات بنجاح!\n\nتم الحفاظ على بيانات المستخدمين والإعدادات.');
+          
+          // Refresh data
+          if (currentUser) {
+              const [fetchedStudents, fetchedSchedule, fetchedRecords, fetchedLogs, fetchedMessages, fetchedCompleted, fetchedSubs] = await Promise.all([
+                  api.getStudents(),
+                  api.getSchedule(),
+                  api.getDailyRecords(),
+                  api.getLogs(),
+                  api.getMessages(),
+                  api.getCompletedSessions(),
+                  api.getSubstitutions()
+              ]);
+              
+              setStudents(fetchedStudents);
+              setSchedule(fetchedSchedule);
+              setCurrentRecords(fetchedRecords);
+              setLogs(fetchedLogs);
+              setChatMessages(fetchedMessages);
+              setCompletedSessions(fetchedCompleted);
+              setSubstitutions(fetchedSubs);
+          }
+      } catch (error) {
+          console.error('Error deleting data:', error);
+          alert('❌ فشل في حذف البيانات. يرجى المحاولة مرة أخرى أو التحقق من الصلاحيات.');
+      } finally {
+          setIsDataLoading(false);
       }
   };
 
@@ -510,9 +588,9 @@ const App: React.FC = () => {
   if (isAppLoading || !settings) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
-        <Loader2 size={48} className="text-teal-600 animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-gray-700">جارٍ التحميل...</h2>
-        <p className="text-gray-400 mt-2">يرجى الانتظار قليلاً</p>
+        <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
+        <h2 className="text-xl font-bold text-gray-700">{CONFIG.LOADING.APP}</h2>
+        <p className="text-gray-400 mt-2">{CONFIG.LOADING.APP_SUBTITLE}</p>
       </div>
     );
   }
@@ -555,8 +633,8 @@ const App: React.FC = () => {
     if (isDataLoading) {
        return (
          <div className="flex flex-col items-center justify-center h-96">
-            <Loader2 size={40} className="text-teal-500 animate-spin mb-4" />
-            <p className="text-gray-500 font-bold">جارٍ التحميل...</p>
+            <Loader2 size={CONFIG.UI.LOADER_SIZE_MEDIUM} className="text-teal-500 animate-spin mb-4" />
+            <p className="text-gray-500 font-bold">{CONFIG.LOADING.DATA}</p>
          </div>
        );
     }
@@ -579,6 +657,7 @@ const App: React.FC = () => {
             isAdmin={currentUser.role === 'admin'}
             role={currentUser.role}
             onBulkReport={currentUser.role === 'admin' ? handleBulkReportClick : undefined}
+            onAddStudent={currentUser.role === 'admin' ? handleAddStudent : undefined}
             onSendReport={handleSendReport}
             schedule={currentSchedule}
             onSessionEnter={handleSessionEnter}
@@ -675,16 +754,16 @@ const App: React.FC = () => {
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg flex-shrink-0"
             >
-                <Menu size={22} />
+                <Menu size={CONFIG.UI.MENU_ICON_SIZE} />
             </button>
             <span className="font-bold text-gray-800 truncate text-sm">{settings.name}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
              <div className="relative p-1">
-                <Bell size={20} className="text-gray-500" />
+                <Bell size={CONFIG.UI.BELL_ICON_SIZE} className="text-gray-500" />
                 <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
              </div>
-             <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full border border-gray-200 flex-shrink-0" />
+             <img src={currentUser.avatar} alt="User" className={`w-${CONFIG.UI.AVATAR_SIZE} h-${CONFIG.UI.AVATAR_SIZE} rounded-full border border-gray-200 flex-shrink-0`} />
         </div>
       </div>
 

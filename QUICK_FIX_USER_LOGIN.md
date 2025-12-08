@@ -128,3 +128,4 @@ The auto-profile trigger (`sql/03_auto_create_profile_trigger.sql`) should autom
 
 **Quickest Solution**: Run Option 1 - it takes 30 seconds!
 
+

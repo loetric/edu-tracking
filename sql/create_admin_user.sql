@@ -53,3 +53,4 @@ WHERE p.email = 'admin@example.com';  -- Replace with your email
 -- SET role = 'admin' 
 -- WHERE email = 'admin@example.com';
 
+

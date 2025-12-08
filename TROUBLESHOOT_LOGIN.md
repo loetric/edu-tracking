@@ -63,3 +63,4 @@ CREATE POLICY "Public can select profiles for login" ON profiles
 4. **Try email instead of username** in login form
 5. **Verify password** is correct
 
+

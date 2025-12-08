@@ -29,3 +29,4 @@ BEGIN
     RAISE NOTICE 'Now run: 01_clean_schema.sql to create fresh tables';
 END $$;
 
+

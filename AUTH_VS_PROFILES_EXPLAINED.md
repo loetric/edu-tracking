@@ -100,3 +100,4 @@ VALUES (
 
 Or use the sync script: `sql/sync_existing_auth_users.sql`
 
+

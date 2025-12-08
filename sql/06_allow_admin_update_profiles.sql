@@ -23,3 +23,4 @@ CREATE POLICY "Admin can update all profiles" ON public.profiles
         )
     );
 
+

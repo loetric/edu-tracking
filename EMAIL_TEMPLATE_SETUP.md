@@ -76,3 +76,4 @@ You can customize:
 - Always test in multiple email clients (Gmail, Outlook, etc.)
 - The plain text version is a fallback for clients that don't support HTML
 
+

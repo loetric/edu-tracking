@@ -99,3 +99,4 @@ UPDATE profiles SET role = 'teacher' WHERE email = 'your-email@example.com';
 UPDATE profiles SET role = 'counselor' WHERE email = 'your-email@example.com';
 ```
 
+

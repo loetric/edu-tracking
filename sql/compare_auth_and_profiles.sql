@@ -75,3 +75,4 @@ FROM auth.users au
 FULL OUTER JOIN profiles p ON au.id = p.id
 ORDER BY au.created_at DESC NULLS LAST;
 
+

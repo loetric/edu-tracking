@@ -13,14 +13,109 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule }) => {
-  // Mock data for the chart with better curve
-  const data = [
-    { name: 'الأحد', performance: 65 },
-    { name: 'الاثنين', performance: 72 },
-    { name: 'الثلاثاء', performance: 68 },
-    { name: 'الأربعاء', performance: 85 },
-    { name: 'الخميس', performance: 80 },
-  ];
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Helper function to calculate performance score
+  const calculatePerformanceScore = (status: string): number => {
+    switch (status) {
+      case 'excellent': return 5;
+      case 'good': return 4;
+      case 'average': return 3;
+      case 'poor': return 1;
+      case 'none': return 0;
+      default: return 0;
+    }
+  };
+  
+  const getPerformanceLabel = (score: number): string => {
+    if (score >= 4.5) return 'ممتاز';
+    if (score >= 3.5) return 'جيد جداً';
+    if (score >= 2.5) return 'جيد';
+    if (score >= 1.5) return 'مقبول';
+    return 'يحتاج تحسين';
+  };
+  
+  const getPerformanceColor = (score: number): string => {
+    if (score >= 4.5) return 'text-green-600';
+    if (score >= 3.5) return 'text-blue-600';
+    if (score >= 2.5) return 'text-yellow-600';
+    if (score >= 1.5) return 'text-orange-600';
+    return 'text-red-600';
+  };
+  
+  // Get today's records (with proper typing)
+  const todayRecords = Object.values(records).filter((r): r is DailyRecord => {
+    const record = r as DailyRecord;
+    return record.date === today;
+  });
+  
+  // Calculate attendance rate for today
+  const totalTodayRecords = todayRecords.length;
+  const presentCount = todayRecords.filter(r => r.attendance === 'present').length;
+  const attendanceRate = totalTodayRecords > 0 
+    ? Math.round((presentCount / totalTodayRecords) * 100) 
+    : 0;
+  
+  // Calculate average performance for today
+  let overallPerformanceScore = 0;
+  if (totalTodayRecords > 0) {
+    const validRecords = todayRecords.filter(r => r.attendance === 'present');
+    if (validRecords.length > 0) {
+      const participationAvg = validRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.participation), 0) / validRecords.length;
+      const homeworkAvg = validRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.homework), 0) / validRecords.length;
+      const behaviorAvg = validRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.behavior), 0) / validRecords.length;
+      overallPerformanceScore = (participationAvg + homeworkAvg + behaviorAvg) / 3;
+    }
+  }
+  
+  const overallPerformanceLabel = getPerformanceLabel(overallPerformanceScore);
+  const overallPerformanceColor = getPerformanceColor(overallPerformanceScore);
+  
+  // Count behavior alerts (students with challenges)
+  const behaviorAlertsCount = students.filter(s => s.challenge && s.challenge !== 'none').length;
+  
+  // Calculate weekly performance chart data from records
+  const getWeekStartDate = (date: Date): Date => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday as week start
+    return new Date(d.setDate(diff));
+  };
+  
+  const weekStart = getWeekStartDate(new Date());
+  const daysOfWeek = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+  
+  const weeklyData = daysOfWeek.map((dayName, index) => {
+    const dayDate = new Date(weekStart);
+    dayDate.setDate(weekStart.getDate() + index);
+    const dateStr = dayDate.toISOString().split('T')[0];
+    
+    // Get records for this day (with proper typing)
+    const dayRecords = Object.values(records).filter((r): r is DailyRecord => {
+      const record = r as DailyRecord;
+      return record.date === dateStr;
+    });
+    const validDayRecords = dayRecords.filter(r => r.attendance === 'present');
+    
+    let dayPerformance = 0;
+    if (validDayRecords.length > 0) {
+      const participationAvg = validDayRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.participation), 0) / validDayRecords.length;
+      const homeworkAvg = validDayRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.homework), 0) / validDayRecords.length;
+      const behaviorAvg = validDayRecords.reduce((sum, r) => sum + calculatePerformanceScore(r.behavior), 0) / validDayRecords.length;
+      dayPerformance = ((participationAvg + homeworkAvg + behaviorAvg) / 3) * 20; // Convert to percentage (0-100)
+    }
+    
+    return {
+      name: dayName,
+      performance: Math.round(dayPerformance)
+    };
+  });
+  
+  // Calculate average weekly performance
+  const weeklyAverage = weeklyData.length > 0
+    ? Math.round(weeklyData.reduce((sum, d) => sum + d.performance, 0) / weeklyData.length)
+    : 0;
 
   // Logic to determine Class Readiness (Completion of Grading)
   const dayName = new Date().toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -74,7 +169,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
                     <p className="text-gray-500 text-sm font-medium mb-1">نسبة الحضور اليوم</p>
-                    <h4 className="text-3xl font-bold text-gray-800">92%</h4>
+                    <h4 className="text-3xl font-bold text-gray-800">
+                      {totalTodayRecords > 0 ? `${attendanceRate}%` : '0%'}
+                    </h4>
+                    {totalTodayRecords === 0 && (
+                      <p className="text-xs text-gray-400 mt-1">لا توجد بيانات اليوم</p>
+                    )}
                 </div>
                 <div className="p-4 bg-blue-50 text-blue-600 rounded-xl">
                     <CalendarCheck size={24} />
@@ -84,7 +184,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
                     <p className="text-gray-500 text-sm font-medium mb-1">الأداء العام</p>
-                    <h4 className="text-3xl font-bold text-green-600">ممتاز</h4>
+                    <h4 className={`text-3xl font-bold ${overallPerformanceColor}`}>
+                      {totalTodayRecords > 0 ? overallPerformanceLabel : 'لا توجد بيانات'}
+                    </h4>
+                    {totalTodayRecords > 0 && (
+                      <p className="text-xs text-gray-400 mt-1">
+                        {overallPerformanceScore.toFixed(1)}/5.0
+                      </p>
+                    )}
                 </div>
                 <div className="p-4 bg-green-50 text-green-600 rounded-xl">
                     <TrendingUp size={24} />
@@ -94,7 +201,10 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div>
                     <p className="text-gray-500 text-sm font-medium mb-1">تنبيهات السلوك</p>
-                    <h4 className="text-3xl font-bold text-orange-500">3</h4>
+                    <h4 className="text-3xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
+                    {behaviorAlertsCount === 0 && (
+                      <p className="text-xs text-gray-400 mt-1">لا توجد تنبيهات</p>
+                    )}
                 </div>
                 <div className="p-4 bg-orange-50 text-orange-600 rounded-xl">
                     <AlertTriangle size={24} />
@@ -235,7 +345,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     {/* Give ResponsiveContainer an explicit height to avoid width/height -1 warnings */}
                     <ResponsiveContainer width="100%" height={250}>
                         <AreaChart 
-                            data={data}
+                            data={weeklyData}
                             margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
                         >
                             <defs>
@@ -294,7 +404,17 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     </ResponsiveContainer>
                 </div>
                 <div className="mt-3 md:mt-4 text-center">
-                    <p className="text-xs md:text-sm text-gray-500">متوسط الأداء لهذا الأسبوع <span className="text-teal-600 font-bold">78%</span></p>
+                    <p className="text-xs md:text-sm text-gray-500">
+                      متوسط الأداء لهذا الأسبوع{' '}
+                      <span className="text-teal-600 font-bold">
+                        {weeklyAverage}%
+                      </span>
+                      {weeklyAverage === 0 && (
+                        <span className="text-gray-400 text-xs block mt-1">
+                          (لا توجد بيانات كافية)
+                        </span>
+                      )}
+                    </p>
                 </div>
             </div>
         </div>

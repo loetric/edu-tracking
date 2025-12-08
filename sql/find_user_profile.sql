@@ -19,3 +19,4 @@ ORDER BY created_at DESC;
 -- Option 4: Check if email exists (exact match)
 -- SELECT * FROM profiles WHERE email = 'admin@admin.local';
 
+

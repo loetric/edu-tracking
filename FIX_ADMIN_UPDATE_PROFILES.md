@@ -29,3 +29,4 @@ sql/06_allow_admin_update_profiles.sql
   SELECT * FROM pg_policies WHERE tablename = 'profiles';
   ```
 
+

@@ -1,16 +1,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatMessage, Role } from '../types';
+import { ChatMessage } from '../types';
+import { CONFIG } from '../config';
 import { MessageSquare, Send, X, Bell } from 'lucide-react';
 
 interface InternalChatProps {
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
-  role: Role;
   currentUserName: string;
 }
 
-export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMessage, role, currentUserName }) => {
+export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMessage, currentUserName }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [unread, setUnread] = useState(false);
@@ -31,7 +31,7 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
       if (isOpen && messagesEndRef.current) {
           setTimeout(() => {
               messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
+          }, CONFIG.TIMEOUTS.AUTO_SCROLL_DELAY);
       }
   }, [messages, isOpen]);
 
@@ -69,10 +69,10 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
         <div 
           className="fixed left-3 right-3 md:bottom-20 md:left-6 md:right-auto md:w-72 md:inset-x-auto md:top-auto bg-white rounded-lg shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden md:max-h-[320px]"
           style={{
-            bottom: 'max(0.5rem, env(safe-area-inset-bottom))',
-            maxHeight: 'calc(50vh - max(0.5rem, env(safe-area-inset-bottom)))',
+            bottom: CONFIG.CHAT.MOBILE_BOTTOM,
+            maxHeight: CONFIG.CHAT.MOBILE_MAX_HEIGHT,
             height: 'auto',
-            maxWidth: 'calc(100vw - 1.5rem)'
+            maxWidth: CONFIG.CHAT.MOBILE_WIDTH
           }}
         >
           {/* Header */}
@@ -105,12 +105,14 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
                 : new Date(msg.timestamp);
               return (
               <div key={`msg-${msg.id}-${index}`} className={`flex flex-col ${isMe ? 'items-start' : 'items-end'}`}>
-                <div className={`p-1.5 md:p-2 rounded-lg max-w-[75%] md:max-w-[80%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800 shadow-sm' : 'bg-teal-100 text-teal-900 shadow-sm'}`}>
+                <div 
+                  className={`p-1.5 md:p-2 rounded-lg max-w-[75%] md:max-w-[80%] text-xs md:text-sm ${isMe ? 'bg-white border border-teal-100 text-gray-800 shadow-sm' : 'bg-teal-100 text-teal-900 shadow-sm'}`}
+                >
                   <p className="font-bold text-[9px] md:text-[10px] text-teal-600 mb-0.5 truncate">{msg.sender || 'مستخدم'}</p>
                   <p className="break-words whitespace-pre-wrap leading-relaxed text-[10px] md:text-xs">{msg.text || ''}</p>
                 </div>
                 <span className="text-[7px] md:text-[9px] text-gray-400 mt-0.5 px-1">
-                  {msgTimestamp.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                  {msgTimestamp.toLocaleTimeString(CONFIG.LOCALE.DEFAULT, CONFIG.LOCALE.TIME_FORMAT)}
                 </span>
               </div>
             )})}

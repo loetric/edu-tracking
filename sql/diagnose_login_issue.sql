@@ -54,3 +54,4 @@ FROM profiles
 WHERE email = 'admin@admin.local'
 LIMIT 1;
 
+
