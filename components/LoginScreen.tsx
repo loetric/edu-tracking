@@ -360,10 +360,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">كلمة المرور</label>
+                        <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2">كلمة المرور</label>
                         <div className="relative">
                             <Lock className="absolute top-3 right-3 text-gray-400" size={20} />
                             <input 
+                                id="password"
+                                name="password"
                                 type={showPassword ? "text" : "password"} 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
