@@ -204,6 +204,15 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
     phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
   });
+  
+  // Debug: Log found columns
+  console.log('Found columns:', {
+    studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
+    name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
+    classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
+    classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
+    phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
+  });
 
   // Track IDs to ensure uniqueness within the sheet
   const seenIds = new Set<string>();
