@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     parentPhone text NOT NULL,
     challenge jsonb,
     avatar text,
+    studentNumber text, -- رقم الطالب الأصلي من الملف (للعرض)
     created_at timestamptz DEFAULT now() NOT NULL
 );
 
