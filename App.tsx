@@ -173,11 +173,27 @@ const App: React.FC = () => {
         setIsDataLoading(true);
         try {
           // Always refresh settings and users from database first
-          const [freshSettings, freshUsers] = await Promise.all([
-            api.getSettings(),
-            api.getUsers()
-          ]);
-          setSettings(freshSettings);
+          // Load them separately to handle errors independently
+          let freshSettings: SchoolSettings | null = null;
+          let freshUsers: User[] = [];
+          
+          try {
+            freshSettings = await api.getSettings();
+          } catch (settingsError: any) {
+            console.error("Failed to load settings in dashboard", settingsError);
+            // Continue even if settings fail
+          }
+          
+          try {
+            freshUsers = await api.getUsers();
+          } catch (usersError: any) {
+            console.error("Failed to load users in dashboard", usersError);
+            // Continue with empty users array
+          }
+          
+          if (freshSettings) {
+            setSettings(freshSettings);
+          }
           setUsers(freshUsers);
           
           // Then load other data in parallel
