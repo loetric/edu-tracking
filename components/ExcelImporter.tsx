@@ -72,7 +72,7 @@ const generateStudentId = (studentNumber?: string | number, index?: number): str
 /**
  * Find the header row by searching for common header keywords
  */
-const findHeaderRow = (jsonData: any[][]): number => {
+const findHeaderRow = (jsonData: any[]): number => {
   // Keywords that indicate a header row
   const headerKeywords = [
     'اسم', 'name', 'الطالب', 'student', 'student_name',
@@ -84,7 +84,7 @@ const findHeaderRow = (jsonData: any[][]): number => {
   
   // Search from top to bottom (max 20 rows to avoid performance issues)
   for (let i = 0; i < Math.min(jsonData.length, 20); i++) {
-    const row = jsonData[i] || [];
+    const row = (jsonData[i] as any[]) || [];
     const rowText = row.map((cell: any) => String(cell || '').toLowerCase().trim()).join(' ');
     
     // Check if this row contains multiple header keywords
