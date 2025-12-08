@@ -544,12 +544,37 @@ const App: React.FC = () => {
         return;
       }
 
+      // Extract unique class grades from imported students
+      const importedClassGrades = Array.from(new Set(
+        uniqueStudents
+          .map(s => s.classGrade?.trim())
+          .filter(grade => grade && grade.length > 0)
+      ));
+
       // Import students (API will handle database duplicates)
       await api.importStudents(uniqueStudents);
       
       // Refresh students list from database to ensure consistency
       const updatedStudents = await api.getStudents();
       setStudents(updatedStudents);
+      
+      // Update class grades in settings if new ones were imported
+      if (importedClassGrades.length > 0 && settings) {
+        const currentClassGrades = settings.classGrades || [];
+        const newClassGrades = importedClassGrades.filter(
+          grade => !currentClassGrades.includes(grade)
+        );
+        
+        if (newClassGrades.length > 0) {
+          // Sort class grades for better organization
+          const allClassGrades = [...currentClassGrades, ...newClassGrades].sort();
+          const updatedSettings = { ...settings, classGrades: allClassGrades };
+          await api.updateSettings(updatedSettings);
+          setSettings(updatedSettings);
+          
+          handleAddLog('تحديث الفصول', `تم إضافة ${newClassGrades.length} فصل جديد تلقائياً من الملف المستورد`);
+        }
+      }
       
       // Calculate how many were actually imported
       const importedCount = uniqueStudents.length;
@@ -570,6 +595,16 @@ const App: React.FC = () => {
         if (fileDuplicateCount > 0) skippedDetails.push(`${fileDuplicateCount} مكرر في الملف`);
         if (dbDuplicateCount > 0) skippedDetails.push(`${dbDuplicateCount} موجود في النظام`);
         alertMessage += `\n\nتم تخطي ${fileDuplicateCount + dbDuplicateCount} طالب (${skippedDetails.join('، ')})`;
+      }
+      
+      // Add message about auto-added class grades
+      if (importedClassGrades.length > 0 && settings) {
+        const newClassGrades = importedClassGrades.filter(
+          grade => !(settings.classGrades || []).includes(grade)
+        );
+        if (newClassGrades.length > 0) {
+          alertMessage += `\n\nتم إضافة ${newClassGrades.length} فصل جديد تلقائياً إلى قائمة الفصول: ${newClassGrades.join('، ')}`;
+        }
       }
       
       alert({ message: alertMessage, type: 'success' });

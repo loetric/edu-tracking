@@ -9,7 +9,8 @@ export const getStudents = async (): Promise<Student[]> => {
   try {
     const { data, error } = await supabase
       .from('students')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: true }); // Order by creation time to preserve import order
 
     if (error) throw error;
     return (data || []) as Student[];
@@ -60,38 +61,33 @@ export const importStudents = async (newStudents: Student[]): Promise<void> => {
       throw new Error('جميع الطلاب موجودون بالفعل في النظام');
     }
 
-    // Insert only new students (in batches to avoid issues)
-    const batchSize = 100;
-    for (let i = 0; i < studentsToInsert.length; i += batchSize) {
-      const batch = studentsToInsert.slice(i, i + batchSize);
-      const { error } = await supabase
-        .from('students')
-        .insert(batch);
-
-      if (error) {
-        console.error('Import students error:', error);
-        // If it's a duplicate key error, try to continue with remaining students
-        if (error.code === '23505') {
-          console.warn(`Skipping batch due to duplicate key error`);
-          // Try to insert one by one to identify the problematic student
-          for (const student of batch) {
-            try {
-              const { error: singleError } = await supabase
-                .from('students')
-                .insert([student]);
-              if (singleError && singleError.code !== '23505') {
-                throw singleError;
-              }
-            } catch (singleError: any) {
-              if (singleError.code !== '23505') {
-                throw singleError;
-              }
-              // Skip this duplicate
-            }
+    // Insert only new students (one by one to preserve order from Excel)
+    // This ensures created_at timestamps maintain the import order
+    for (const student of studentsToInsert) {
+      try {
+        const { error } = await supabase
+          .from('students')
+          .insert([student]);
+        
+        if (error) {
+          // If it's a duplicate key error, skip this student
+          if (error.code === '23505') {
+            console.warn(`Skipping duplicate student: ${student.id}`);
+            continue;
           }
-        } else {
           throw error;
         }
+        
+        // Small delay to ensure created_at timestamps are sequential
+        // This helps preserve the order from Excel file
+        await new Promise(resolve => setTimeout(resolve, 10));
+      } catch (error: any) {
+        // If it's a duplicate key error, skip this student
+        if (error.code === '23505') {
+          console.warn(`Skipping duplicate student: ${student.id}`);
+          continue;
+        }
+        throw error;
       }
     }
 

@@ -33,9 +33,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     studentNumber: ''
   });
 
-  // Get available class grades from settings or from students
+  // Get available class grades from settings or from students, sorted nicely
   const availableClassGrades = settings?.classGrades && settings.classGrades.length > 0
-    ? settings.classGrades
+    ? [...settings.classGrades].sort()
     : Array.from(new Set(students.map(s => s.classGrade))).sort();
 
   // Get unique class grades for filter (from actual student data)
@@ -426,89 +426,76 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <div className="flex">
-            {/* Sidebar with sequential numbers */}
-            <div className="w-16 bg-gray-50 border-l border-gray-200 flex-shrink-0">
-              <div className="sticky top-0 bg-gray-50 border-b border-gray-200 px-3 py-4">
-                <span className="text-xs font-bold text-gray-500">#</span>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {filteredStudents.map((student) => {
+          <table className="w-full text-right border-collapse">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="w-16 bg-gray-50 border-r border-gray-200 px-3 py-4 text-center sticky left-0 z-10">
+                  <span className="text-xs font-bold text-gray-500">#</span>
+                </th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم الطالب</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => {
                   // Get the index from the original students array (before filtering)
                   const originalIndex = students.findIndex(s => s.id === student.id);
                   const sequentialNumber = originalIndex >= 0 ? originalIndex + 1 : 0;
                   return (
-                    <div key={student.id} className="px-3 py-4 text-center">
-                      <span className="text-xs font-medium text-gray-500">{sequentialNumber}</span>
-                    </div>
+                    <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="w-16 bg-gray-50 border-r border-gray-200 px-3 py-4 text-center sticky left-0 z-10">
+                        <span className="text-xs font-medium text-gray-500">{sequentialNumber}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                        {student.studentNumber || student.id}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{student.classGrade}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{student.parentPhone || '-'}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          student.challenge === 'none' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-orange-100 text-orange-700'
+                        }`}>
+                          {student.challenge === 'none' ? 'عادي' : student.challenge}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleEditStudent(student)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                          >
+                            <Edit2 size={14} />
+                            <span>تحرير</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStudent(student)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={14} />
+                            <span>حذف</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
-                })}
-              </div>
-            </div>
-            
-            {/* Main table */}
-            <div className="flex-1 overflow-x-auto">
-              <table className="w-full text-right">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم الطالب</th>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
-                    <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredStudents.length > 0 ? (
-                    filteredStudents.map((student) => (
-                      <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-800">
-                          {student.studentNumber || student.id}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{student.classGrade}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{student.parentPhone || '-'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        student.challenge === 'none' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-orange-100 text-orange-700'
-                      }`}>
-                        {student.challenge === 'none' ? 'عادي' : student.challenge}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleEditStudent(student)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
-                        >
-                          <Edit2 size={14} />
-                          <span>تحرير</span>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStudent(student)}
-                          className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          <span>حذف</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                })
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
                     {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
                   </td>
                 </tr>
               )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
 
         {/* Mobile Cards */}

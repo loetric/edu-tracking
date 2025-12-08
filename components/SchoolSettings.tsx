@@ -658,7 +658,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {classGrades.map((grade, index) => (
+                        {classGrades.sort().map((grade, index) => (
                           <tr key={index} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4 text-sm font-medium text-gray-800">{grade}</td>
                             <td className="px-6 py-4">
@@ -676,7 +676,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                     </table>
                   </div>
                   <div className="md:hidden divide-y divide-gray-100">
-                    {classGrades.map((grade, index) => (
+                    {classGrades.sort().map((grade, index) => (
                       <div key={index} className="p-4">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-gray-800">{grade}</span>
@@ -763,13 +763,26 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">الفصل</label>
-                             <input 
-                                type="text" 
-                                value={newSession.classRoom} 
-                                onChange={e => setNewSession({...newSession, classRoom: e.target.value})} 
-                                className="w-full border rounded p-2 text-sm" 
-                                placeholder="مثال: الرابع / أ" 
-                             />
+                             {classGrades.length > 0 ? (
+                               <select 
+                                 value={newSession.classRoom || ''} 
+                                 onChange={e => setNewSession({...newSession, classRoom: e.target.value})} 
+                                 className="w-full border rounded p-2 text-sm"
+                               >
+                                 <option value="">اختر الفصل...</option>
+                                 {classGrades.sort().map(grade => (
+                                   <option key={grade} value={grade}>{grade}</option>
+                                 ))}
+                               </select>
+                             ) : (
+                               <input 
+                                 type="text" 
+                                 value={newSession.classRoom || ''} 
+                                 onChange={e => setNewSession({...newSession, classRoom: e.target.value})} 
+                                 className="w-full border rounded p-2 text-sm" 
+                                 placeholder="مثال: الرابع الابتدائي" 
+                               />
+                             )}
                          </div>
                          <div className="md:col-span-2">
                              <label className="block text-xs font-bold text-gray-500 mb-1">المعلم</label>
