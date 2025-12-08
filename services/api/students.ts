@@ -20,13 +20,46 @@ export const getStudents = async (): Promise<Student[]> => {
 };
 
 /**
- * Import students (bulk insert)
+ * Import students (bulk insert with duplicate handling)
  */
 export const importStudents = async (newStudents: Student[]): Promise<void> => {
   try {
-    await supabase
+    if (newStudents.length === 0) return;
+
+    // Get existing student IDs to avoid duplicates
+    const { data: existingStudents, error: fetchError } = await supabase
       .from('students')
-      .insert(newStudents);
+      .select('id');
+
+    if (fetchError) {
+      console.error('Error fetching existing students:', fetchError);
+      throw fetchError;
+    }
+
+    const existingIds = new Set((existingStudents || []).map(s => s.id));
+    
+    // Filter out students that already exist
+    const studentsToInsert = newStudents.filter(s => !existingIds.has(s.id));
+
+    if (studentsToInsert.length === 0) {
+      throw new Error('جميع الطلاب موجودون بالفعل في النظام');
+    }
+
+    // Insert only new students
+    const { error } = await supabase
+      .from('students')
+      .insert(studentsToInsert);
+
+    if (error) {
+      console.error('Import students error:', error);
+      throw error;
+    }
+
+    // Return info about skipped students
+    const skippedCount = newStudents.length - studentsToInsert.length;
+    if (skippedCount > 0) {
+      console.warn(`${skippedCount} طالب تم تخطيهم لأنهم موجودون بالفعل`);
+    }
   } catch (error) {
     console.error('Import students error:', error);
     throw error;
@@ -97,14 +130,32 @@ export const updateStudent = async (
  */
 export const deleteStudent = async (studentId: string): Promise<void> => {
   try {
-    const { error } = await supabase
+    // First verify the student exists
+    const { data: existingStudent, error: fetchError } = await supabase
+      .from('students')
+      .select('id')
+      .eq('id', studentId)
+      .single();
+
+    if (fetchError || !existingStudent) {
+      throw new Error('الطالب غير موجود');
+    }
+
+    // Delete the student
+    const { error, data } = await supabase
       .from('students')
       .delete()
-      .eq('id', studentId);
+      .eq('id', studentId)
+      .select();
 
     if (error) {
       console.error('Delete student error:', error);
       throw error;
+    }
+
+    // Verify deletion was successful
+    if (!data || data.length === 0) {
+      throw new Error('فشل في حذف الطالب - لم يتم العثور على السجل');
     }
   } catch (error) {
     console.error('Delete student exception:', error);

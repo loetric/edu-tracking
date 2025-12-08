@@ -477,12 +477,38 @@ const App: React.FC = () => {
     setIsDataLoading(true);
     try {
       await api.deleteStudent(studentId);
+      
+      // Remove from local state
       setStudents(prev => prev.filter(s => s.id !== studentId));
-      handleAddLog('حذف طالب', `تم حذف الطالب ${student.name}`);
-      alert({ message: 'تم حذف الطالب بنجاح!', type: 'success' });
-    } catch (error) {
+      
+      // Verify deletion by refreshing from database
+      const updatedStudents = await api.getStudents();
+      const stillExists = updatedStudents.some(s => s.id === studentId);
+      
+      if (stillExists) {
+        // Student still exists - refresh the list
+        setStudents(updatedStudents);
+        alert({ 
+          message: 'تحذير: يبدو أن الطالب لا يزال موجوداً. تم تحديث القائمة.', 
+          type: 'warning' 
+        });
+      } else {
+        // Deletion successful
+        handleAddLog('حذف طالب', `تم حذف الطالب ${student.name}`);
+        alert({ message: 'تم حذف الطالب بنجاح!', type: 'success' });
+      }
+    } catch (error: any) {
       console.error('Error deleting student:', error);
-      alert({ message: 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
+      const errorMessage = error?.message || 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.';
+      alert({ message: errorMessage, type: 'error' });
+      
+      // Refresh students list to ensure consistency
+      try {
+        const refreshedStudents = await api.getStudents();
+        setStudents(refreshedStudents);
+      } catch (refreshError) {
+        console.error('Error refreshing students after delete failure:', refreshError);
+      }
     } finally {
       setIsDataLoading(false);
     }
@@ -491,10 +517,48 @@ const App: React.FC = () => {
   const handleImport = async (newStudents: Student[]) => {
     setIsDataLoading(true);
     try {
-      await api.importStudents(newStudents);
-      setStudents(prev => [...prev, ...newStudents]);
-      handleAddLog('استيراد بيانات', `تم استيراد ${newStudents.length} طلاب جدد`);
+      // Get existing students to check for duplicates
+      const existingStudents = await api.getStudents();
+      const existingIds = new Set(existingStudents.map(s => s.id));
+      
+      // Filter out duplicates
+      const studentsToAdd = newStudents.filter(s => !existingIds.has(s.id));
+      const duplicateCount = newStudents.length - studentsToAdd.length;
+
+      if (studentsToAdd.length === 0) {
+        alert({ 
+          message: `جميع الطلاب (${newStudents.length}) موجودون بالفعل في النظام`, 
+          type: 'warning' 
+        });
+        setIsDataLoading(false);
+        return;
+      }
+
+      // Import only new students
+      await api.importStudents(studentsToAdd);
+      
+      // Refresh students list from database to ensure consistency
+      const updatedStudents = await api.getStudents();
+      setStudents(updatedStudents);
+      
+      let logMessage = `تم استيراد ${studentsToAdd.length} طالب جديد`;
+      if (duplicateCount > 0) {
+        logMessage += ` (تم تخطي ${duplicateCount} طالب موجود مسبقاً)`;
+      }
+      
+      handleAddLog('استيراد بيانات', logMessage);
+      
+      let alertMessage = `تم استيراد ${studentsToAdd.length} طالب بنجاح!`;
+      if (duplicateCount > 0) {
+        alertMessage += `\n\nتم تخطي ${duplicateCount} طالب موجود مسبقاً.`;
+      }
+      
+      alert({ message: alertMessage, type: 'success' });
       setTimeout(() => setActiveTab('tracking'), 500);
+    } catch (error: any) {
+      console.error('Error importing students:', error);
+      const errorMessage = error?.message || 'فشل في استيراد الطلاب. يرجى المحاولة مرة أخرى.';
+      alert({ message: errorMessage, type: 'error' });
     } finally {
       setIsDataLoading(false);
     }
