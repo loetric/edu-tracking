@@ -609,11 +609,20 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
             setProgress({ current: 0, total: 0 });
           }
         }
-      } catch (err) {
-        console.error(err);
-        setError('حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف Excel أو CSV صالح.');
+      } catch (err: any) {
+        console.error('File processing error:', err);
+        const errorMessage = err?.message || 'حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف Excel أو CSV صالح.';
+        setError(errorMessage);
         setIsLoading(false);
+        setProgress({ current: 0, total: 0 });
       }
+    };
+    
+    reader.onerror = (error) => {
+      console.error('FileReader error:', error);
+      setError('حدث خطأ أثناء قراءة الملف. يرجى التأكد من أن الملف غير تالف.');
+      setIsLoading(false);
+      setProgress({ current: 0, total: 0 });
     };
 
     if (isExcel) {
