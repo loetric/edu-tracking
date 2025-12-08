@@ -93,6 +93,9 @@ export const useModal = () => {
   };
 };
 
+// Named export
+export { useModal };
+
 // Default export for compatibility
 export default useModal;
 
