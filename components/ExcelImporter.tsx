@@ -142,10 +142,17 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
   const headers = (jsonData[headerRowIndex] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
   
   // Find column indices with smart matching
-  const findColumnIndex = (keywords: string[]): number => {
+  const findColumnIndex = (keywords: string[], excludeKeywords: string[] = []): number => {
     for (const keyword of keywords) {
-      const index = headers.findIndex(h => {
+      const index = headers.findIndex((h, idx) => {
+        // Skip if this column matches any exclude keyword
         const hLower = h.toLowerCase();
+        for (const exclude of excludeKeywords) {
+          if (hLower.includes(exclude.toLowerCase()) || exclude.toLowerCase().includes(hLower)) {
+            return false;
+          }
+        }
+        
         const keywordLower = keyword.toLowerCase();
         return hLower.includes(keywordLower) || 
                keywordLower.includes(hLower) ||
@@ -156,17 +163,47 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     return -1;
   };
 
-  const studentNumberIndex = findColumnIndex(['رقم', 'number', 'id', 'student', 'طالب', 'student_id', 'studentid', 'رقم الطالب']);
-  const nameIndex = findColumnIndex(['اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم', 'اسم الطالب']);
-  const classIndex = findColumnIndex(['صف', 'class', 'grade', 'الصف', 'الدرجة', 'class_grade', 'classgrade', 'level', 'رقم الصف']);
-  const classRoomIndex = findColumnIndex(['فصل', 'classroom', 'room', 'الفصل', 'section', 'sec']);
-  const phoneIndex = findColumnIndex(['جوال', 'phone', 'mobile', 'رقم', 'ولي', 'parent', 'parent_phone', 'parentphone', 'contact', 'telephone']);
+  // Find student number column - prioritize "رقم الطالب" (Student ID)
+  // Exclude "رقم الصف" to avoid confusion
+  const studentNumberIndex = findColumnIndex(
+    ['رقم الطالب', 'student_id', 'studentid', 'student number', 'student id'],
+    ['رقم الصف', 'class number', 'class_grade', 'classgrade', 'class grade', 'الصف', 'class', 'grade']
+  );
+  
+  // If not found with specific keywords, try general ones but still exclude class-related
+  const studentNumberIndexFallback = studentNumberIndex === -1 
+    ? findColumnIndex(['رقم', 'number', 'id'], ['الصف', 'class', 'grade', 'classroom', 'room'])
+    : studentNumberIndex;
+  
+  // Find name column
+  const nameIndex = findColumnIndex(['اسم الطالب', 'اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم']);
+  
+  // Find class grade column - prioritize "رقم الصف" (Class Number)
+  const classIndex = findColumnIndex(['رقم الصف', 'class number', 'class_grade', 'classgrade', 'class grade', 'الصف', 'class', 'grade', 'الدرجة', 'level']);
+  
+  // Find class room/section column - prioritize "الفصل" (Semester/Section)
+  const classRoomIndex = findColumnIndex(['الفصل', 'فصل', 'classroom', 'room', 'section', 'sec', 'semester']);
+  
+  // Find phone column - prioritize "الجوال" but exclude "رقم الطالب" and "رقم الصف"
+  const phoneIndex = findColumnIndex(
+    ['الجوال', 'جوال', 'phone', 'mobile', 'parent_phone', 'parentphone', 'parent phone', 'contact', 'telephone', 'ولي'],
+    ['رقم الطالب', 'رقم الصف', 'student', 'class']
+  );
 
   // Verify we found at least name or student number column
-  if (nameIndex === -1 && studentNumberIndex === -1) {
+  if (nameIndex === -1 && studentNumberIndexFallback === -1) {
     console.warn('Could not find name or student number columns in header row', headerRowIndex);
     return students;
   }
+  
+  // Debug: Log found columns
+  console.log('Found columns:', {
+    studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
+    name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
+    classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
+    classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
+    phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
+  });
 
   // Track IDs to ensure uniqueness within the sheet
   const seenIds = new Set<string>();
@@ -176,7 +213,7 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     const row = jsonData[i] as any[];
     if (!row || row.length === 0) continue;
 
-    const studentNumber = studentNumberIndex >= 0 ? String(row[studentNumberIndex] || '').trim() : '';
+    const studentNumber = (studentNumberIndexFallback >= 0 ? String(row[studentNumberIndexFallback] || '').trim() : '');
     const name = nameIndex >= 0 ? String(row[nameIndex] || '').trim() : '';
     const classGradeRaw = classIndex >= 0 ? String(row[classIndex] || '').trim() : '';
     const classRoom = classRoomIndex >= 0 ? String(row[classRoomIndex] || '').trim() : '';
