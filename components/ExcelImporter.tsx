@@ -353,11 +353,15 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   };
 
   const processFile = (file: File) => {
+    // Reset all states when starting a new file upload
     setError(null);
     setSuccess(false);
     setImportedCount(0);
     setIsLoading(true);
     setLoadingMessage('جاري قراءة الملف...');
+    setAvailableSheets([]);
+    setSelectedSheet('');
+    setShowSheetSelector(false);
 
     // Check file extension
     const fileName = file.name.toLowerCase();
@@ -689,16 +693,19 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
         </div>
 
         {error && (
-          <div className="mt-6 p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-3">
-            <AlertTriangle size={20} />
-            <span>{error}</span>
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-start gap-3 shadow-sm">
+            <AlertTriangle size={20} className="flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm mb-1">خطأ في الاستيراد</p>
+              <p className="text-sm break-words">{error}</p>
+            </div>
           </div>
         )}
 
         {success && (
-          <div className="mt-6 p-4 bg-green-50 text-green-700 rounded-lg flex items-center gap-3 animate-pulse">
-            <Check size={20} />
-            <span>تم استيراد {importedCount} طالب بنجاح!</span>
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-3 shadow-sm">
+            <Check size={20} className="flex-shrink-0" />
+            <span className="font-bold">تم استيراد {importedCount} طالب بنجاح!</span>
           </div>
         )}
       </div>

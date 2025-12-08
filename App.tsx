@@ -521,7 +521,8 @@ const App: React.FC = () => {
   };
 
   const handleImport = async (newStudents: Student[]) => {
-    setIsDataLoading(true);
+    // Don't set global loading - ExcelImporter has its own loading state
+    // setIsDataLoading(true);
     try {
       // Remove duplicates within the file itself first
       const seenIds = new Set<string>();
@@ -540,7 +541,6 @@ const App: React.FC = () => {
           message: `جميع الطلاب في الملف مكررون (${newStudents.length} طالب)`, 
           type: 'warning' 
         });
-        setIsDataLoading(false);
         return;
       }
 
@@ -620,9 +620,11 @@ const App: React.FC = () => {
       }
       
       alert({ message: errorMessage, type: 'error' });
-    } finally {
-      setIsDataLoading(false);
     }
+    // Don't set loading to false - ExcelImporter handles its own loading state
+    // finally {
+    //   setIsDataLoading(false);
+    // }
   };
 
   const handleSaveRecords = async (records: Record<string, DailyRecord>) => {

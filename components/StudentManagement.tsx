@@ -176,10 +176,14 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     const duplicates = newStudents.filter(s => existingIds.has(s.id));
     
     if (duplicates.length > 0) {
-      const duplicateIds = duplicates.map(s => s.id).join(', ');
+      // Show only count, not all IDs (to avoid very long messages)
+      const duplicateCount = duplicates.length;
+      const sampleIds = duplicates.slice(0, 3).map(s => s.id).join(', ');
+      const moreText = duplicateCount > 3 ? ` و${duplicateCount - 3} طالب آخر` : '';
+      
       const shouldContinue = await confirm({
         title: 'أرقام مكررة',
-        message: `يوجد ${duplicates.length} طالب برقم مسجل مسبقاً: ${duplicateIds}\n\nهل تريد المتابعة وتخطي المكررات؟`,
+        message: `يوجد ${duplicateCount} طالب برقم مسجل مسبقاً في النظام${sampleIds ? ` (مثال: ${sampleIds}${moreText})` : ''}.\n\nهل تريد المتابعة وتخطي المكررات؟`,
         type: 'warning',
         confirmText: 'نعم، تخطي المكررات',
         cancelText: 'إلغاء'
