@@ -165,7 +165,7 @@ const App: React.FC = () => {
       const loadDashboardData = async () => {
         setIsDataLoading(true);
         try {
-          // Always refresh settings and users from database
+          // Always refresh settings and users from database first
           const [freshSettings, freshUsers] = await Promise.all([
             api.getSettings(),
             api.getUsers()
@@ -173,21 +173,7 @@ const App: React.FC = () => {
           setSettings(freshSettings);
           setUsers(freshUsers);
           
-          // Add timeout to prevent hanging
-          const timeoutPromise = new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error(CONFIG.ERRORS.TIMEOUT)), CONFIG.TIMEOUTS.DATA_LOAD)
-          );
-          
-          const dataPromise = Promise.all([
-            api.getStudents(),
-            api.getSchedule(),
-            api.getDailyRecords(),
-            api.getLogs(),
-            api.getMessages(),
-            api.getCompletedSessions(),
-            api.getSubstitutions()
-          ]);
-          
+          // Then load other data in parallel
           const [
             fetchedStudents, 
             fetchedSchedule, 
@@ -196,7 +182,15 @@ const App: React.FC = () => {
             fetchedMessages,
             fetchedCompleted,
             fetchedSubs
-          ] = await Promise.race([dataPromise, timeoutPromise]);
+          ] = await Promise.all([
+            api.getStudents(),
+            api.getSchedule(),
+            api.getDailyRecords(),
+            api.getLogs(),
+            api.getMessages(),
+            api.getCompletedSessions(),
+            api.getSubstitutions()
+          ]);
 
           setStudents(fetchedStudents);
           setSchedule(fetchedSchedule);
@@ -207,7 +201,7 @@ const App: React.FC = () => {
           setSubstitutions(fetchedSubs);
         } catch (error) {
           console.error("Error loading dashboard data", error);
-          // Set empty arrays on timeout/error to allow app to continue
+          // Set empty arrays on error to allow app to continue
           setStudents([]);
           setSchedule([]);
           setCurrentRecords({});

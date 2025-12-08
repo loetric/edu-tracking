@@ -36,6 +36,7 @@ export const registerSchool = async (
 
 /**
  * Get school settings
+ * Throws error if settings not found - never returns mock data
  */
 export const getSettings = async (): Promise<SchoolSettings> => {
   try {
@@ -45,11 +46,19 @@ export const getSettings = async (): Promise<SchoolSettings> => {
       .limit(1)
       .single();
 
-    if (error || !data) return INITIAL_SETTINGS;
+    if (error) {
+      console.error('Get settings error:', error);
+      throw new Error('فشل في تحميل بيانات المدرسة من قاعدة البيانات');
+    }
+    
+    if (!data) {
+      throw new Error('لا توجد بيانات مدرسة في قاعدة البيانات');
+    }
+    
     return data as SchoolSettings;
   } catch (error) {
     console.error('Get settings error:', error);
-    return INITIAL_SETTINGS;
+    throw error; // Re-throw to let caller handle
   }
 };
 
