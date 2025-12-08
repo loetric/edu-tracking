@@ -332,10 +332,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                 // Login Form
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">اسم المستخدم</label>
+                        <label htmlFor="username" className="block text-sm font-bold text-gray-700 mb-2">اسم المستخدم</label>
                         <div className="relative">
                             <User className="absolute top-3 right-3 text-gray-400" size={20} />
                             <input 
+                                id="username"
+                                name="username"
                                 type="text" 
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
