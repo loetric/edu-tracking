@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Student, DailyRecord } from '../types';
 import { X, Send, Check, Users, Loader } from 'lucide-react';
 import { getStatusLabel, getAttendanceLabel } from '../constants';
+import { useModal } from '../hooks/useModal';
+import { ConfirmModal } from './ConfirmModal';
+import { AlertModal } from './AlertModal';
 
 interface BulkReportModalProps {
   students: Student[];
