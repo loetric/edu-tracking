@@ -138,9 +138,20 @@ const App: React.FC = () => {
         setUsers(result.users);
       } catch (error) {
         console.error("Failed to load system data", error);
-        // Use default settings instead of blocking
+        // Use default settings temporarily, but keep trying to load from database
         setSettings(INITIAL_SETTINGS);
         setUsers([]);
+        // Retry loading settings after a delay
+        setTimeout(async () => {
+          try {
+            const retrySettings = await api.getSettings();
+            const retryUsers = await api.getUsers();
+            setSettings(retrySettings);
+            setUsers(retryUsers);
+          } catch (retryError) {
+            console.error("Retry failed to load system data", retryError);
+          }
+        }, 2000);
       } finally {
         setIsAppLoading(false);
       }
@@ -154,6 +165,14 @@ const App: React.FC = () => {
       const loadDashboardData = async () => {
         setIsDataLoading(true);
         try {
+          // Always refresh settings and users from database
+          const [freshSettings, freshUsers] = await Promise.all([
+            api.getSettings(),
+            api.getUsers()
+          ]);
+          setSettings(freshSettings);
+          setUsers(freshUsers);
+          
           // Add timeout to prevent hanging
           const timeoutPromise = new Promise<never>((_, reject) => 
             setTimeout(() => reject(new Error(CONFIG.ERRORS.TIMEOUT)), CONFIG.TIMEOUTS.DATA_LOAD)
@@ -608,7 +627,18 @@ const App: React.FC = () => {
   };
 
   // Loading Screen
-  if (isAppLoading || !settings) {
+  if (isAppLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
+        <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
+        <h2 className="text-xl font-bold text-gray-700">{CONFIG.LOADING.APP}</h2>
+        <p className="text-gray-400 mt-2">{CONFIG.LOADING.APP_SUBTITLE}</p>
+      </div>
+    );
+  }
+  
+  // If settings not loaded yet but not loading, use defaults temporarily
+  if (!settings) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
         <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
@@ -706,7 +736,9 @@ const App: React.FC = () => {
                 schedule={schedule}
                 onSave={async (s) => { 
                    await api.updateSettings(s); 
-                   setSettings(s); 
+                   // Always refresh from database to ensure consistency
+                   const freshSettings = await api.getSettings();
+                   setSettings(freshSettings);
                    handleAddLog('تعديل إعدادات', 'تم تحديث بيانات المدرسة'); 
                 }} 
                 onUpdateUsers={async (u) => { 
@@ -740,7 +772,9 @@ const App: React.FC = () => {
                 settings={settings}
                 onUpdateSettings={async (s) => { 
                    await api.updateSettings(s);
-                   setSettings(s); 
+                   // Always refresh from database to ensure consistency
+                   const freshSettings = await api.getSettings();
+                   setSettings(freshSettings);
                    handleAddLog('تعديل إعدادات التقرير', 'قام الموجه بتحديث رسالة التقرير'); 
                 }}
                 onViewReport={(s) => {
