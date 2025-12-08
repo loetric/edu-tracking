@@ -95,19 +95,38 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           return;
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Use the same regex as validation.ts for consistency
+      const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(emailToValidate)) {
           setEmailError('صيغة البريد الإلكتروني غير صحيحة');
           alert({ message: 'صيغة البريد الإلكتروني غير صحيحة. يرجى التحقق من الإدخال', type: 'warning' });
           return;
       }
 
+      // Additional validation checks
+      if (emailToValidate.length > 254) {
+          setEmailError('البريد الإلكتروني طويل جداً');
+          alert({ message: 'البريد الإلكتروني طويل جداً (الحد الأقصى 254 حرف)', type: 'warning' });
+          return;
+      }
+
+      if (emailToValidate.startsWith('.') || emailToValidate.startsWith('@') || emailToValidate.endsWith('.')) {
+          setEmailError('صيغة البريد الإلكتروني غير صحيحة');
+          alert({ message: 'صيغة البريد الإلكتروني غير صحيحة', type: 'warning' });
+          return;
+      }
+
       setIsAddingUser(false);
       setEmailError('');
       try {
+          console.log('Attempting to sign up user with email:', emailToValidate);
           const result = await api.signUp(emailToValidate, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
           
+          console.log('Sign up result:', result);
+          
           if (result.error) {
+              console.error('Sign up error:', result.error);
+              setEmailError(result.error.includes('البريد') || result.error.includes('email') ? result.error : '');
               alert({ message: result.error, type: 'error' });
               setIsAddingUser(true); // Re-open form on error
               return;

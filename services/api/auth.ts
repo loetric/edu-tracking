@@ -86,6 +86,12 @@ export const signUp = async (
 
     if (res.error) {
       console.error('Supabase auth signUp error:', res.error);
+      console.error('Error details:', {
+        message: res.error.message,
+        status: res.error.status,
+        code: res.error.code,
+        email: trimmedEmail
+      });
       const apiError = handleSupabaseError(res.error);
       return { user: null, error: apiError.message };
     }

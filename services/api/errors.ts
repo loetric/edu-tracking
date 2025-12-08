@@ -46,8 +46,15 @@ export const handleSupabaseError = (error: any): ApiError => {
     );
   }
 
-  // Invalid email
-  if (error.message?.includes('Invalid email')) {
+  // Invalid email - check multiple variations
+  if (
+    error.message?.includes('Invalid email') ||
+    error.message?.includes('invalid email') ||
+    error.message?.includes('Email format') ||
+    error.message?.includes('email format') ||
+    error.code === 'invalid_email' ||
+    error.code === 'validation_failed'
+  ) {
     return new ApiError(
       'INVALID_EMAIL',
       CONFIG.ERRORS.INVALID_EMAIL,
