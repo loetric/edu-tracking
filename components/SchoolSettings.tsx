@@ -461,8 +461,41 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                <input type="text" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} className="w-full border rounded p-2 text-sm" placeholder="username" />
                            </div>
                            <div>
-                               <label className="block text-xs font-bold text-gray-500 mb-1">البريد الإلكتروني</label>
-                               <input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full border rounded p-2 text-sm" placeholder="user@example.com" />
+                               <label className="block text-xs font-bold text-gray-500 mb-1">البريد الإلكتروني *</label>
+                               <input 
+                                   type="email" 
+                                   value={newUser.email || ''} 
+                                   onChange={e => {
+                                       const emailValue = e.target.value; // Don't trim on input, allow user to type
+                                       setNewUser({...newUser, email: emailValue});
+                                       
+                                       // Real-time validation
+                                       const trimmedValue = emailValue.trim();
+                                       if (!trimmedValue) {
+                                           setEmailError('البريد الإلكتروني مطلوب');
+                                       } else {
+                                           // Use the same regex as validation.ts
+                                           const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                                           if (!emailRegex.test(trimmedValue)) {
+                                               setEmailError('صيغة البريد الإلكتروني غير صحيحة');
+                                           } else {
+                                               setEmailError('');
+                                           }
+                                       }
+                                   }}
+                                   onBlur={e => {
+                                       // Trim on blur
+                                       const trimmedValue = e.target.value.trim();
+                                       if (trimmedValue !== e.target.value) {
+                                           setNewUser({...newUser, email: trimmedValue});
+                                       }
+                                   }}
+                                   className={`w-full border rounded p-2 text-sm ${emailError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-teal-500 focus:ring-teal-500'}`} 
+                                   placeholder="user@example.com" 
+                               />
+                               {emailError && (
+                                   <p className="text-xs text-red-600 mt-1">{emailError}</p>
+                               )}
                            </div>
                            <div>
                                <label className="block text-xs font-bold text-gray-500 mb-1">كلمة المرور</label>
