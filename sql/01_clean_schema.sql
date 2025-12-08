@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS public.substitutions (
 -- STEP 11: Create Indexes for Performance
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_students_classGrade ON public.students("classGrade");
-CREATE INDEX IF NOT EXISTS idx_daily_records_studentId ON public.daily_records(studentId);
+CREATE INDEX IF NOT EXISTS idx_daily_records_studentId ON public.daily_records("studentId");
 CREATE INDEX IF NOT EXISTS idx_daily_records_date ON public.daily_records(date);
 CREATE INDEX IF NOT EXISTS idx_schedule_day ON public.schedule(day);
 CREATE INDEX IF NOT EXISTS idx_substitutions_date ON public.substitutions(date);

@@ -5,10 +5,10 @@
 -- Run this in Supabase SQL Editor
 
 -- First, ensure column names are correct (handle case sensitivity)
--- Check if classGrade exists, if not rename classgrade to classGrade
+-- Fix all column name case issues
 DO $$
 BEGIN
-    -- Check if classgrade exists (lowercase) and rename it if needed
+    -- Fix students.classGrade
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_schema = 'public' 
@@ -18,7 +18,7 @@ BEGIN
         ALTER TABLE public.students RENAME COLUMN classgrade TO "classGrade";
     END IF;
     
-    -- Check if parentphone exists (lowercase) and rename it if needed
+    -- Fix students.parentPhone
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_schema = 'public' 
@@ -26,6 +26,26 @@ BEGIN
         AND column_name = 'parentphone'
     ) THEN
         ALTER TABLE public.students RENAME COLUMN parentphone TO "parentPhone";
+    END IF;
+    
+    -- Fix daily_records.studentId
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'daily_records' 
+        AND column_name = 'studentid'
+    ) THEN
+        ALTER TABLE public.daily_records RENAME COLUMN studentid TO "studentId";
+    END IF;
+    
+    -- Fix schedule.classRoom
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+        AND table_name = 'schedule' 
+        AND column_name = 'classroom'
+    ) THEN
+        ALTER TABLE public.schedule RENAME COLUMN classroom TO "classRoom";
     END IF;
 END $$;
 
