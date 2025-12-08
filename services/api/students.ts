@@ -130,18 +130,7 @@ export const updateStudent = async (
  */
 export const deleteStudent = async (studentId: string): Promise<void> => {
   try {
-    // First verify the student exists
-    const { data: existingStudent, error: fetchError } = await supabase
-      .from('students')
-      .select('id')
-      .eq('id', studentId)
-      .single();
-
-    if (fetchError || !existingStudent) {
-      throw new Error('الطالب غير موجود');
-    }
-
-    // Delete the student - use .select() to verify deletion
+    // Delete the student directly
     const { error, data } = await supabase
       .from('students')
       .delete()
@@ -150,39 +139,45 @@ export const deleteStudent = async (studentId: string): Promise<void> => {
 
     if (error) {
       console.error('Delete student error:', error);
+      // Check if it's an RLS/permission error
+      if (error.code === '42501' || error.message?.includes('permission') || error.message?.includes('policy')) {
+        throw new Error('فشل في حذف الطالب - لا توجد صلاحية للحذف. يرجى التحقق من إعدادات قاعدة البيانات.');
+      }
       throw error;
     }
 
-    // Verify deletion was successful - data should contain the deleted record
+    // If no data returned, the student might not exist or deletion was blocked
+    // But in Supabase, if deletion succeeds, data will contain the deleted row
+    // If data is empty, it means no rows matched (student doesn't exist or RLS blocked it)
     if (!data || data.length === 0) {
-      // Check again if student still exists (might be RLS issue)
-      const { data: checkData } = await supabase
+      // Verify if student still exists
+      const { data: checkData, error: checkError } = await supabase
         .from('students')
         .select('id')
         .eq('id', studentId)
-        .single();
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Error checking student after delete:', checkError);
+        // If we can't check, assume deletion failed
+        throw new Error('فشل في التحقق من حذف الطالب');
+      }
       
       if (checkData) {
-        throw new Error('فشل في حذف الطالب - قد تكون هناك مشكلة في الصلاحيات');
+        // Student still exists - deletion was blocked (likely RLS)
+        throw new Error('فشل في حذف الطالب - قد تكون هناك مشكلة في الصلاحيات أو سياسات قاعدة البيانات');
       }
+      // Student doesn't exist - deletion might have succeeded or student never existed
+      // We'll consider this a success
     }
-    
-    // Wait a bit to ensure deletion is committed
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Final verification - check if student still exists
-    const { data: finalCheck } = await supabase
-      .from('students')
-      .select('id')
-      .eq('id', studentId)
-      .single();
-    
-    if (finalCheck) {
-      throw new Error('فشل في حذف الطالب - لا يزال موجوداً في قاعدة البيانات');
-    }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete student exception:', error);
-    throw error;
+    // If it's already our custom error, throw it as is
+    if (error.message && error.message.includes('فشل')) {
+      throw error;
+    }
+    // Otherwise, wrap it
+    throw new Error(error?.message || 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.');
   }
 };
 

@@ -58,6 +58,7 @@ CREATE POLICY "Authenticated can modify settings" ON public.settings
 DROP POLICY IF EXISTS "Select students for authenticated" ON public.students;
 DROP POLICY IF EXISTS "Insert students for authenticated" ON public.students;
 DROP POLICY IF EXISTS "Update students for authenticated" ON public.students;
+DROP POLICY IF EXISTS "Delete students for authenticated" ON public.students;
 
 -- Authenticated users can read students
 CREATE POLICY "Select students for authenticated" ON public.students
@@ -74,6 +75,11 @@ CREATE POLICY "Update students for authenticated" ON public.students
     FOR UPDATE
     USING (auth.role() = 'authenticated')
     WITH CHECK (auth.role() = 'authenticated');
+
+-- Authenticated users can delete students
+CREATE POLICY "Delete students for authenticated" ON public.students
+    FOR DELETE
+    USING (auth.role() = 'authenticated');
 
 -- ============================================
 -- SCHEDULE POLICIES
