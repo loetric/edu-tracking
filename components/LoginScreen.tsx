@@ -225,8 +225,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                 // Register Form
                 <form onSubmit={handleRegister} className="space-y-4">
                      <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1">اسم المدرسة</label>
+                        <label htmlFor="schoolName" className="block text-xs font-bold text-gray-700 mb-1">اسم المدرسة</label>
                         <input 
+                            id="schoolName"
+                            name="schoolName"
                             type="text" 
                             value={schoolName}
                             onChange={(e) => setSchoolName(e.target.value)}
@@ -235,8 +237,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1">اسم المدير (المسؤول)</label>
+                        <label htmlFor="adminName" className="block text-xs font-bold text-gray-700 mb-1">اسم المدير (المسؤول)</label>
                         <input 
+                            id="adminName"
+                            name="adminName"
                             type="text" 
                             value={adminName}
                             onChange={(e) => setAdminName(e.target.value)}
@@ -246,8 +250,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                          <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">اسم المستخدم</label>
+                            <label htmlFor="regUsername" className="block text-xs font-bold text-gray-700 mb-1">اسم المستخدم</label>
                             <input 
+                                id="regUsername"
+                                name="regUsername"
                                 type="text" 
                                 value={regUsername}
                                 onChange={(e) => setRegUsername(e.target.value)}
@@ -269,8 +275,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
+                            <label htmlFor="regEmail" className="block text-xs font-bold text-gray-700 mb-1">البريد الإلكتروني</label>
                             <input
+                                id="regEmail"
+                                name="regEmail"
                                 type="email"
                                 value={regEmail}
                                 onChange={(e) => setRegEmail(e.target.value)}
@@ -292,8 +300,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                             )}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور</label>
+                            <label htmlFor="regPassword" className="block text-xs font-bold text-gray-700 mb-1">كلمة المرور</label>
                             <input 
+                                id="regPassword"
+                                name="regPassword"
                                 type="password" 
                                 value={regPassword}
                                 onChange={(e) => setRegPassword(e.target.value)}
@@ -303,8 +313,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onRegister, s
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-gray-700 mb-1">تأكيد كلمة المرور</label>
+                        <label htmlFor="regConfirmPassword" className="block text-xs font-bold text-gray-700 mb-1">تأكيد كلمة المرور</label>
                         <input 
+                            id="regConfirmPassword"
+                            name="regConfirmPassword"
                             type="password" 
                             value={regConfirmPassword}
                             onChange={(e) => setRegConfirmPassword(e.target.value)}
