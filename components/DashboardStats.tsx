@@ -2,6 +2,8 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Student, DailyRecord, Role, ScheduleItem } from '../types';
 import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
+import { AlertModal } from './AlertModal';
 
 interface DashboardStatsProps {
   students: Student[];
@@ -13,6 +15,7 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule }) => {
+  const { alert, alertModal } = useModal();
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
@@ -149,7 +152,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   const handleReminderClick = (teacherName: string, className: string) => {
       const msg = `تذكير: ${teacherName}، نرجو التكرم بسرعة رصد الدرجات والمتابعة اليومية للفصل (${className}).`;
       onSendReminder(msg);
-      alert(`تم إرسال التذكير إلى ${teacherName} في نظام التواصل الداخلي.`);
+      alert({ message: `تم إرسال التذكير إلى ${teacherName} في نظام التواصل الداخلي.`, type: 'success' });
   };
 
   return (
@@ -278,7 +281,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                             {item.isReady ? (
                                                 <button 
                                                     className="flex items-center gap-2 text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
-                                                    onClick={() => alert(`سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`)}
+                                                    onClick={() => alert({ message: `سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`, type: 'info' })}
                                                 >
                                                     <Send size={14} className="rtl:rotate-180"/>
                                                     إرسال التقارير
@@ -418,6 +421,17 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                 </div>
             </div>
         </div>
+        
+        {/* Alert Modal */}
+        {alertModal.isOpen && alertModal.options && (
+          <AlertModal
+            isOpen={alertModal.isOpen}
+            message={alertModal.options.message}
+            type={alertModal.options.type || 'info'}
+            duration={alertModal.options.duration || 3000}
+            onClose={alertModal.onClose}
+          />
+        )}
     </div>
   );
 };

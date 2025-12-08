@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Student, ChallengeType, SchoolSettings } from '../types';
 import { getChallengeColor, getChallengeLabel } from '../constants';
 import { ShieldAlert, Heart, Coins, AlertOctagon, User, FileText, Settings, Save, Link as LinkIcon, MessageSquare, Filter, ChevronDown, Printer, Search, X, Edit } from 'lucide-react';
+import { useModal } from '../hooks/useModal';
+import { AlertModal } from './AlertModal';
 
 interface CounselorViewProps {
   students: Student[];
@@ -13,6 +15,7 @@ interface CounselorViewProps {
 }
 
 export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdateChallenge, onViewReport, settings, onUpdateSettings }) => {
+  const { alert, alertModal } = useModal();
   const [localSettings, setLocalSettings] = useState<Partial<SchoolSettings>>({
       reportGeneralMessage: settings?.reportGeneralMessage || '',
       reportLink: settings?.reportLink || ''
@@ -41,7 +44,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
               reportGeneralMessage: localSettings.reportGeneralMessage,
               reportLink: localSettings.reportLink
           });
-          alert('تم تحديث إعدادات التقرير بنجاح');
+          alert({ message: 'تم تحديث إعدادات التقرير بنجاح', type: 'success' });
       }
   };
 
@@ -344,6 +347,17 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                   </div>
               </div>
           </div>
+      )}
+      
+      {/* Alert Modal */}
+      {alertModal.isOpen && alertModal.options && (
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          message={alertModal.options.message}
+          type={alertModal.options.type || 'info'}
+          duration={alertModal.options.duration || 3000}
+          onClose={alertModal.onClose}
+        />
       )}
     </div>
   );

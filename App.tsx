@@ -8,6 +8,7 @@ import { ArchiveLog } from './components/ArchiveLog';
 import { LoginScreen } from './components/LoginScreen';
 import { SchoolSettingsForm } from './components/SchoolSettings';
 import { TeacherSchedule } from './components/TeacherSchedule';
+import { StudentManagement } from './components/StudentManagement';
 import { PDFReport } from './components/PDFReport';
 import { CounselorView } from './components/CounselorView';
 import { InternalChat } from './components/InternalChat';
@@ -18,8 +19,14 @@ import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
 import { supabase } from './services/supabase';
+import { useModal } from './hooks/useModal';
+import { ConfirmModal } from './components/ConfirmModal';
+import { AlertModal } from './components/AlertModal';
 
 const App: React.FC = () => {
+  // Modal hooks
+  const { confirm, alert, confirmModal, alertModal } = useModal();
+  
   // Auth State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAppLoading, setIsAppLoading] = useState(true);
@@ -298,7 +305,7 @@ const App: React.FC = () => {
       try {
         // Validate password length
         if (!user.password || user.password.length < CONFIG.PASSWORD.MIN_LENGTH) {
-          alert(CONFIG.ERRORS.PASSWORD_TOO_SHORT);
+          alert({ message: CONFIG.ERRORS.PASSWORD_TOO_SHORT, type: 'error' });
           setIsAppLoading(false);
           return;
         }
@@ -307,13 +314,13 @@ const App: React.FC = () => {
         const result = await api.signUp(email, user.password || '', { username: user.username, name: user.name, role: user.role, avatar: user.avatar });
         
         if (result.error) {
-          alert(result.error);
+          alert({ message: result.error, type: 'error' });
           setIsAppLoading(false);
           return;
         }
         
         if (!result.user) {
-          alert(CONFIG.ERRORS.REGISTRATION_FAILED);
+          alert({ message: CONFIG.ERRORS.REGISTRATION_FAILED, type: 'error' });
           setIsAppLoading(false);
           return;
         }
@@ -329,7 +336,7 @@ const App: React.FC = () => {
         handleAddLog('تسجيل مدرسة جديدة', `تم تسجيل مدرسة ${schoolName} بواسطة ${adminName}`);
       } catch (e: any) {
         console.error('Registration error', e);
-        alert(e?.message || CONFIG.ERRORS.GENERIC_ERROR);
+        alert({ message: e?.message || CONFIG.ERRORS.GENERIC_ERROR, type: 'error' });
       } finally {
         setIsAppLoading(false);
       }
@@ -353,10 +360,10 @@ const App: React.FC = () => {
       await api.addStudent(student);
       setStudents(prev => [...prev, student]);
       handleAddLog('إضافة طالب', `تم إضافة الطالب ${student.name}`);
-      alert('تم إضافة الطالب بنجاح!');
+      alert({ message: 'تم إضافة الطالب بنجاح!', type: 'success' });
     } catch (error) {
       console.error('Error adding student:', error);
-      alert('فشل في إضافة الطالب. يرجى المحاولة مرة أخرى.');
+      alert({ message: 'فشل في إضافة الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
     } finally {
       setIsDataLoading(false);
     }
@@ -381,7 +388,7 @@ const App: React.FC = () => {
       setCurrentRecords(prev => ({ ...prev, ...records }));
       const count = Object.keys(records).length;
       handleAddLog('حفظ بيانات يومية', `تم حفظ تقييمات لـ ${count} طلاب`);
-      alert(CONFIG.SUCCESS.DATA_SAVED);
+      alert({ message: CONFIG.SUCCESS.DATA_SAVED, type: 'success' });
     } finally {
       setIsDataLoading(false);
     }
@@ -476,7 +483,7 @@ const App: React.FC = () => {
           console.error('Error sending message:', error);
           // Remove temp message on error
           setChatMessages(prev => prev.filter(m => m.id !== tempId));
-          alert(CONFIG.ERRORS.MESSAGE_SEND_FAILED);
+          alert({ message: CONFIG.ERRORS.MESSAGE_SEND_FAILED, type: 'error' });
       }
   };
 
@@ -500,12 +507,28 @@ const App: React.FC = () => {
         `هل أنت متأكد من حذف جميع هذه البيانات؟\n` +
         `هذه العملية لا يمكن التراجع عنها!`;
       
-      if (!confirm(confirmMessage)) {
+      const firstConfirm = await confirm({
+        title: 'حذف جميع البيانات',
+        message: confirmMessage,
+        type: 'danger' as const,
+        confirmText: 'نعم، احذف',
+        cancelText: 'إلغاء'
+      });
+      
+      if (!firstConfirm) {
           return;
       }
 
       // Double confirmation
-      if (!confirm('⚠️ تأكيد نهائي: هل أنت متأكد تماماً من حذف جميع البيانات؟')) {
+      const secondConfirm = await confirm({
+        title: 'تأكيد نهائي',
+        message: '⚠️ تأكيد نهائي: هل أنت متأكد تماماً من حذف جميع البيانات؟',
+        type: 'danger' as const,
+        confirmText: 'نعم، احذف',
+        cancelText: 'إلغاء'
+      });
+      
+      if (!secondConfirm) {
           return;
       }
 
@@ -523,7 +546,7 @@ const App: React.FC = () => {
           setSubstitutions([]);
           
           handleAddLog('حذف البيانات', 'تم حذف جميع بيانات الطلاب والحصص والتقارير');
-          alert('✅ تم حذف جميع البيانات بنجاح!\n\nتم الحفاظ على بيانات المستخدمين والإعدادات.');
+          alert({ message: '✅ تم حذف جميع البيانات بنجاح!\n\nتم الحفاظ على بيانات المستخدمين والإعدادات.', type: 'success' });
           
           // Refresh data
           if (currentUser) {
@@ -547,7 +570,7 @@ const App: React.FC = () => {
           }
       } catch (error) {
           console.error('Error deleting data:', error);
-          alert('❌ فشل في حذف البيانات. يرجى المحاولة مرة أخرى أو التحقق من الصلاحيات.');
+          alert({ message: '❌ فشل في حذف البيانات. يرجى المحاولة مرة أخرى أو التحقق من الصلاحيات.', type: 'error' });
       } finally {
           setIsDataLoading(false);
       }
@@ -657,11 +680,18 @@ const App: React.FC = () => {
             isAdmin={currentUser.role === 'admin'}
             role={currentUser.role}
             onBulkReport={currentUser.role === 'admin' ? handleBulkReportClick : undefined}
-            onAddStudent={currentUser.role === 'admin' ? handleAddStudent : undefined}
             onSendReport={handleSendReport}
             schedule={currentSchedule}
             onSessionEnter={handleSessionEnter}
             completedSessions={completedSessions}
+          />
+        );
+      case 'students':
+        return (
+          <StudentManagement 
+            students={students}
+            onAddStudent={handleAddStudent}
+            onImportStudents={handleImport}
           />
         );
       case 'import':
@@ -811,6 +841,7 @@ const App: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-800">
                     {activeTab === 'dashboard' && 'لوحة التحكم الرئيسية'}
                     {activeTab === 'tracking' && (currentUser.role === 'admin' ? 'إرسال التقارير (حصص اليوم)' : 'متابعة الطلاب')}
+                    {activeTab === 'students' && 'إدارة الطلاب'}
                     {activeTab === 'import' && 'استيراد البيانات'}
                     {activeTab === 'archive' && 'سجل العمليات'}
                     {activeTab === 'settings' && 'إعدادات النظام'}
@@ -837,6 +868,30 @@ const App: React.FC = () => {
 
         {renderContent()}
       </main>
+      
+      {/* Modals */}
+      {confirmModal.isOpen && confirmModal.options && (
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.options.title || 'تأكيد'}
+          message={confirmModal.options.message}
+          type={confirmModal.options.type || 'warning'}
+          confirmText={confirmModal.options.confirmText || 'تأكيد'}
+          cancelText={confirmModal.options.cancelText || 'إلغاء'}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={confirmModal.onCancel}
+        />
+      )}
+      
+      {alertModal.isOpen && alertModal.options && (
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          message={alertModal.options.message}
+          type={alertModal.options.type || 'info'}
+          duration={alertModal.options.duration || 3000}
+          onClose={alertModal.onClose}
+        />
+      )}
     </div>
   );
 };

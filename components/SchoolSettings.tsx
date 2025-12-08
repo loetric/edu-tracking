@@ -6,6 +6,9 @@ import { SchoolSettings, User, Role, ScheduleItem } from '../types';
 import { PasswordReset } from './PasswordReset';
 import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2 } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
+import { useModal } from '../hooks/useModal';
+import { ConfirmModal } from './ConfirmModal';
+import { AlertModal } from './AlertModal';
 
 interface SchoolSettingsProps {
   settings: SchoolSettings;
@@ -18,6 +21,7 @@ interface SchoolSettingsProps {
 }
 
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
+  const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup'>('general');
   
@@ -39,12 +43,12 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
-    alert('تم حفظ إعدادات المدرسة بنجاح');
+    alert({ message: 'تم حفظ إعدادات المدرسة بنجاح', type: 'success' });
   };
 
   const handleAddUser = async () => {
       if (!newUser.username || !newUser.password || !newUser.name || !newUser.role || !newUser.email) {
-          alert('الرجاء تعبئة جميع الحقول');
+          alert({ message: 'الرجاء تعبئة جميع الحقول', type: 'warning' });
           return;
       }
 
@@ -53,29 +57,37 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           const result = await api.signUp(newUser.email!, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
           
           if (result.error) {
-              alert(result.error);
+              alert({ message: result.error, type: 'error' });
               setIsAddingUser(true); // Re-open form on error
               return;
           }
           
           if (!result.user) {
-              alert('فشل في إنشاء حساب المستخدم');
+              alert({ message: 'فشل في إنشاء حساب المستخدم', type: 'error' });
               setIsAddingUser(true);
               return;
           }
           
           onUpdateUsers([...users, result.user]);
           setNewUser({ role: 'teacher', name: '', username: '', password: '', email: '' });
-          alert('تم إضافة المستخدم بنجاح');
+          alert({ message: 'تم إضافة المستخدم بنجاح', type: 'success' });
       } catch (err: any) {
           console.error('Add user error', err);
-          alert(err?.message || 'حدث خطأ أثناء إنشاء المستخدم');
+          alert({ message: err?.message || 'حدث خطأ أثناء إنشاء المستخدم', type: 'error' });
           setIsAddingUser(true);
       }
   };
 
-  const handleDeleteUser = (id: string) => {
-      if(window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+  const handleDeleteUser = async (id: string) => {
+      const shouldDelete = await confirm({
+        title: 'حذف المستخدم',
+        message: 'هل أنت متأكد من حذف هذا المستخدم؟',
+        type: 'danger',
+        confirmText: 'حذف',
+        cancelText: 'إلغاء'
+      });
+      
+      if (shouldDelete) {
           onUpdateUsers(users.filter(u => u.id !== id));
       }
   };
@@ -96,7 +108,15 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         // Show confirmation dialog
         const confirmMessage = `هل أنت متأكد من تحديث بيانات ${editingUser.name}؟\n\nالاسم: ${editFormData.name || editingUser.name}\nاسم المستخدم: ${editFormData.username || editingUser.username}\nالصلاحية: ${editFormData.role === 'admin' ? 'مدير' : editFormData.role === 'counselor' ? 'موجه' : 'معلم'}`;
         
-        if (!window.confirm(confirmMessage)) {
+        const shouldUpdate = await confirm({
+          title: 'تحديث بيانات المستخدم',
+          message: confirmMessage,
+          type: 'warning',
+          confirmText: 'تحديث',
+          cancelText: 'إلغاء'
+        });
+        
+        if (!shouldUpdate) {
             return;
         }
         
@@ -159,14 +179,22 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           onUpdateSchedule([...schedule, sessionToAdd]);
           setNewSession({ ...newSession, subject: '', classRoom: '' }); // Keep day/teacher/period possibly
           setIsAddingSession(false);
-          alert('تم إضافة الحصة للجدول بنجاح');
+          alert({ message: 'تم إضافة الحصة للجدول بنجاح', type: 'success' });
       } else {
-          alert('الرجاء تعبئة جميع بيانات الحصة');
+          alert({ message: 'الرجاء تعبئة جميع بيانات الحصة', type: 'warning' });
       }
   };
 
-  const handleDeleteSession = (id: string) => {
-      if(window.confirm('هل أنت متأكد من حذف هذه الحصة من الجدول؟') && onUpdateSchedule) {
+  const handleDeleteSession = async (id: string) => {
+      const shouldDelete = await confirm({
+        title: 'حذف الحصة',
+        message: 'هل أنت متأكد من حذف هذه الحصة من الجدول؟',
+        type: 'warning',
+        confirmText: 'حذف',
+        cancelText: 'إلغاء'
+      });
+      
+      if (shouldDelete && onUpdateSchedule) {
           onUpdateSchedule(schedule.filter(s => s.id !== id));
       }
   };
@@ -716,6 +744,30 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           </div>
         )}
       </div>
+      
+      {/* Modals */}
+      {confirmModal.isOpen && confirmModal.options && (
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.options.title || 'تأكيد'}
+          message={confirmModal.options.message}
+          type={confirmModal.options.type || 'warning'}
+          confirmText={confirmModal.options.confirmText || 'تأكيد'}
+          cancelText={confirmModal.options.cancelText || 'إلغاء'}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={confirmModal.onCancel}
+        />
+      )}
+      
+      {alertModal.isOpen && alertModal.options && (
+        <AlertModal
+          isOpen={alertModal.isOpen}
+          message={alertModal.options.message}
+          type={alertModal.options.type || 'info'}
+          duration={alertModal.options.duration || 3000}
+          onClose={alertModal.onClose}
+        />
+      )}
     </div>
   );
 };

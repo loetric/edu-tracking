@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Student, DailyRecord, StatusType, AttendanceStatus, Role, ScheduleItem } from '../types';
 import { getStatusColor, getStatusLabel, getChallengeColor, getChallengeLabel } from '../constants';
-import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass, UserPlus, X } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass } from 'lucide-react';
 
 interface StudentTrackerProps {
   students: Student[];
   onSave: (records: Record<string, DailyRecord>) => void;
   onSendReport: (student: Student, record: DailyRecord) => void;
   onBulkReport?: (records: Record<string, DailyRecord>) => void;
-  onAddStudent?: (student: Student) => void;
   isAdmin?: boolean;
   role?: Role;
   schedule?: ScheduleItem[];
@@ -33,15 +32,6 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   const [records, setRecords] = useState<Record<string, DailyRecord>>({});
   const [currentDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSession, setSelectedSession] = useState<ScheduleItem | null>(null);
-  const [showAddStudentForm, setShowAddStudentForm] = useState(false);
-  const [newStudent, setNewStudent] = useState<Partial<Student>>({
-    id: '',
-    name: '',
-    classGrade: '',
-    parentPhone: '',
-    challenge: 'none',
-    avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
-  });
 
   // Get today's day name in Arabic
   const dayName = new Date().toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -141,35 +131,6 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
   const isSessionCompleted = (sessionId: string) => completedSessions.includes(sessionId);
 
-  const handleAddStudentSubmit = () => {
-    if (!newStudent.id || !newStudent.name || !newStudent.classGrade || !newStudent.parentPhone) {
-      alert('الرجاء تعبئة جميع الحقول المطلوبة');
-      return;
-    }
-
-    if (onAddStudent) {
-      onAddStudent({
-        id: newStudent.id,
-        name: newStudent.name,
-        classGrade: newStudent.classGrade,
-        parentPhone: newStudent.parentPhone,
-        challenge: newStudent.challenge || 'none',
-        avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`
-      } as Student);
-      
-      // Reset form
-      setNewStudent({
-        id: '',
-        name: '',
-        classGrade: '',
-        parentPhone: '',
-        challenge: 'none',
-        avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
-      });
-      setShowAddStudentForm(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 md:gap-4 print:hidden">
@@ -184,16 +145,6 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
         </div>
         
         <div className="flex flex-wrap gap-2">
-            {/* Add Student Button - Only for Admin */}
-            {isAdmin && onAddStudent && (
-                <button
-                    onClick={() => setShowAddStudentForm(!showAddStudentForm)}
-                    className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors shadow-sm font-bold border text-sm bg-teal-600 text-white hover:bg-teal-700 border-teal-600"
-                >
-                    <UserPlus size={16} className="md:w-[18px] md:h-[18px]" />
-                    <span className="hidden sm:inline text-xs md:text-sm">إضافة طالب</span>
-                </button>
-            )}
             {/* Print Button for All Users */}
             <button
                 onClick={handlePrintList}
@@ -229,77 +180,6 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             )}
         </div>
       </div>
-
-      {/* Add Student Form - Only for Admin */}
-      {isAdmin && showAddStudentForm && onAddStudent && (
-        <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 print:hidden">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">إضافة طالب جديد</h3>
-            <button
-              onClick={() => setShowAddStudentForm(false)}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} className="text-gray-500" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب *</label>
-              <input
-                type="text"
-                value={newStudent.id || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                placeholder="مثال: 12345"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب *</label>
-              <input
-                type="text"
-                value={newStudent.name || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                placeholder="مثال: أحمد محمد علي"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
-              <input
-                type="text"
-                value={newStudent.classGrade || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                placeholder="مثال: الرابع الابتدائي"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر *</label>
-              <input
-                type="tel"
-                value={newStudent.parentPhone || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, parentPhone: e.target.value.replace(/[^0-9]/g, '') })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                placeholder="مثال: 966500000000"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              onClick={() => setShowAddStudentForm(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              إلغاء
-            </button>
-            <button
-              onClick={handleAddStudentSubmit}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-            >
-              إضافة
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Schedule Tabs */}
       {schedule && (

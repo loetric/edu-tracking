@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { RotateCcw, Check, X, Loader2, Mail, User, Search } from 'lucide-react';
 import { api } from '../services/api';
 import { supabase } from '../services/supabase';
+import { useModal } from '../hooks/useModal';
+import { ConfirmModal } from './ConfirmModal';
 
 interface PasswordResetProps {
   users: Array<{ id: string; username: string; email?: string; name: string; role: string }>;
@@ -17,6 +19,7 @@ interface UserWithEmail {
 }
 
 export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) => {
+  const { confirm, confirmModal } = useModal();
   const [usersWithEmail, setUsersWithEmail] = useState<UserWithEmail[]>([]);
   const [loading, setLoading] = useState(false);
   const [resettingFor, setResettingFor] = useState<string | null>(null);
@@ -69,7 +72,15 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
       return;
     }
 
-    if (!window.confirm(`هل تريد إرسال رابط إعادة تعيين كلمة المرور إلى ${user.name} (${user.email})؟`)) {
+    const shouldSend = await confirm({
+      title: 'إرسال رابط إعادة تعيين كلمة المرور',
+      message: `هل تريد إرسال رابط إعادة تعيين كلمة المرور إلى ${user.name} (${user.email})؟`,
+      type: 'info',
+      confirmText: 'إرسال',
+      cancelText: 'إلغاء'
+    });
+    
+    if (!shouldSend) {
       return;
     }
 
@@ -296,6 +307,20 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ users, onClose }) 
       <p className="text-sm text-gray-500 text-right mt-4 p-3 bg-gray-50 rounded-lg">
         <strong>ملاحظة:</strong> سيتم إرسال رابط آمن إلى بريد المستخدم. سيكون الرابط صالحاً لمدة 24 ساعة.
       </p>
+      
+      {/* Confirm Modal */}
+      {confirmModal.isOpen && confirmModal.options && (
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.options.title || 'تأكيد'}
+          message={confirmModal.options.message}
+          type={confirmModal.options.type || 'warning'}
+          confirmText={confirmModal.options.confirmText || 'تأكيد'}
+          cancelText={confirmModal.options.cancelText || 'إلغاء'}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={confirmModal.onCancel}
+        />
+      )}
     </div>
   );
 };

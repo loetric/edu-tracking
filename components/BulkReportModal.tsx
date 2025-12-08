@@ -14,6 +14,7 @@ interface BulkReportModalProps {
 }
 
 export const BulkReportModal: React.FC<BulkReportModalProps> = ({ students, records, isOpen, onClose, schoolName, schoolPhone }) => {
+  const { confirm, alert, confirmModal, alertModal } = useModal();
   const [sentIds, setSentIds] = useState<string[]>([]);
   const [isSendingAll, setIsSendingAll] = useState(false);
 
@@ -46,14 +47,21 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
   };
 
   const handleSendAll = async () => {
-      const confirmSend = window.confirm("سيقوم النظام بفتح محادثة واتساب لكل طالب.\n\n⚠️ يجب عليك إرفاق ملف الـ PDF يدوياً لكل طالب بعد فتح المحادثة.\n\nهل تود البدء؟");
+      const confirmSend = await confirm({
+        title: 'إرسال التقارير الجماعية',
+        message: "سيقوم النظام بفتح محادثة واتساب لكل طالب.\n\n⚠️ يجب عليك إرفاق ملف الـ PDF يدوياً لكل طالب بعد فتح المحادثة.\n\nهل تود البدء؟",
+        type: 'info',
+        confirmText: 'بدء',
+        cancelText: 'إلغاء'
+      });
+      
       if (!confirmSend) return;
 
       setIsSendingAll(true);
       const remainingStudents = students.filter(s => !sentIds.includes(s.id));
 
       if (remainingStudents.length === 0) {
-          alert("تم إرسال التقارير لجميع الطلاب مسبقاً.");
+          alert({ message: "تم إرسال التقارير لجميع الطلاب مسبقاً.", type: 'info' });
           setIsSendingAll(false);
           return;
       }
@@ -67,7 +75,7 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
           await new Promise(resolve => setTimeout(resolve, 3000)); 
       }
       setIsSendingAll(false);
-      alert("انتهت عملية فتح المحادثات.");
+      alert({ message: "انتهت عملية فتح المحادثات.", type: 'success' });
   };
 
   return (
@@ -140,6 +148,30 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
                  إغلاق
              </button>
         </div>
+        
+        {/* Modals */}
+        {confirmModal.isOpen && confirmModal.options && (
+          <ConfirmModal
+            isOpen={confirmModal.isOpen}
+            title={confirmModal.options.title || 'تأكيد'}
+            message={confirmModal.options.message}
+            type={confirmModal.options.type || 'warning'}
+            confirmText={confirmModal.options.confirmText || 'تأكيد'}
+            cancelText={confirmModal.options.cancelText || 'إلغاء'}
+            onConfirm={confirmModal.onConfirm}
+            onCancel={confirmModal.onCancel}
+          />
+        )}
+        
+        {alertModal.isOpen && alertModal.options && (
+          <AlertModal
+            isOpen={alertModal.isOpen}
+            message={alertModal.options.message}
+            type={alertModal.options.type || 'info'}
+            duration={alertModal.options.duration || 3000}
+            onClose={alertModal.onClose}
+          />
+        )}
       </div>
     </div>
   );
