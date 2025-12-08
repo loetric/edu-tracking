@@ -134,37 +134,38 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   const isSessionCompleted = (sessionId: string) => completedSessions.includes(sessionId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-3 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-3 md:gap-4 print:hidden">
+    <div className="space-y-3 md:space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-2.5 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-2 md:gap-4 print:hidden">
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg md:text-xl font-bold text-gray-800">
+          <h2 className="text-sm md:text-xl font-bold text-gray-800">
               {isAdmin ? 'متابعة التقارير اليومية' : 'المتابعة اليومية'}
           </h2>
-          <p className="text-gray-500 text-xs md:text-sm flex items-center gap-1 mt-1">
-              <Calendar size={12} className="md:w-[14px] md:h-[14px] flex-shrink-0"/> 
+          <p className="text-gray-500 text-[10px] md:text-sm flex items-center gap-1 mt-0.5 md:mt-1">
+              <Calendar size={10} className="md:w-[14px] md:h-[14px] flex-shrink-0"/> 
               <span className="truncate">{dayName} - {new Date().toLocaleDateString('ar-SA')}</span>
           </p>
         </div>
         
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 md:gap-2 w-full md:w-auto">
             {/* Print Button for All Users */}
             <button
                 onClick={handlePrintList}
                 disabled={!selectedSession}
-                className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg transition-colors shadow-sm font-bold border text-sm ${!selectedSession ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'}`}
+                className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg transition-colors shadow-sm font-bold border text-xs md:text-sm flex-1 md:flex-initial justify-center ${!selectedSession ? 'bg-gray-50 text-gray-400 cursor-not-allowed border-gray-200' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200'}`}
                 title="طباعة قائمة الطلاب"
             >
-                <Printer size={16} className="md:w-[18px] md:h-[18px]" />
-                <span className="hidden sm:inline text-xs md:text-sm">طباعة القائمة</span>
+                <Printer size={12} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+                <span className="hidden sm:inline text-[10px] md:text-sm">طباعة القائمة</span>
+                <span className="sm:hidden text-[10px]">طباعة</span>
             </button>
 
             {isAdmin && onBulkReport && (
                 <button
                     onClick={() => onBulkReport(records)}
                     disabled={!selectedSession || !isSessionCompleted(selectedSession.id)}
-                    className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg transition-shadow shadow-md text-xs md:text-sm font-bold ${(!selectedSession || !isSessionCompleted(selectedSession.id)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                    className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg transition-shadow shadow-md text-[10px] md:text-sm font-bold flex-1 md:flex-initial justify-center ${(!selectedSession || !isSessionCompleted(selectedSession.id)) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                 >
-                    <Users size={14} className="md:w-4 md:h-4" />
+                    <Users size={12} className="md:w-4 md:h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">إرسال تقارير جماعية</span>
                     <span className="sm:hidden">جماعي</span>
                 </button>
@@ -174,9 +175,9 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                 <button
                 onClick={() => onSave(records)}
                 disabled={!selectedSession}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-shadow shadow-md font-bold ${!selectedSession ? 'bg-gray-300 text-gray-100' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
+                className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-1.5 md:py-2 rounded-lg transition-shadow shadow-md font-bold text-xs md:text-sm flex-1 md:flex-initial justify-center ${!selectedSession ? 'bg-gray-300 text-gray-100' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
                 >
-                <Save size={18} />
+                <Save size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
                 <span>حفظ الكل</span>
                 </button>
             )}
@@ -185,9 +186,9 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
       {/* Schedule Tabs */}
       {schedule && (
-          <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm overflow-x-auto print:hidden">
-              <div className="flex items-center gap-2 min-w-max">
-                  <div className="text-sm font-bold text-gray-400 pl-4 border-l border-gray-100 ml-2 py-2">
+          <div className="bg-white p-1.5 md:p-2 rounded-xl border border-gray-100 shadow-sm overflow-x-auto print:hidden">
+              <div className="flex items-center gap-1.5 md:gap-2 min-w-max">
+                  <div className="text-xs md:text-sm font-bold text-gray-400 pl-2 md:pl-4 border-l border-gray-100 ml-1 md:ml-2 py-1.5 md:py-2 flex-shrink-0">
                       {isAdmin ? 'جدول الحصص اليومي:' : 'حصصي اليوم:'}
                   </div>
                   {displayedSessions.length > 0 ? displayedSessions.map(session => {
@@ -196,30 +197,30 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                       <button
                         key={session.id}
                         onClick={() => handleSessionClick(session)}
-                        className={`flex flex-col items-start gap-1 px-4 py-2 rounded-lg transition-all text-sm border ${
+                        className={`flex flex-col items-start gap-0.5 md:gap-1 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-xs md:text-sm border flex-shrink-0 ${
                             selectedSession?.id === session.id 
                             ? 'bg-teal-50 border-teal-500 shadow-md transform scale-105 z-10' 
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         }`}
                       >
-                          <div className="flex items-center justify-between w-full gap-3">
-                              <span className={`text-[10px] font-bold px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
+                          <div className="flex items-center justify-between w-full gap-2 md:gap-3">
+                              <span className={`text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
                               {isAdmin && (
                                   completed 
-                                  ? <CheckCircle size={14} className="text-green-500" />
-                                  : <Hourglass size={14} className="text-orange-400" />
+                                  ? <CheckCircle size={10} className="md:w-[14px] md:h-[14px] text-green-500 flex-shrink-0" />
+                                  : <Hourglass size={10} className="md:w-[14px] md:h-[14px] text-orange-400 flex-shrink-0" />
                               )}
                           </div>
-                          <span className={`font-bold ${selectedSession?.id === session.id ? 'text-teal-900' : 'text-gray-700'}`}>{session.subject}</span>
+                          <span className={`font-bold text-[10px] md:text-sm truncate max-w-[100px] md:max-w-none ${selectedSession?.id === session.id ? 'text-teal-900' : 'text-gray-700'}`}>{session.subject}</span>
                           <div className="flex items-center gap-1 w-full">
-                                <span className="text-[10px] bg-black/5 px-1.5 rounded">{session.classRoom}</span>
-                                {isAdmin && <span className="text-[10px] text-gray-500 truncate max-w-[80px]">{session.teacher}</span>}
+                                <span className="text-[9px] md:text-[10px] bg-black/5 px-1 md:px-1.5 rounded truncate">{session.classRoom}</span>
+                                {isAdmin && <span className="text-[9px] md:text-[10px] text-gray-500 truncate max-w-[60px] md:max-w-[80px]">{session.teacher}</span>}
                           </div>
                       </button>
                   )}) : (
-                      <div className="text-gray-400 text-sm italic px-4 flex items-center gap-2">
-                          <Lock size={14} />
-                          لا يوجد حصص مسجلة في الجدول لهذا اليوم
+                      <div className="text-gray-400 text-xs md:text-sm italic px-2 md:px-4 flex items-center gap-1.5 md:gap-2">
+                          <Lock size={12} className="md:w-[14px] md:h-[14px] flex-shrink-0" />
+                          <span>لا يوجد حصص مسجلة في الجدول لهذا اليوم</span>
                       </div>
                   )}
               </div>

@@ -1200,22 +1200,22 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row overflow-x-hidden" dir="rtl">
       {/* Mobile Header */}
-      <div className="md:hidden bg-white p-3 shadow-sm border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+      <div className="md:hidden bg-white p-2 shadow-sm border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <button 
                 onClick={() => setIsSidebarOpen(true)}
-                className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg flex-shrink-0"
+                className="p-1.5 text-gray-600 hover:bg-gray-50 rounded-lg flex-shrink-0"
             >
-                <Menu size={CONFIG.UI.MENU_ICON_SIZE} />
+                <Menu size={18} />
             </button>
-            <span className="font-bold text-gray-800 truncate text-sm">{effectiveSettings.name}</span>
+            <span className="font-bold text-gray-800 truncate text-xs">{effectiveSettings.name}</span>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
              <div className="relative p-1">
-                <Bell size={CONFIG.UI.BELL_ICON_SIZE} className="text-gray-500" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+                <Bell size={16} className="text-gray-500" />
+                <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
              </div>
-             <img src={currentUser.avatar} alt="User" className={`w-${CONFIG.UI.AVATAR_SIZE} h-${CONFIG.UI.AVATAR_SIZE} rounded-full border border-gray-200 flex-shrink-0`} />
+             <img src={currentUser.avatar} alt="User" className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0" />
         </div>
       </div>
 

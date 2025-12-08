@@ -212,32 +212,32 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   const hasActiveFilters = searchTerm || filterClassGrade || filterChallenge;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-6">
       {/* Header with Actions */}
-      <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800">إدارة الطلاب</h2>
-            <p className="text-gray-500 text-sm mt-1">
+      <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-base md:text-2xl font-bold text-gray-800">إدارة الطلاب</h2>
+            <p className="text-gray-500 text-xs md:text-sm mt-0.5 md:mt-1">
               إجمالي الطلاب: <span className="font-bold text-teal-600">{students.length}</span>
               {hasActiveFilters && (
-                <span className="mr-2">
+                <span className="mr-1 md:mr-2">
                   | النتائج المفلترة: <span className="font-bold text-blue-600">{filteredStudents.length}</span>
                 </span>
               )}
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 w-full md:w-auto">
             <button
               onClick={() => {
                 setShowAddForm(!showAddForm);
                 setShowImportForm(false);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-sm"
+              className="flex items-center gap-1 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial justify-center"
             >
-              <UserPlus size={18} />
-              <span className="text-sm">إضافة طالب</span>
+              <UserPlus size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+              <span>إضافة طالب</span>
             </button>
             
             <button
@@ -245,10 +245,10 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 setShowImportForm(!showImportForm);
                 setShowAddForm(false);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-sm"
+              className="flex items-center gap-1 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial justify-center"
             >
-              <Upload size={18} />
-              <span className="text-sm">استيراد من Excel</span>
+              <Upload size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+              <span>استيراد من Excel</span>
             </button>
           </div>
         </div>
@@ -256,19 +256,19 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
 
       {/* Add Student Form */}
       {showAddForm && !editingStudent && (
-        <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">إضافة طالب جديد</h3>
+        <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-3 md:mb-4">
+            <h3 className="text-sm md:text-lg font-bold text-gray-800">إضافة طالب جديد</h3>
             <button
               onClick={() => setShowAddForm(false)}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <X size={20} className="text-gray-500" />
+              <X size={16} className="md:w-5 md:h-5 text-gray-500" />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
               <input
                 type="text"
                 value={newStudent.id || ''}
@@ -277,12 +277,12 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   setNewStudent({ ...newStudent, id: value });
                 }}
                 maxLength={10}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: 12345"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
               <input
                 type="text"
                 value={newStudent.name || ''}
@@ -292,12 +292,12 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   setNewStudent({ ...newStudent, name: value });
                 }}
                 maxLength={50}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: أحمد محمد علي"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الصف *</label>
               {availableClassGrades.length > 0 ? (
                 <CustomSelect
                   value={newStudent.classGrade || ''}
@@ -307,20 +307,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                     ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
                   ]}
                   placeholder="اختر الصف"
-                  className="w-full"
+                  className="w-full text-sm"
                 />
               ) : (
                 <input
                   type="text"
                   value={newStudent.classGrade || ''}
                   onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                  className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                   placeholder="مثال: الرابع الابتدائي"
                 />
               )}
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
               <input
                 type="tel"
                 value={newStudent.parentPhone || ''}
@@ -329,21 +329,21 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   setNewStudent({ ...newStudent, parentPhone: value });
                 }}
                 maxLength={13}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: 966500000000"
               />
             </div>
           </div>
-          <div className="mt-4 flex justify-end gap-2">
+          <div className="mt-3 md:mt-4 flex justify-end gap-2">
             <button
               onClick={() => setShowAddForm(false)}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               إلغاء
             </button>
             <button
               onClick={handleAddStudentSubmit}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
               إضافة
             </button>
@@ -353,22 +353,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
 
       {/* Edit Student Modal */}
       {editingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center z-10">
-              <h3 className="text-xl md:text-2xl font-bold text-gray-800">تعديل بيانات الطالب</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-3 md:p-6 flex justify-between items-center z-10">
+              <h3 className="text-base md:text-2xl font-bold text-gray-800">تعديل بيانات الطالب</h3>
               <button
                 onClick={handleCancelEdit}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 aria-label="إغلاق"
               >
-                <X size={24} className="text-gray-500" />
+                <X size={18} className="md:w-6 md:h-6 text-gray-500" />
               </button>
             </div>
-            <div className="p-4 md:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 md:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
                   <input
                     type="text"
                     value={newStudent.id || ''}
@@ -378,13 +378,13 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                     }}
                     disabled={true}
                     maxLength={10}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                     placeholder="مثال: 12345"
                   />
-                  <p className="text-xs text-gray-500 mt-1">لا يمكن تعديل رقم الطالب</p>
+                  <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">لا يمكن تعديل رقم الطالب</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
                   <input
                     type="text"
                     value={newStudent.name || ''}
@@ -394,12 +394,12 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       setNewStudent({ ...newStudent, name: value });
                     }}
                     maxLength={50}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                     placeholder="مثال: أحمد محمد علي"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الصف *</label>
                   {availableClassGrades.length > 0 ? (
                     <CustomSelect
                       value={newStudent.classGrade || ''}
@@ -409,20 +409,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                         ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
                       ]}
                       placeholder="اختر الصف"
-                      className="w-full"
+                      className="w-full text-sm"
                     />
                   ) : (
                     <input
                       type="text"
                       value={newStudent.classGrade || ''}
                       onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                      className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                       placeholder="مثال: الرابع الابتدائي"
                     />
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
                   <input
                     type="tel"
                     value={newStudent.parentPhone || ''}
@@ -431,21 +431,21 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       setNewStudent({ ...newStudent, parentPhone: value });
                     }}
                     maxLength={13}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                     placeholder="مثال: 966500000000"
                   />
                 </div>
               </div>
-              <div className="mt-6 flex justify-end gap-2">
+              <div className="mt-4 md:mt-6 flex justify-end gap-2">
                 <button
                   onClick={handleCancelEdit}
-                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-bold"
+                  className="px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-bold"
                 >
                   إلغاء
                 </button>
                 <button
                   onClick={handleUpdateStudentSubmit}
-                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold"
+                  className="px-4 md:px-6 py-1.5 md:py-2 text-xs md:text-sm bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold"
                 >
                   حفظ التعديلات
                 </button>
@@ -477,64 +477,72 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       )}
 
       {/* Filters */}
-      <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-          <div className="flex items-center gap-2">
-            <Filter size={18} className="text-gray-500" />
-            <span className="font-bold text-gray-700">الفلاتر:</span>
+      <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex flex-col gap-2 md:gap-4 items-start md:items-center">
+          <div className="flex items-center gap-1.5 md:gap-2 w-full md:w-auto">
+            <Filter size={14} className="md:w-[18px] md:h-[18px] text-gray-500 flex-shrink-0" />
+            <span className="font-bold text-gray-700 text-xs md:text-sm">الفلاتر:</span>
           </div>
           
-          {/* Search */}
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="بحث بالاسم، الرقم، أو الجوال..."
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-              />
+          <div className="w-full md:flex md:flex-row md:items-center md:gap-4 md:flex-1">
+            {/* Search */}
+            <div className="flex-1 min-w-0 mb-2 md:mb-0">
+              <div className="relative">
+                <Search size={14} className="md:w-[18px] md:h-[18px] absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="بحث بالاسم، الرقم، أو الجوال..."
+                  className="w-full pr-8 md:pr-10 pl-3 md:pl-4 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                />
+              </div>
             </div>
+
+            <div className="flex gap-2 w-full md:w-auto">
+              {/* Class Grade Filter */}
+              <div className="flex-1 md:flex-initial min-w-0">
+                <CustomSelect
+                  value={filterClassGrade}
+                  onChange={(value) => setFilterClassGrade(value)}
+                  options={[
+                    { value: '', label: 'جميع الصفوف' },
+                    ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
+                  ]}
+                  placeholder="جميع الصفوف"
+                  className="w-full text-xs md:text-sm"
+                />
+              </div>
+
+              {/* Challenge Filter */}
+              <div className="flex-1 md:flex-initial min-w-0">
+                <CustomSelect
+                  value={filterChallenge}
+                  onChange={(value) => setFilterChallenge(value)}
+                  options={[
+                    { value: '', label: 'جميع الحالات' },
+                    ...uniqueChallenges.map(challenge => ({ 
+                      value: challenge, 
+                      label: challenge === 'none' ? 'لا يوجد' : challenge 
+                    }))
+                  ]}
+                  placeholder="جميع الحالات"
+                  className="w-full text-xs md:text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors w-full md:w-auto justify-center"
+              >
+                <X size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                <span>مسح الفلاتر</span>
+              </button>
+            )}
           </div>
-
-          {/* Class Grade Filter */}
-          <CustomSelect
-            value={filterClassGrade}
-            onChange={(value) => setFilterClassGrade(value)}
-            options={[
-              { value: '', label: 'جميع الصفوف' },
-              ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
-            ]}
-            placeholder="جميع الصفوف"
-            className="px-4 py-2"
-          />
-
-          {/* Challenge Filter */}
-          <CustomSelect
-            value={filterChallenge}
-            onChange={(value) => setFilterChallenge(value)}
-            options={[
-              { value: '', label: 'جميع الحالات' },
-              ...uniqueChallenges.map(challenge => ({ 
-                value: challenge, 
-                label: challenge === 'none' ? 'لا يوجد' : challenge 
-              }))
-            ]}
-            placeholder="جميع الحالات"
-            className="px-4 py-2"
-          />
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={16} />
-              <span className="text-sm">مسح الفلاتر</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -582,20 +590,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                           {student.challenge === 'none' ? 'عادي' : student.challenge}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                      <td className="px-4 md:px-6 py-3 md:py-4">
+                        <div className="flex items-center gap-1.5 md:gap-2">
                           <button
                             onClick={() => handleEditStudent(student)}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
                           >
-                            <Edit2 size={14} />
+                            <Edit2 size={12} className="md:w-[14px] md:h-[14px] flex-shrink-0" />
                             <span>تحرير</span>
                           </button>
                           <button
                             onClick={() => handleDeleteStudent(student)}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                            className="flex items-center gap-1 px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={12} className="md:w-[14px] md:h-[14px] flex-shrink-0" />
                             <span>حذف</span>
                           </button>
                         </div>
@@ -622,18 +630,18 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               const originalIndex = students.findIndex(s => s.id === student.id);
               const sequentialNumber = originalIndex >= 0 ? originalIndex + 1 : 0;
               return (
-              <div key={student.id} className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-bold text-gray-500">{sequentialNumber}</span>
+              <div key={student.id} className="p-3">
+                <div className="flex justify-between items-start mb-2 gap-2">
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-[10px] font-bold text-gray-500">{sequentialNumber}</span>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-800 text-base">{student.name}</h3>
-                      <p className="text-sm text-gray-500 mt-1">رقم: {student.studentNumber || student.id}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-gray-800 text-sm truncate">{student.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">رقم: {student.studentNumber || student.id}</p>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
                     student.challenge === 'none' 
                       ? 'bg-green-100 text-green-700' 
                       : 'bg-orange-100 text-orange-700'
@@ -641,29 +649,29 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                     {student.challenge === 'none' ? 'عادي' : student.challenge}
                   </span>
                 </div>
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-bold">الصف:</span> {student.classGrade}
+                <div className="mt-2 space-y-0.5">
+                  <p className="text-xs text-gray-600">
+                    <span className="font-bold">الصف:</span> <span className="truncate block">{student.classGrade}</span>
                   </p>
                   {student.parentPhone && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-bold">الجوال:</span> {student.parentPhone}
+                    <p className="text-xs text-gray-600">
+                      <span className="font-bold">الجوال:</span> <span className="font-mono">{student.parentPhone}</span>
                     </p>
                   )}
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-2.5 flex gap-1.5">
                   <button
                     onClick={() => handleEditStudent(student)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
                   >
-                    <Edit2 size={14} />
+                    <Edit2 size={12} className="flex-shrink-0" />
                     <span>تحرير</span>
                   </button>
                   <button
                     onClick={() => handleDeleteStudent(student)}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={12} className="flex-shrink-0" />
                     <span>حذف</span>
                   </button>
                 </div>
@@ -671,7 +679,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               );
             })
           ) : (
-            <div className="p-12 text-center text-gray-400">
+            <div className="p-8 md:p-12 text-center text-gray-400 text-xs md:text-sm">
               {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
             </div>
           )}

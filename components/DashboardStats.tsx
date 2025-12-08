@@ -156,76 +156,76 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div>
-                    <p className="text-gray-500 text-sm font-medium mb-1">إجمالي الطلاب</p>
-                    <h4 className="text-3xl font-bold text-gray-800">{students.length}</h4>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="min-w-0 flex-1">
+                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">إجمالي الطلاب</p>
+                    <h4 className="text-xl md:text-3xl font-bold text-gray-800">{students.length}</h4>
                 </div>
-                <div className="p-4 bg-teal-50 text-teal-600 rounded-xl">
-                    <Users size={24} />
+                <div className="p-2 md:p-4 bg-teal-50 text-teal-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <Users size={16} className="md:w-6 md:h-6" />
                 </div>
             </div>
             
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div>
-                    <p className="text-gray-500 text-sm font-medium mb-1">نسبة الحضور اليوم</p>
-                    <h4 className="text-3xl font-bold text-gray-800">
+            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="min-w-0 flex-1">
+                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">نسبة الحضور اليوم</p>
+                    <h4 className="text-xl md:text-3xl font-bold text-gray-800">
                       {totalTodayRecords > 0 ? `${attendanceRate}%` : '0%'}
                     </h4>
                     {totalTodayRecords === 0 && (
-                      <p className="text-xs text-gray-400 mt-1">لا توجد بيانات اليوم</p>
+                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
                     )}
                 </div>
-                <div className="p-4 bg-blue-50 text-blue-600 rounded-xl">
-                    <CalendarCheck size={24} />
+                <div className="p-2 md:p-4 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <CalendarCheck size={16} className="md:w-6 md:h-6" />
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div>
-                    <p className="text-gray-500 text-sm font-medium mb-1">الأداء العام</p>
-                    <h4 className={`text-3xl font-bold ${overallPerformanceColor}`}>
+            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="min-w-0 flex-1">
+                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">الأداء العام</p>
+                    <h4 className={`text-lg md:text-3xl font-bold ${overallPerformanceColor} truncate`}>
                       {totalTodayRecords > 0 ? overallPerformanceLabel : 'لا توجد بيانات'}
                     </h4>
                     {totalTodayRecords > 0 && (
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">
                         {overallPerformanceScore.toFixed(1)}/5.0
                       </p>
                     )}
                 </div>
-                <div className="p-4 bg-green-50 text-green-600 rounded-xl">
-                    <TrendingUp size={24} />
+                <div className="p-2 md:p-4 bg-green-50 text-green-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <TrendingUp size={16} className="md:w-6 md:h-6" />
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div>
-                    <p className="text-gray-500 text-sm font-medium mb-1">تنبيهات السلوك</p>
-                    <h4 className="text-3xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
+            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="min-w-0 flex-1">
+                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">تنبيهات السلوك</p>
+                    <h4 className="text-xl md:text-3xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
                     {behaviorAlertsCount === 0 && (
-                      <p className="text-xs text-gray-400 mt-1">لا توجد تنبيهات</p>
+                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد تنبيهات</p>
                     )}
                 </div>
-                <div className="p-4 bg-orange-50 text-orange-600 rounded-xl">
-                    <AlertTriangle size={24} />
+                <div className="p-2 md:p-4 bg-orange-50 text-orange-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <AlertTriangle size={16} className="md:w-6 md:h-6" />
                 </div>
             </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-8">
             {/* Teachers Monitoring Table (Only for Admin) */}
             {role === 'admin' && (
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                    <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                <Clock size={20} className="text-teal-600" />
-                                متابعة اكتمال الرصد اليومي ({dayName})
+                <div className="lg:col-span-2 bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+                    <div className="p-3 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-sm md:text-lg font-bold text-gray-800 flex items-center gap-1.5 md:gap-2">
+                                <Clock size={14} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+                                <span className="truncate">متابعة اكتمال الرصد اليومي ({dayName})</span>
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">يظهر الفصل "مكتمل" عند رصد جميع حصص الجدول الدراسي لهذا اليوم</p>
+                            <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">يظهر الفصل "مكتمل" عند رصد جميع حصص الجدول الدراسي لهذا اليوم</p>
                         </div>
                     </div>
                     
@@ -243,63 +243,65 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                             <tbody className="divide-y divide-gray-100">
                                 {classStatus.length > 0 ? classStatus.map((item) => (
                                     <tr key={item.className} className={`transition-colors ${item.isReady ? 'bg-green-50/30' : 'hover:bg-gray-50'}`}>
-                                        <td className="px-6 py-4 font-bold text-gray-800">
+                                        <td className="px-4 md:px-6 py-3 md:py-4 font-bold text-gray-800">
                                             <div className="flex flex-col">
-                                                <span className="text-base">{item.className}</span>
-                                                <span className="text-xs text-gray-400 font-normal">
+                                                <span className="text-sm md:text-base">{item.className}</span>
+                                                <span className="text-[10px] md:text-xs text-gray-400 font-normal">
                                                     المعلمين: {item.teachers.join('، ')}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex-1 h-2 bg-gray-200 rounded-full max-w-[100px] overflow-hidden">
+                                        <td className="px-4 md:px-6 py-3 md:py-4">
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <div className="flex-1 h-1.5 md:h-2 bg-gray-200 rounded-full max-w-[80px] md:max-w-[100px] overflow-hidden">
                                                     <div 
                                                         className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
                                                         style={{ width: `${(item.progress / item.total) * 100}%` }}
                                                     ></div>
                                                 </div>
-                                                <span className="text-xs font-bold text-gray-600">
+                                                <span className="text-[10px] md:text-xs font-bold text-gray-600">
                                                     {item.progress}/{item.total}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 md:px-6 py-3 md:py-4">
                                             {item.isReady ? (
-                                                <div className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full w-fit">
-                                                    <CheckCircle size={16} />
-                                                    <span className="font-bold text-xs">جاهز للإرسال</span>
+                                                <div className="flex items-center gap-1.5 md:gap-2 bg-green-100 text-green-700 px-2 md:px-3 py-0.5 md:py-1 rounded-full w-fit">
+                                                    <CheckCircle size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                                                    <span className="font-bold text-[10px] md:text-xs">جاهز للإرسال</span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 bg-gray-100 text-gray-500 px-3 py-1 rounded-full w-fit">
-                                                    <Clock size={16} />
-                                                    <span className="font-bold text-xs">جاري الرصد...</span>
+                                                <div className="flex items-center gap-1.5 md:gap-2 bg-gray-100 text-gray-500 px-2 md:px-3 py-0.5 md:py-1 rounded-full w-fit">
+                                                    <Clock size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                                                    <span className="font-bold text-[10px] md:text-xs">جاري الرصد...</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 md:px-6 py-3 md:py-4">
                                             {item.isReady ? (
                                                 <button 
-                                                    className="flex items-center gap-2 text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm"
+                                                    className="flex items-center gap-1.5 md:gap-2 text-white bg-teal-600 hover:bg-teal-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-sm"
                                                     onClick={() => alert({ message: `سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`, type: 'info' })}
                                                 >
-                                                    <Send size={14} className="rtl:rotate-180"/>
-                                                    إرسال التقارير
+                                                    <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
+                                                    <span className="hidden sm:inline">إرسال التقارير</span>
+                                                    <span className="sm:hidden">إرسال</span>
                                                 </button>
                                             ) : (
                                                  <button 
                                                     onClick={() => handleReminderClick(item.teachers[0] || '', item.className)}
-                                                    className="flex items-center gap-2 text-orange-600 hover:text-white hover:bg-orange-500 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border border-orange-200"
+                                                    className="flex items-center gap-1.5 md:gap-2 text-orange-600 hover:text-white hover:bg-orange-500 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-orange-200"
                                                 >
-                                                    <Send size={14} className="rtl:rotate-180"/>
-                                                    استعجال المعلمين
+                                                    <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
+                                                    <span className="hidden sm:inline">استعجال المعلمين</span>
+                                                    <span className="sm:hidden">استعجال</span>
                                                 </button>
                                             )}
                                         </td>
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan={4} className="p-8 text-center text-gray-400">لا توجد حصص مجدولة لهذا اليوم</td>
+                                        <td colSpan={4} className="px-4 md:p-8 py-6 md:py-8 text-center text-gray-400 text-xs md:text-sm">لا توجد حصص مجدولة لهذا اليوم</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -307,46 +309,56 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     </div>
 
                     {/* Mobile Cards */}
-                    <div className="md:hidden space-y-3 p-4">
-                        {classStatus.map((item) => (
-                            <div key={item.className} className={`bg-white border rounded-lg p-3 md:p-4 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
-                                <div className="flex items-center justify-between mb-2 gap-2">
-                                    <p className="font-bold text-gray-800 text-sm md:text-base truncate flex-1">{item.className}</p>
-                                    {item.isReady && <CheckCircle size={16} className="text-green-600 flex-shrink-0 md:w-5 md:h-5" />}
+                    <div className="md:hidden space-y-2 p-3">
+                        {classStatus.length > 0 ? classStatus.map((item) => (
+                            <div key={item.className} className={`bg-white border rounded-lg p-2.5 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+                                <div className="flex items-center justify-between mb-1.5 gap-2">
+                                    <p className="font-bold text-gray-800 text-xs truncate flex-1">{item.className}</p>
+                                    {item.isReady && <CheckCircle size={12} className="text-green-600 flex-shrink-0" />}
                                 </div>
-                                <p className="text-xs text-gray-500 mb-3 line-clamp-2">المعلمين: {item.teachers.join('، ')}</p>
-                                <div className="mb-3">
+                                <p className="text-[10px] text-gray-500 mb-2 line-clamp-1">المعلمين: {item.teachers.join('، ')}</p>
+                                <div className="mb-2">
                                     <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[10px] md:text-xs font-bold text-gray-600">نسبة الإنجاز</span>
-                                        <span className="text-[10px] md:text-xs font-bold text-gray-600">{item.progress}/{item.total}</span>
+                                        <span className="text-[9px] font-bold text-gray-600">نسبة الإنجاز</span>
+                                        <span className="text-[9px] font-bold text-gray-600">{item.progress}/{item.total}</span>
                                     </div>
-                                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                         <div 
                                             className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
                                             style={{ width: `${(item.progress / item.total) * 100}%` }}
                                         ></div>
                                     </div>
                                 </div>
-                                {item.isReady && (
-                                    <button className="w-full bg-teal-600 text-white py-2.5 md:py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-teal-700 flex items-center justify-center gap-1.5">
-                                        <FileText size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                                {item.isReady ? (
+                                    <button className="w-full bg-teal-600 text-white py-1.5 rounded-lg text-[10px] font-bold hover:bg-teal-700 flex items-center justify-center gap-1">
+                                        <FileText size={10} className="flex-shrink-0" />
                                         <span>عرض التقرير</span>
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => handleReminderClick(item.teachers[0] || '', item.className)}
+                                        className="w-full text-orange-600 hover:text-white hover:bg-orange-500 py-1.5 rounded-lg text-[10px] font-bold transition-colors border border-orange-200 flex items-center justify-center gap-1"
+                                    >
+                                        <Send size={10} className="rtl:rotate-180 flex-shrink-0"/>
+                                        <span>استعجال</span>
                                     </button>
                                 )}
                             </div>
-                        ))}
+                        )) : (
+                            <div className="p-6 text-center text-gray-400 text-xs">لا توجد حصص مجدولة لهذا اليوم</div>
+                        )}
                     </div>
                 </div>
             )}
 
             {/* Performance Chart (Takes up full width if not admin) */}
-            <div className={`bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden ${role !== 'admin' ? 'lg:col-span-3' : ''}`}>
-                <div className="flex justify-between items-center mb-4 md:mb-6">
-                    <h3 className="text-base md:text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
+            <div className={`bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden ${role !== 'admin' ? 'lg:col-span-3' : ''}`}>
+                <div className="flex justify-between items-center mb-3 md:mb-6">
+                    <h3 className="text-sm md:text-lg font-bold text-gray-800">تحليل الأداء الأسبوعي</h3>
                 </div>
-                <div className="flex-1 min-h-[250px] w-full overflow-hidden">
+                <div className="flex-1 min-h-[200px] md:min-h-[250px] w-full overflow-hidden">
                     {/* Give ResponsiveContainer an explicit height to avoid width/height -1 warnings */}
-                    <ResponsiveContainer width="100%" height={250}>
+                    <ResponsiveContainer width="100%" height={200} className="md:h-[250px]">
                         <AreaChart 
                             data={weeklyData}
                             margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
