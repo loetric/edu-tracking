@@ -120,50 +120,45 @@ const App: React.FC = () => {
   useEffect(() => {
     const initSystem = async () => {
       try {
-        // Load settings and users from database - no timeout to ensure we get real data
-        // Use a longer timeout (30 seconds) to prevent hanging indefinitely
-        const timeoutPromise = new Promise<{settings: SchoolSettings, users: User[]}>((_, reject) => 
-          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. يرجى التحقق من الاتصال بالإنترنت والمحاولة مرة أخرى')), 30000)
-        );
+        // Load settings and users from database - no timeout to allow for slow connections
+        // Load them separately to handle errors independently
+        let fetchedSettings: SchoolSettings | null = null;
+        let fetchedUsers: User[] = [];
         
-        const dataPromise = Promise.all([
-          api.getSettings(),
-          api.getUsers()
-        ]).then(([fetchedSettings, fetchedUsers]) => ({
-          settings: fetchedSettings,
-          users: fetchedUsers
-        }));
-        
-        const result = await Promise.race([dataPromise, timeoutPromise]);
-        setSettings(result.settings);
-        setUsers(result.users);
-      } catch (error: any) {
-        console.error("Failed to load system data", error);
-        // Don't use mock data - keep settings as null and show error
-        // Only set users to empty array
-        setUsers([]);
-        
-        // Show error message to user if it's a timeout
-        if (error?.message?.includes('انتهت مهلة الاتصال')) {
-          alert({ 
-            message: error.message, 
-            type: 'error',
-            duration: 5000
-          });
+        try {
+          fetchedSettings = await api.getSettings();
+        } catch (settingsError: any) {
+          console.error("Failed to load settings", settingsError);
+          // Continue even if settings fail - we'll retry later
         }
         
-        // Retry loading settings after a delay
-        setTimeout(async () => {
-          try {
-            const retrySettings = await api.getSettings();
-            const retryUsers = await api.getUsers();
-            setSettings(retrySettings);
-            setUsers(retryUsers);
-          } catch (retryError) {
-            console.error("Retry failed to load system data", retryError);
-            // Still don't use mock data - let user see the error
-          }
-        }, 3000);
+        try {
+          fetchedUsers = await api.getUsers();
+        } catch (usersError: any) {
+          console.error("Failed to load users", usersError);
+          // Continue with empty users array
+        }
+        
+        if (fetchedSettings) {
+          setSettings(fetchedSettings);
+        }
+        setUsers(fetchedUsers);
+        
+        // If settings failed, retry after a delay
+        if (!fetchedSettings) {
+          setTimeout(async () => {
+            try {
+              const retrySettings = await api.getSettings();
+              setSettings(retrySettings);
+            } catch (retryError) {
+              console.error("Retry failed to load settings", retryError);
+            }
+          }, 2000);
+        }
+      } catch (error: any) {
+        console.error("Failed to load system data", error);
+        // Don't use mock data - keep settings as null
+        setUsers([]);
       } finally {
         setIsAppLoading(false);
       }
