@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatMessage } from '../types';
+import { ChatMessage, Role } from '../types';
 import { CONFIG } from '../config';
-import { MessageSquare, Send, X, Bell } from 'lucide-react';
+import { MessageSquare, Send, X, Bell, Trash2 } from 'lucide-react';
 
 interface InternalChatProps {
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
   currentUserName: string;
+  role?: Role;
+  onClearChat?: () => void;
 }
 
-export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMessage, currentUserName }) => {
+export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMessage, currentUserName, role, onClearChat }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [unread, setUnread] = useState(false);
@@ -82,13 +84,25 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
                 <span className="hidden sm:inline truncate">غرفة تواصل المعلمين والإدارة</span>
                 <span className="sm:hidden truncate">التواصل الداخلي</span>
             </h3>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="p-1 md:p-1 hover:bg-teal-700 rounded transition-colors flex-shrink-0 active:scale-95"
-              aria-label="إغلاق"
-            >
-              <X size={12} className="md:w-4 md:h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {role === 'admin' && onClearChat && messages.length > 0 && (
+                <button 
+                  onClick={onClearChat}
+                  className="p-1 md:p-1.5 hover:bg-teal-700 rounded transition-colors flex-shrink-0 active:scale-95"
+                  aria-label="مسح جميع الرسائل"
+                  title="مسح جميع الرسائل"
+                >
+                  <Trash2 size={12} className="md:w-4 md:h-4" />
+                </button>
+              )}
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1 md:p-1 hover:bg-teal-700 rounded transition-colors flex-shrink-0 active:scale-95"
+                aria-label="إغلاق"
+              >
+                <X size={12} className="md:w-4 md:h-4" />
+              </button>
+            </div>
           </div>
           
           {/* Messages Container */}

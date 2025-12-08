@@ -572,6 +572,33 @@ const App: React.FC = () => {
       }
   };
 
+  const handleClearChat = async () => {
+      if (!currentUser || currentUser.role !== 'admin') return;
+      
+      const shouldClear = await confirm({
+          title: 'مسح سجل الدردشات',
+          message: 'هل أنت متأكد من مسح جميع رسائل الدردشة؟\n\nهذا الإجراء لا يمكن التراجع عنه.',
+          type: 'danger',
+          confirmText: 'نعم، امسح',
+          cancelText: 'إلغاء'
+      });
+
+      if (!shouldClear) return;
+
+      setIsDataLoading(true);
+      try {
+          await api.deleteAllChatMessages();
+          setChatMessages([]);
+          handleAddLog('مسح الدردشات', 'تم مسح جميع رسائل الدردشة');
+          alert({ message: 'تم مسح جميع رسائل الدردشة بنجاح!', type: 'success' });
+      } catch (error) {
+          console.error('Error clearing chat:', error);
+          alert({ message: 'فشل في مسح رسائل الدردشة. يرجى المحاولة مرة أخرى.', type: 'error' });
+      } finally {
+          setIsDataLoading(false);
+      }
+  };
+
   const handleBulkReportClick = (records: Record<string, DailyRecord>) => {
       setCurrentRecords(prev => ({...prev, ...records}));
       setBulkModalOpen(true);
@@ -940,6 +967,7 @@ const App: React.FC = () => {
             onSendMessage={handleSendMessage} 
             role={currentUser.role} 
             currentUserName={currentUser.name}
+            onClearChat={handleClearChat}
         />
       )}
 
