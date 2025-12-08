@@ -61,7 +61,7 @@ const App: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
-          // If session exists, get user profile (with longer timeout)
+          // If session exists, get user profile (with timeout)
           const timeoutPromise = new Promise<null>((resolve) => 
             setTimeout(() => resolve(null), CONFIG.TIMEOUTS.SESSION_CHECK)
           );
@@ -71,11 +71,20 @@ const App: React.FC = () => {
           
           if (user) {
             setCurrentUser(user);
+            // Clear loading once user is loaded
+            setIsAppLoading(false);
+          } else {
+            // Timeout or no user - clear loading anyway
+            setIsAppLoading(false);
           }
+        } else {
+          // No session - clear loading immediately
+          setIsAppLoading(false);
         }
       } catch (error) {
         console.error("Error checking session:", error);
         // Don't block - allow app to continue
+        setIsAppLoading(false);
       }
     };
     checkSession();
@@ -95,10 +104,17 @@ const App: React.FC = () => {
             const user = await api.getCurrentUser();
             if (user && isMounted) {
               setCurrentUser(user);
+              // Clear loading if user is loaded
+              setIsAppLoading(false);
             }
           } catch (error) {
             console.error("Error getting user in auth state change:", error);
+            // Clear loading even on error to prevent hanging
+            setIsAppLoading(false);
           }
+        } else {
+          // No session - clear loading
+          setIsAppLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
         // User signed out - clear state
@@ -106,6 +122,7 @@ const App: React.FC = () => {
           setCurrentUser(null);
           setStudents([]);
           setLogs([]);
+          setIsAppLoading(false);
         }
       }
     });
@@ -119,11 +136,19 @@ const App: React.FC = () => {
   // --- Initial System Load (Settings & Users) ---
   useEffect(() => {
     const initSystem = async () => {
+      let timeoutId: NodeJS.Timeout | null = null;
+      
       try {
-        // Load settings and users from database - no timeout to allow for slow connections
+        // Load settings and users from database - with timeout to prevent hanging
         // Load them separately to handle errors independently
         let fetchedSettings: SchoolSettings | null = null;
         let fetchedUsers: User[] = [];
+        
+        // Set a timeout to ensure we don't hang forever
+        timeoutId = setTimeout(() => {
+          console.warn("Initial system load timeout - continuing anyway");
+          setIsAppLoading(false);
+        }, 5000); // 5 seconds max - shorter timeout to prevent hanging
         
         try {
           fetchedSettings = await api.getSettings();
@@ -137,6 +162,11 @@ const App: React.FC = () => {
         } catch (usersError: any) {
           console.error("Failed to load users", usersError);
           // Continue with empty users array
+        }
+        
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
         }
         
         if (fetchedSettings) {
@@ -160,6 +190,10 @@ const App: React.FC = () => {
         // Don't use mock data - keep settings as null
         setUsers([]);
       } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        // Always clear loading - if user is logged in, onAuthStateChange will handle it
         setIsAppLoading(false);
       }
     };
