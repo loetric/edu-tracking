@@ -352,19 +352,24 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
         </div>
       )}
 
-      {/* Import Form */}
+      {/* Import Modal */}
       {showImportForm && (
-        <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">استيراد الطلاب من Excel</h3>
-            <button
-              onClick={() => setShowImportForm(false)}
-              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={20} className="text-gray-500" />
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center z-10">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800">استيراد الطلاب من Excel</h3>
+              <button
+                onClick={() => setShowImportForm(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="إغلاق"
+              >
+                <X size={24} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6">
+              <ExcelImporter onImport={handleImport} />
+            </div>
           </div>
-          <ExcelImporter onImport={handleImport} />
         </div>
       )}
 

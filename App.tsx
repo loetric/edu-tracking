@@ -78,6 +78,7 @@ const App: React.FC = () => {
           if (isMounted && user) {
             setCurrentUser(user);
             setIsAppLoading(false);
+            // Data will be loaded by the loadDashboardData effect when currentUser is set
           } else if (isMounted) {
             // Timeout or no user - clear loading anyway
             setIsAppLoading(false);
@@ -132,6 +133,8 @@ const App: React.FC = () => {
             if (user && isMounted) {
               setCurrentUser(user);
               setIsAppLoading(false);
+              // Load data after user is set
+              // This will be handled by the loadDashboardData effect below
             } else if (isMounted) {
               // Session exists but no profile - don't log out, just clear loading
               setIsAppLoading(false);
@@ -296,9 +299,10 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // --- Data Loading on Login ---
+  // --- Data Loading on Login or Refresh ---
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && !isAppLoading) {
+      // Only load data if user is set and app is not loading
       const loadDashboardData = async () => {
         setIsDataLoading(true);
         try {

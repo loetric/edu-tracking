@@ -439,22 +439,17 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           setLoadingMessage('جاري استخراج بيانات الطلاب...');
           setProgress({ current: 30, total: 100 });
           
-          // Process sheet with progress updates
-          const worksheet = workbook.Sheets[bestSheetName];
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-          const totalRows = jsonData.length;
-          const headerRowIndex = findHeaderRow(jsonData);
-          const rowsToProcess = totalRows - (headerRowIndex + 1);
+          // Use processSheet function
+          const sheetStudents = processSheet(workbook.Sheets[bestSheetName], bestSheetName);
           
-          const sheetStudents = await processSheetWithProgress(
-            worksheet, 
-            bestSheetName,
-            (current, total) => {
-              const progressPercent = 30 + Math.floor((current / total) * 50); // 30-80%
-              setProgress({ current: progressPercent, total: 100 });
-              setLoadingMessage(`جاري معالجة السطر ${current} من ${total}...`);
-            }
-          );
+          // Update progress after processing
+          if (sheetStudents.length > 0) {
+            setProgress({ current: 80, total: 100 });
+            setLoadingMessage(`تم استخراج ${sheetStudents.length} طالب بنجاح`);
+          } else {
+            setProgress({ current: 50, total: 100 });
+            setLoadingMessage('لم يتم العثور على بيانات صالحة في الورقة المحددة، جاري البحث في جميع الأوراق...');
+          }
           
           if (sheetStudents.length === 0) {
             // Try processing all sheets if best sheet didn't work
@@ -478,6 +473,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
         } else {
           // Process CSV file (backward compatibility)
           setLoadingMessage('جاري معالجة ملف CSV...');
+          setProgress({ current: 30, total: 100 });
           let text = data as string;
           
           // Remove Byte Order Mark (BOM) if present
@@ -486,13 +482,23 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           }
 
           const lines = text.split(/\r\n|\n/);
+          const totalLines = lines.length - 1; // Exclude header
           
           // Track IDs to ensure uniqueness within CSV
           const csvSeenIds = new Set<string>();
           
-          setLoadingMessage(`جاري معالجة ${lines.length} سطر...`);
+          setLoadingMessage(`جاري معالجة ${totalLines} سطر...`);
+          setProgress({ current: 40, total: 100 });
+          
           // Skip header (index 0)
           for (let i = 1; i < lines.length; i++) {
+            // Update progress every 10 rows
+            if ((i - 1) % 10 === 0 || i === lines.length - 1) {
+              const processed = i - 1;
+              const progressPercent = 40 + Math.floor((processed / totalLines) * 30); // 40-70%
+              setProgress({ current: progressPercent, total: 100 });
+              setLoadingMessage(`جاري معالجة السطر ${processed} من ${totalLines}...`);
+            }
             const line = lines[i].trim();
             if (!line) continue;
             
