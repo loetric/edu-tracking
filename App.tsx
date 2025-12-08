@@ -654,8 +654,10 @@ const App: React.FC = () => {
     );
   }
   
-  // If settings not loaded yet but not loading, use defaults temporarily
-  if (!settings) {
+  // If settings not loaded yet but user is logged in, allow app to continue
+  // Settings will be loaded in the background or we'll use defaults
+  // Only block if we're still in initial load phase
+  if (!settings && !currentUser && isAppLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
         <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
@@ -664,6 +666,19 @@ const App: React.FC = () => {
       </div>
     );
   }
+  
+  // If user is logged in but settings not loaded, create temporary settings
+  // This prevents white screen while settings load in background
+  const effectiveSettings = settings || {
+    ministry: 'وزارة التعليم',
+    region: 'الإدارة العامة للتعليم',
+    name: 'المدرسة',
+    slogan: '',
+    logoUrl: '',
+    whatsappPhone: '',
+    reportGeneralMessage: '',
+    reportLink: ''
+  } as SchoolSettings;
 
   // Auth Screen
   if (!currentUser) {
