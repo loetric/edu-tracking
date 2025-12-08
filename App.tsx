@@ -852,7 +852,7 @@ const App: React.FC = () => {
             >
                 <Menu size={CONFIG.UI.MENU_ICON_SIZE} />
             </button>
-            <span className="font-bold text-gray-800 truncate text-sm">{settings.name}</span>
+            <span className="font-bold text-gray-800 truncate text-sm">{effectiveSettings.name}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
              <div className="relative p-1">
