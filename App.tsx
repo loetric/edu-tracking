@@ -61,10 +61,21 @@ const App: React.FC = () => {
     const checkSession = async () => {
       try {
         // First check if there's a session in storage (faster)
-        const { data: { session } } = await supabase.auth.getSession();
+        // Use getSession which reads from localStorage first
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (!isMounted) return;
         sessionChecked = true;
+        
+        // If there's a session error, it might be a storage issue - don't log out
+        if (sessionError) {
+          console.warn("Session check error (non-fatal):", sessionError);
+          // Don't clear user - might be temporary storage issue
+          if (isMounted) {
+            setIsAppLoading(false);
+          }
+          return;
+        }
         
         if (session?.user) {
           // If session exists, get user profile (with timeout)
@@ -80,8 +91,22 @@ const App: React.FC = () => {
             setIsAppLoading(false);
             // Data will be loaded by the loadDashboardData effect when currentUser is set
           } else if (isMounted) {
-            // Timeout or no user - clear loading anyway
+            // Timeout or no user - but session exists, so keep trying
+            // Don't clear user immediately - might be network issue
             setIsAppLoading(false);
+            // Retry getting user after a short delay
+            setTimeout(async () => {
+              if (isMounted) {
+                try {
+                  const retryUser = await api.getCurrentUser();
+                  if (retryUser && isMounted) {
+                    setCurrentUser(retryUser);
+                  }
+                } catch (retryError) {
+                  console.warn("Retry getCurrentUser failed:", retryError);
+                }
+              }
+            }, 1000);
           }
         } else {
           // No session - clear loading immediately
@@ -92,6 +117,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error("Error checking session:", error);
         // Don't block - allow app to continue
+        // Don't clear user on error - might be temporary
         if (isMounted) {
           setIsAppLoading(false);
         }
@@ -106,7 +132,7 @@ const App: React.FC = () => {
         console.warn("Session check timeout - clearing loading state");
         setIsAppLoading(false);
       }
-    }, 3000);
+    }, 5000); // Increased timeout
     
     return () => {
       isMounted = false;

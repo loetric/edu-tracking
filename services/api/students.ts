@@ -65,33 +65,90 @@ export const importStudents = async (newStudents: Student[]): Promise<void> => {
       throw new Error('جميع الطلاب موجودون بالفعل في النظام');
     }
 
-    // Insert only new students (one by one to preserve order from Excel)
-    // This ensures created_at timestamps maintain the import order
-    for (const student of studentsToInsert) {
+    // Insert students in batches for better performance
+    // Batch size: 50 students per batch (good balance between speed and reliability)
+    const BATCH_SIZE = 50;
+    const batches: Student[][] = [];
+    
+    for (let i = 0; i < studentsToInsert.length; i += BATCH_SIZE) {
+      batches.push(studentsToInsert.slice(i, i + BATCH_SIZE));
+    }
+    
+    // Process batches sequentially to maintain order
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex];
+      
       try {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('students')
-          .insert([student]);
+          .insert(batch)
+          .select();
         
         if (error) {
-          // If it's a duplicate key error, skip this student
-          if (error.code === '23505') {
-            console.warn(`Skipping duplicate student: ${student.id}`);
-            continue;
+          // If batch insert fails, try inserting one by one from this batch
+          if (error.code === '23505' || error.message?.includes('duplicate')) {
+            console.warn(`Batch ${batchIndex + 1} had duplicates, inserting individually...`);
+            
+            // Insert one by one for this batch
+            for (const student of batch) {
+              try {
+                const { error: singleError } = await supabase
+                  .from('students')
+                  .insert([student]);
+                
+                if (singleError) {
+                  if (singleError.code === '23505') {
+                    console.warn(`Skipping duplicate student: ${student.id}`);
+                    continue;
+                  }
+                  throw singleError;
+                }
+              } catch (singleError: any) {
+                if (singleError.code === '23505') {
+                  console.warn(`Skipping duplicate student: ${student.id}`);
+                  continue;
+                }
+                throw singleError;
+              }
+            }
+          } else {
+            throw error;
           }
-          throw error;
         }
         
-        // Small delay to ensure created_at timestamps are sequential
-        // This helps preserve the order from Excel file
-        await new Promise(resolve => setTimeout(resolve, 10));
-      } catch (error: any) {
-        // If it's a duplicate key error, skip this student
-        if (error.code === '23505') {
-          console.warn(`Skipping duplicate student: ${student.id}`);
-          continue;
+        // Small delay between batches to prevent overwhelming the database
+        if (batchIndex < batches.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
-        throw error;
+      } catch (error: any) {
+        // If batch insert fails with non-duplicate error, try one by one
+        if (error.code !== '23505') {
+          console.warn(`Batch ${batchIndex + 1} failed, trying individual inserts...`);
+          
+          for (const student of batch) {
+            try {
+              const { error: singleError } = await supabase
+                .from('students')
+                .insert([student]);
+              
+              if (singleError) {
+                if (singleError.code === '23505') {
+                  console.warn(`Skipping duplicate student: ${student.id}`);
+                  continue;
+                }
+                throw singleError;
+              }
+            } catch (singleError: any) {
+              if (singleError.code === '23505') {
+                console.warn(`Skipping duplicate student: ${student.id}`);
+                continue;
+              }
+              throw singleError;
+            }
+          }
+        } else {
+          throw error;
+        }
       }
     }
 

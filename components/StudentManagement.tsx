@@ -254,11 +254,11 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
         </div>
       </div>
 
-      {/* Add/Edit Student Form */}
-      {showAddForm && (
+      {/* Add Student Form */}
+      {showAddForm && !editingStudent && (
         <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">{editingStudent ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'}</h3>
+            <h3 className="text-lg font-bold text-gray-800">إضافة طالب جديد</h3>
             <button
               onClick={() => setShowAddForm(false)}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -276,9 +276,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
                   setNewStudent({ ...newStudent, id: value });
                 }}
-                disabled={!!editingStudent}
                 maxLength={10}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: 12345"
               />
             </div>
@@ -337,17 +336,121 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button
-              onClick={editingStudent ? handleCancelEdit : () => setShowAddForm(false)}
+              onClick={() => setShowAddForm(false)}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               إلغاء
             </button>
             <button
-              onClick={editingStudent ? handleUpdateStudentSubmit : handleAddStudentSubmit}
+              onClick={handleAddStudentSubmit}
               className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
-              {editingStudent ? 'حفظ التعديلات' : 'إضافة'}
+              إضافة
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {editingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center z-10">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800">تعديل بيانات الطالب</h3>
+              <button
+                onClick={handleCancelEdit}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label="إغلاق"
+              >
+                <X size={24} className="text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
+                  <input
+                    type="text"
+                    value={newStudent.id || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                      setNewStudent({ ...newStudent, id: value });
+                    }}
+                    disabled={true}
+                    maxLength={10}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    placeholder="مثال: 12345"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">لا يمكن تعديل رقم الطالب</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
+                  <input
+                    type="text"
+                    value={newStudent.name || ''}
+                    onChange={(e) => {
+                      // Allow Arabic and English letters, spaces, and common Arabic characters
+                      const value = e.target.value.replace(/[^a-zA-Z\u0600-\u06FF\s\u0640]/g, '').slice(0, 50);
+                      setNewStudent({ ...newStudent, name: value });
+                    }}
+                    maxLength={50}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                    placeholder="مثال: أحمد محمد علي"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
+                  {availableClassGrades.length > 0 ? (
+                    <CustomSelect
+                      value={newStudent.classGrade || ''}
+                      onChange={(value) => setNewStudent({ ...newStudent, classGrade: value })}
+                      options={[
+                        { value: '', label: 'اختر الصف' },
+                        ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
+                      ]}
+                      placeholder="اختر الصف"
+                      className="w-full"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={newStudent.classGrade || ''}
+                      onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                      placeholder="مثال: الرابع الابتدائي"
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
+                  <input
+                    type="tel"
+                    value={newStudent.parentPhone || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 13);
+                      setNewStudent({ ...newStudent, parentPhone: value });
+                    }}
+                    maxLength={13}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                    placeholder="مثال: 966500000000"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-bold"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={handleUpdateStudentSubmit}
+                  className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold"
+                >
+                  حفظ التعديلات
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
