@@ -938,7 +938,9 @@ const App: React.FC = () => {
   ]));
 
   const renderContent = () => {
-    if (isDataLoading) {
+    // Don't show global loading for import/students tabs - let components handle their own loading
+    const tabsWithOwnLoading = ['import', 'students'];
+    if (isDataLoading && !tabsWithOwnLoading.includes(activeTab)) {
        return (
          <div className="flex flex-col items-center justify-center h-96">
             <Loader2 size={CONFIG.UI.LOADER_SIZE_MEDIUM} className="text-teal-500 animate-spin mb-4" />
