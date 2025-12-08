@@ -32,6 +32,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   
   // User Management State
     const [newUser, setNewUser] = useState<Partial<User & { email?: string }>>({ role: 'teacher', name: '', username: '', password: '', email: '' });
+  const [emailError, setEmailError] = useState<string>('');
   const [isAddingUser, setIsAddingUser] = useState(false);
   
   // Edit User State
@@ -86,9 +87,25 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           return;
       }
 
+      // Validate email before submission
+      const emailToValidate = (newUser.email || '').trim();
+      if (!emailToValidate) {
+          setEmailError('البريد الإلكتروني مطلوب');
+          alert({ message: 'الرجاء إدخال بريد إلكتروني صحيح', type: 'warning' });
+          return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailToValidate)) {
+          setEmailError('صيغة البريد الإلكتروني غير صحيحة');
+          alert({ message: 'صيغة البريد الإلكتروني غير صحيحة. يرجى التحقق من الإدخال', type: 'warning' });
+          return;
+      }
+
       setIsAddingUser(false);
+      setEmailError('');
       try {
-          const result = await api.signUp(newUser.email!, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
+          const result = await api.signUp(emailToValidate, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
           
           if (result.error) {
               alert({ message: result.error, type: 'error' });
@@ -104,6 +121,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           
           onUpdateUsers([...users, result.user]);
           setNewUser({ role: 'teacher', name: '', username: '', password: '', email: '' });
+          setEmailError('');
           alert({ message: 'تم إضافة المستخدم بنجاح', type: 'success' });
       } catch (err: any) {
           console.error('Add user error', err);

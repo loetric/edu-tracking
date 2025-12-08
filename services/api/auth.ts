@@ -53,8 +53,14 @@ export const signUp = async (
   profile: { username: string; name: string; role: Role; avatar?: string }
 ): Promise<{ user: User | null; error: string | null }> => {
   try {
+    // Trim and validate email
+    const trimmedEmail = (email || '').trim();
+    if (!trimmedEmail) {
+      return { user: null, error: 'البريد الإلكتروني مطلوب' };
+    }
+
     // Validate inputs
-    const emailValidation = validateEmail(email);
+    const emailValidation = validateEmail(trimmedEmail);
     if (!emailValidation.valid) {
       return { user: null, error: emailValidation.error };
     }
@@ -66,7 +72,7 @@ export const signUp = async (
 
     // Sign up with user metadata so trigger can use it
     const res = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
       options: {
         data: {
@@ -93,7 +99,7 @@ export const signUp = async (
       // User might be created but email confirmation pending
       // Wait a bit for trigger to create profile, then check by email
       await new Promise(resolve => setTimeout(resolve, CONFIG.TIMEOUTS.PROFILE_WAIT));
-      const profileByEmail = await fetchUserProfileByEmail(email);
+      const profileByEmail = await fetchUserProfileByEmail(trimmedEmail);
       if (profileByEmail) {
         userId = profileByEmail.id;
       }
@@ -101,7 +107,7 @@ export const signUp = async (
 
     if (!userId) {
       // Check if profile was created by trigger (by email)
-      const profileCheck = await fetchUserProfileByEmail(email);
+      const profileCheck = await fetchUserProfileByEmail(trimmedEmail);
 
       if (profileCheck) {
         return { user: profileCheck, error: null };

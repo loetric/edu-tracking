@@ -5,12 +5,30 @@ import { CONFIG } from '../../config';
  * Validates email format
  */
 export const validateEmail = (email: string): { valid: boolean; error?: string } => {
-  if (!email || email.trim() === '') {
+  if (!email || typeof email !== 'string') {
     return { valid: false, error: 'البريد الإلكتروني مطلوب' };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
+  const trimmedEmail = email.trim();
+  if (trimmedEmail === '') {
+    return { valid: false, error: 'البريد الإلكتروني مطلوب' };
+  }
+
+  // More comprehensive email regex that handles common cases
+  // Allows: letters, numbers, dots, hyphens, underscores, plus signs before @
+  // Requires: @ symbol, domain name, and TLD
+  const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  
+  if (!emailRegex.test(trimmedEmail)) {
+    return { valid: false, error: CONFIG.ERRORS.INVALID_EMAIL };
+  }
+
+  // Additional checks
+  if (trimmedEmail.length > 254) { // RFC 5321 limit
+    return { valid: false, error: 'البريد الإلكتروني طويل جداً' };
+  }
+
+  if (trimmedEmail.startsWith('.') || trimmedEmail.startsWith('@') || trimmedEmail.endsWith('.')) {
     return { valid: false, error: CONFIG.ERRORS.INVALID_EMAIL };
   }
 
