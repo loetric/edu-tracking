@@ -14,7 +14,7 @@ import { CounselorView } from './components/CounselorView';
 import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User } from './types';
-import { AVAILABLE_TEACHERS, INITIAL_SETTINGS } from './constants';
+import { AVAILABLE_TEACHERS } from './constants';
 import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
