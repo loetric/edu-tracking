@@ -26,7 +26,22 @@ export const importStudents = async (newStudents: Student[]): Promise<void> => {
   try {
     if (newStudents.length === 0) return;
 
-    // Get existing student IDs to avoid duplicates
+    // First, remove duplicates within the imported list itself
+    // Keep the first occurrence of each ID
+    const seenIds = new Set<string>();
+    const uniqueStudents = newStudents.filter(student => {
+      if (seenIds.has(student.id)) {
+        return false; // Skip duplicate
+      }
+      seenIds.add(student.id);
+      return true;
+    });
+
+    if (uniqueStudents.length === 0) {
+      throw new Error('جميع الطلاب في الملف مكررون');
+    }
+
+    // Get existing student IDs to avoid duplicates with database
     const { data: existingStudents, error: fetchError } = await supabase
       .from('students')
       .select('id');
@@ -38,27 +53,55 @@ export const importStudents = async (newStudents: Student[]): Promise<void> => {
 
     const existingIds = new Set((existingStudents || []).map(s => s.id));
     
-    // Filter out students that already exist
-    const studentsToInsert = newStudents.filter(s => !existingIds.has(s.id));
+    // Filter out students that already exist in database
+    const studentsToInsert = uniqueStudents.filter(s => !existingIds.has(s.id));
 
     if (studentsToInsert.length === 0) {
       throw new Error('جميع الطلاب موجودون بالفعل في النظام');
     }
 
-    // Insert only new students
-    const { error } = await supabase
-      .from('students')
-      .insert(studentsToInsert);
+    // Insert only new students (in batches to avoid issues)
+    const batchSize = 100;
+    for (let i = 0; i < studentsToInsert.length; i += batchSize) {
+      const batch = studentsToInsert.slice(i, i + batchSize);
+      const { error } = await supabase
+        .from('students')
+        .insert(batch);
 
-    if (error) {
-      console.error('Import students error:', error);
-      throw error;
+      if (error) {
+        console.error('Import students error:', error);
+        // If it's a duplicate key error, try to continue with remaining students
+        if (error.code === '23505') {
+          console.warn(`Skipping batch due to duplicate key error`);
+          // Try to insert one by one to identify the problematic student
+          for (const student of batch) {
+            try {
+              const { error: singleError } = await supabase
+                .from('students')
+                .insert([student]);
+              if (singleError && singleError.code !== '23505') {
+                throw singleError;
+              }
+            } catch (singleError: any) {
+              if (singleError.code !== '23505') {
+                throw singleError;
+              }
+              // Skip this duplicate
+            }
+          }
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Return info about skipped students
-    const skippedCount = newStudents.length - studentsToInsert.length;
-    if (skippedCount > 0) {
-      console.warn(`${skippedCount} طالب تم تخطيهم لأنهم موجودون بالفعل`);
+    const fileDuplicates = newStudents.length - uniqueStudents.length;
+    const dbDuplicates = uniqueStudents.length - studentsToInsert.length;
+    const totalSkipped = fileDuplicates + dbDuplicates;
+    
+    if (totalSkipped > 0) {
+      console.warn(`${totalSkipped} طالب تم تخطيهم (${fileDuplicates} مكرر في الملف، ${dbDuplicates} موجود في قاعدة البيانات)`);
     }
   } catch (error) {
     console.error('Import students error:', error);

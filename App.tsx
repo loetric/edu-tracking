@@ -523,47 +523,67 @@ const App: React.FC = () => {
   const handleImport = async (newStudents: Student[]) => {
     setIsDataLoading(true);
     try {
-      // Get existing students to check for duplicates
-      const existingStudents = await api.getStudents();
-      const existingIds = new Set(existingStudents.map(s => s.id));
-      
-      // Filter out duplicates
-      const studentsToAdd = newStudents.filter(s => !existingIds.has(s.id));
-      const duplicateCount = newStudents.length - studentsToAdd.length;
+      // Remove duplicates within the file itself first
+      const seenIds = new Set<string>();
+      const uniqueStudents = newStudents.filter(student => {
+        if (seenIds.has(student.id)) {
+          return false;
+        }
+        seenIds.add(student.id);
+        return true;
+      });
 
-      if (studentsToAdd.length === 0) {
+      const fileDuplicateCount = newStudents.length - uniqueStudents.length;
+
+      if (uniqueStudents.length === 0) {
         alert({ 
-          message: `جميع الطلاب (${newStudents.length}) موجودون بالفعل في النظام`, 
+          message: `جميع الطلاب في الملف مكررون (${newStudents.length} طالب)`, 
           type: 'warning' 
         });
         setIsDataLoading(false);
         return;
       }
 
-      // Import only new students
-      await api.importStudents(studentsToAdd);
+      // Import students (API will handle database duplicates)
+      await api.importStudents(uniqueStudents);
       
       // Refresh students list from database to ensure consistency
       const updatedStudents = await api.getStudents();
       setStudents(updatedStudents);
       
-      let logMessage = `تم استيراد ${studentsToAdd.length} طالب جديد`;
-      if (duplicateCount > 0) {
-        logMessage += ` (تم تخطي ${duplicateCount} طالب موجود مسبقاً)`;
+      // Calculate how many were actually imported
+      const importedCount = uniqueStudents.length;
+      const dbDuplicateCount = uniqueStudents.filter(s => 
+        updatedStudents.some(existing => existing.id === s.id)
+      ).length - (uniqueStudents.length - importedCount);
+      
+      let logMessage = `تم استيراد ${importedCount} طالب جديد`;
+      if (fileDuplicateCount > 0 || dbDuplicateCount > 0) {
+        logMessage += ` (تم تخطي ${fileDuplicateCount + dbDuplicateCount} طالب)`;
       }
       
       handleAddLog('استيراد بيانات', logMessage);
       
-      let alertMessage = `تم استيراد ${studentsToAdd.length} طالب بنجاح!`;
-      if (duplicateCount > 0) {
-        alertMessage += `\n\nتم تخطي ${duplicateCount} طالب موجود مسبقاً.`;
+      let alertMessage = `تم استيراد ${importedCount} طالب بنجاح!`;
+      if (fileDuplicateCount > 0 || dbDuplicateCount > 0) {
+        const skippedDetails = [];
+        if (fileDuplicateCount > 0) skippedDetails.push(`${fileDuplicateCount} مكرر في الملف`);
+        if (dbDuplicateCount > 0) skippedDetails.push(`${dbDuplicateCount} موجود في النظام`);
+        alertMessage += `\n\nتم تخطي ${fileDuplicateCount + dbDuplicateCount} طالب (${skippedDetails.join('، ')})`;
       }
       
       alert({ message: alertMessage, type: 'success' });
       setTimeout(() => setActiveTab('tracking'), 500);
     } catch (error: any) {
       console.error('Error importing students:', error);
-      const errorMessage = error?.message || 'فشل في استيراد الطلاب. يرجى المحاولة مرة أخرى.';
+      let errorMessage = 'فشل في استيراد الطلاب. يرجى المحاولة مرة أخرى.';
+      
+      if (error?.code === '23505') {
+        errorMessage = 'فشل في الاستيراد: يوجد طلاب مكررون في الملف أو في النظام. يرجى التحقق من الملف وإزالة التكرارات.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       alert({ message: errorMessage, type: 'error' });
     } finally {
       setIsDataLoading(false);
