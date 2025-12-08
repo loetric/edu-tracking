@@ -333,6 +333,8 @@ const App: React.FC = () => {
       // but here we just set state after successful verification passed from child
       setCurrentUser(user);
       setActiveTab('dashboard');
+      // Ensure loading is false after login
+      setIsAppLoading(false);
       handleAddLog('تسجيل دخول', `قام ${user.name} بتسجيل الدخول`);
   };
 
@@ -643,21 +645,9 @@ const App: React.FC = () => {
       });
   };
 
-  // Loading Screen
-  if (isAppLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
-        <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
-        <h2 className="text-xl font-bold text-gray-700">{CONFIG.LOADING.APP}</h2>
-        <p className="text-gray-400 mt-2">{CONFIG.LOADING.APP_SUBTITLE}</p>
-      </div>
-    );
-  }
-  
-  // If settings not loaded yet but user is logged in, allow app to continue
-  // Settings will be loaded in the background or we'll use defaults
-  // Only block if we're still in initial load phase
-  if (!settings && !currentUser && isAppLoading) {
+  // Loading Screen - only show if we're loading and user is not logged in
+  // Once user is logged in, allow app to continue even if some data is still loading
+  if (isAppLoading && !currentUser) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50" dir="rtl">
         <Loader2 size={CONFIG.UI.LOADER_SIZE_LARGE} className="text-teal-600 animate-spin mb-4" />
