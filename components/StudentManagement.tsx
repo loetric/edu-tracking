@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Student } from '../types';
-import { UserPlus, Upload, Search, Filter, X, Edit2 } from 'lucide-react';
+import { Student, SchoolSettings } from '../types';
+import { UserPlus, Upload, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
 import { ExcelImporter } from './ExcelImporter';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -10,13 +10,16 @@ interface StudentManagementProps {
   students: Student[];
   onAddStudent: (student: Student) => void;
   onUpdateStudent: (studentId: string, updates: Partial<Student>) => void;
+  onDeleteStudent: (studentId: string) => void;
   onImportStudents: (students: Student[]) => void;
+  settings: SchoolSettings;
 }
 
-export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onUpdateStudent, onImportStudents }) => {
+export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onUpdateStudent, onDeleteStudent, onImportStudents, settings }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClassGrade, setFilterClassGrade] = useState<string>('');
   const [filterChallenge, setFilterChallenge] = useState<string>('');
@@ -29,7 +32,12 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
   });
 
-  // Get unique class grades for filter
+  // Get available class grades from settings or from students
+  const availableClassGrades = settings?.classGrades && settings.classGrades.length > 0
+    ? settings.classGrades
+    : Array.from(new Set(students.map(s => s.classGrade))).sort();
+
+  // Get unique class grades for filter (from actual student data)
   const uniqueClassGrades = Array.from(new Set(students.map(s => s.classGrade))).sort();
   
   // Get unique challenges for filter
@@ -93,6 +101,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`
     });
     setShowAddForm(true);
+  };
+
+  const handleDeleteStudent = async (student: Student) => {
+    const shouldDelete = await confirm({
+      title: 'حذف الطالب',
+      message: `هل أنت متأكد من حذف الطالب "${student.name}" (${student.id})؟\n\nسيتم حذف جميع بيانات الطالب بما في ذلك السجلات والتقارير المرتبطة به.`,
+      type: 'warning',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء'
+    });
+    
+    if (shouldDelete) {
+      onDeleteStudent(student.id);
+    }
   };
 
   const handleUpdateStudentSubmit = () => {
@@ -221,11 +243,11 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
         </div>
       </div>
 
-      {/* Add Student Form */}
+      {/* Add/Edit Student Form */}
       {showAddForm && (
         <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800">إضافة طالب جديد</h3>
+            <h3 className="text-lg font-bold text-gray-800">{editingStudent ? 'تعديل بيانات الطالب' : 'إضافة طالب جديد'}</h3>
             <button
               onClick={() => setShowAddForm(false)}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
@@ -240,7 +262,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 type="text"
                 value={newStudent.id || ''}
                 onChange={(e) => setNewStudent({ ...newStudent, id: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                disabled={!!editingStudent}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="مثال: 12345"
               />
             </div>
@@ -256,13 +279,26 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
-              <input
-                type="text"
-                value={newStudent.classGrade || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                placeholder="مثال: الرابع الابتدائي"
-              />
+              {availableClassGrades.length > 0 ? (
+                <select
+                  value={newStudent.classGrade || ''}
+                  onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
+                >
+                  <option value="">اختر الصف</option>
+                  {availableClassGrades.map(grade => (
+                    <option key={grade} value={grade}>{grade}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={newStudent.classGrade || ''}
+                  onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+                  placeholder="مثال: الرابع الابتدائي"
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر *</label>
@@ -277,16 +313,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button
-              onClick={() => setShowAddForm(false)}
+              onClick={editingStudent ? handleCancelEdit : () => setShowAddForm(false)}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
               إلغاء
             </button>
             <button
-              onClick={handleAddStudentSubmit}
+              onClick={editingStudent ? handleUpdateStudentSubmit : handleAddStudentSubmit}
               className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
             >
-              إضافة
+              {editingStudent ? 'حفظ التعديلات' : 'إضافة'}
             </button>
           </div>
         </div>
@@ -381,6 +417,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -401,13 +438,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => handleEditStudent(student)}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={14} />
-                        <span>تحرير</span>
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditStudent(student)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={14} />
+                          <span>تحرير</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStudent(student)}
+                          className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={14} />
+                          <span>حذف</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -449,6 +495,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       <span className="font-bold">الجوال:</span> {student.parentPhone}
                     </p>
                   )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => handleEditStudent(student)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                  >
+                    <Edit2 size={14} />
+                    <span>تحرير</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteStudent(student)}
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={14} />
+                    <span>حذف</span>
+                  </button>
                 </div>
               </div>
             ))

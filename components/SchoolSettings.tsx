@@ -23,7 +23,11 @@ interface SchoolSettingsProps {
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes'>('general');
+  
+  // Class Grades Management State
+  const [classGrades, setClassGrades] = useState<string[]>(settings?.classGrades || []);
+  const [newClassGrade, setNewClassGrade] = useState('');
   
   // User Management State
     const [newUser, setNewUser] = useState<Partial<User & { email?: string }>>({ role: 'teacher', name: '', username: '', password: '', email: '' });
@@ -42,8 +46,37 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave({ ...formData, classGrades });
     alert({ message: 'تم حفظ إعدادات المدرسة بنجاح', type: 'success' });
+  };
+
+  const handleAddClassGrade = () => {
+    if (!newClassGrade.trim()) {
+      alert({ message: 'الرجاء إدخال اسم الصف', type: 'warning' });
+      return;
+    }
+    if (classGrades.includes(newClassGrade.trim())) {
+      alert({ message: 'هذا الصف مسجل مسبقاً', type: 'warning' });
+      return;
+    }
+    setClassGrades([...classGrades, newClassGrade.trim()]);
+    setNewClassGrade('');
+    alert({ message: 'تم إضافة الصف بنجاح', type: 'success' });
+  };
+
+  const handleDeleteClassGrade = async (grade: string) => {
+    const shouldDelete = await confirm({
+      title: 'حذف الصف',
+      message: `هل أنت متأكد من حذف الصف "${grade}"؟\n\nسيتم حذف هذا الصف من القائمة فقط، ولن يتم حذف بيانات الطلاب المرتبطة به.`,
+      type: 'warning',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء'
+    });
+    
+    if (shouldDelete) {
+      setClassGrades(classGrades.filter(g => g !== grade));
+      alert({ message: 'تم حذف الصف بنجاح', type: 'success' });
+    }
   };
 
   const handleAddUser = async () => {
@@ -223,6 +256,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         <button onClick={() => setActiveTab('general')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
         <button onClick={() => setActiveTab('users')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
         <button onClick={() => setActiveTab('password')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
+        <button onClick={() => setActiveTab('classes')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
         <button onClick={() => setActiveTab('setup')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
       </div>
 
@@ -577,6 +611,102 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                         <PasswordReset users={users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role }))} />
                     </div>
                 )}
+
+        {activeTab === 'classes' && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div>
+                <h3 className="font-bold text-gray-800">تعريف الفصول الدراسية</h3>
+                <p className="text-xs text-gray-500">إضافة وإدارة قائمة الفصول التي ستظهر في جميع النماذج</p>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-teal-100 p-6 rounded-xl shadow-sm space-y-4">
+              <h4 className="font-bold text-teal-800 flex items-center gap-2">
+                <BookOpen size={18}/>
+                إضافة فصل جديد
+              </h4>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newClassGrade}
+                  onChange={e => setNewClassGrade(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && handleAddClassGrade()}
+                  className="flex-1 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                  placeholder="مثال: الرابع الابتدائي"
+                />
+                <button
+                  onClick={handleAddClassGrade}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  إضافة
+                </button>
+              </div>
+            </div>
+
+            {/* Class Grades List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              {classGrades.length > 0 ? (
+                <>
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">الفصل</th>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {classGrades.map((grade, index) => (
+                          <tr key={index} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{grade}</td>
+                            <td className="px-6 py-4">
+                              <button
+                                onClick={() => handleDeleteClassGrade(grade)}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                              >
+                                <Trash2 size={14} />
+                                <span>حذف</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="md:hidden divide-y divide-gray-100">
+                    {classGrades.map((grade, index) => (
+                      <div key={index} className="p-4">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-gray-800">{grade}</span>
+                          <button
+                            onClick={() => handleDeleteClassGrade(grade)}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={14} />
+                            <span>حذف</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="p-12 text-center text-gray-400">
+                  <BookOpen size={48} className="mx-auto mb-2 opacity-20" />
+                  <p>لم يتم إضافة أي فصول حتى الآن</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>ملاحظة:</strong> الفصول المعرفة هنا ستظهر في قوائم الاختيار عند إضافة أو تعديل بيانات الطلاب، مما يضمن اتساق البيانات في النظام.
+              </p>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'setup' && (
           <div className="space-y-6 animate-in fade-in">

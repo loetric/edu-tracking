@@ -39,6 +39,7 @@ export const api = {
   addStudent: students.addStudent,
   importStudents: students.importStudents,
   updateStudent: students.updateStudent,
+  deleteStudent: students.deleteStudent,
   updateStudentChallenge: students.updateStudentChallenge,
 
   // Schedule

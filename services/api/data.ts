@@ -6,12 +6,28 @@ import { supabase } from '../supabase';
  */
 export const deleteAllStudents = async (): Promise<void> => {
   try {
-    const { error } = await supabase
+    // Delete all students using a more reliable method
+    // First, get all student IDs to ensure we can delete them
+    const { data: students, error: fetchError } = await supabase
       .from('students')
-      .delete()
-      .neq('id', ''); // Delete all rows
+      .select('id');
     
-    if (error) throw error;
+    if (fetchError) throw fetchError;
+    
+    if (students && students.length > 0) {
+      // Delete in batches if needed (Supabase has a limit on .in() array size)
+      const batchSize = 1000;
+      for (let i = 0; i < students.length; i += batchSize) {
+        const batch = students.slice(i, i + batchSize);
+        const ids = batch.map(s => s.id);
+        const { error } = await supabase
+          .from('students')
+          .delete()
+          .in('id', ids);
+        
+        if (error) throw error;
+      }
+    }
   } catch (error) {
     console.error('Delete all students error:', error);
     throw error;

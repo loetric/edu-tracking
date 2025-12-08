@@ -20,6 +20,7 @@ export interface SchoolSettings {
   whatsappPhone?: string; // New field for school WhatsApp number
   reportGeneralMessage?: string; // رسالة عامة تظهر في التقارير
   reportLink?: string; // رابط يتحول لباركود
+  classGrades?: string[]; // قائمة الفصول المعرفة من قبل مدير النظام
 }
 
 export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'other';

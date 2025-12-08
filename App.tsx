@@ -426,6 +426,34 @@ const App: React.FC = () => {
     }
   };
 
+  const handleDeleteStudent = async (studentId: string) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+
+    const shouldDelete = await confirm({
+      title: 'حذف طالب',
+      message: `هل أنت متأكد من حذف الطالب ${student.name}؟\n\nهذا الإجراء لا يمكن التراجع عنه.`,
+      type: 'danger',
+      confirmText: 'نعم، احذف',
+      cancelText: 'إلغاء'
+    });
+
+    if (!shouldDelete) return;
+
+    setIsDataLoading(true);
+    try {
+      await api.deleteStudent(studentId);
+      setStudents(prev => prev.filter(s => s.id !== studentId));
+      handleAddLog('حذف طالب', `تم حذف الطالب ${student.name}`);
+      alert({ message: 'تم حذف الطالب بنجاح!', type: 'success' });
+    } catch (error) {
+      console.error('Error deleting student:', error);
+      alert({ message: 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
   const handleImport = async (newStudents: Student[]) => {
     setIsDataLoading(true);
     try {
@@ -762,7 +790,10 @@ const App: React.FC = () => {
           <StudentManagement 
             students={students}
             onAddStudent={handleAddStudent}
+            onUpdateStudent={handleUpdateStudent}
+            onDeleteStudent={handleDeleteStudent}
             onImportStudents={handleImport}
+            settings={effectiveSettings}
           />
         );
       case 'import':

@@ -92,3 +92,23 @@ export const updateStudent = async (
   }
 };
 
+/**
+ * Delete a single student
+ */
+export const deleteStudent = async (studentId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('students')
+      .delete()
+      .eq('id', studentId);
+
+    if (error) {
+      console.error('Delete student error:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Delete student exception:', error);
+    throw error;
+  }
+};
+
