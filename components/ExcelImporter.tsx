@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, FileSpreadsheet, Check, AlertTriangle, Download, Loader2 } from 'lucide-react';
 import { Student } from '../types';
 // @ts-ignore - xlsx doesn't have types by default
@@ -332,6 +332,23 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Prevent page navigation during import
+  useEffect(() => {
+    if (isLoading) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = 'جاري استيراد البيانات. هل أنت متأكد من الخروج؟';
+        return e.returnValue;
+      };
+      
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [isLoading]);
 
   // Prevent page navigation during import
   useEffect(() => {
@@ -396,27 +413,48 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
     reader.onload = async (event) => {
       try {
         setLoadingMessage('جاري معالجة البيانات...');
+        setProgress({ current: 0, total: 100 });
         const data = event.target?.result;
         let newStudents: Student[] = [];
 
         if (isExcel) {
           // Process Excel file
           setLoadingMessage('جاري قراءة ملف Excel...');
+          setProgress({ current: 10, total: 100 });
           const workbook = XLSX.read(data, { type: 'binary' });
           
           // Find the best sheet with student data
           setLoadingMessage('جاري البحث عن البيانات...');
+          setProgress({ current: 20, total: 100 });
           const bestSheetName = findBestSheet(workbook);
           
           if (!bestSheetName) {
             setError('لم يتم العثور على بيانات صالحة في الملف.');
             setIsLoading(false);
+            setProgress({ current: 0, total: 0 });
             return;
           }
 
           // Process the best sheet using the dedicated function
           setLoadingMessage('جاري استخراج بيانات الطلاب...');
-          const sheetStudents = processSheet(workbook.Sheets[bestSheetName], bestSheetName);
+          setProgress({ current: 30, total: 100 });
+          
+          // Process sheet with progress updates
+          const worksheet = workbook.Sheets[bestSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+          const totalRows = jsonData.length;
+          const headerRowIndex = findHeaderRow(jsonData);
+          const rowsToProcess = totalRows - (headerRowIndex + 1);
+          
+          const sheetStudents = await processSheetWithProgress(
+            worksheet, 
+            bestSheetName,
+            (current, total) => {
+              const progressPercent = 30 + Math.floor((current / total) * 50); // 30-80%
+              setProgress({ current: progressPercent, total: 100 });
+              setLoadingMessage(`جاري معالجة السطر ${current} من ${total}...`);
+            }
+          );
           
           if (sheetStudents.length === 0) {
             // Try processing all sheets if best sheet didn't work
@@ -542,18 +580,27 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           }
           
           setLoadingMessage('جاري استيراد البيانات إلى قاعدة البيانات...');
+          setProgress({ current: 80, total: 100 });
+          
           // Call onImport and wait for it to complete
           try {
             await onImport(finalUniqueStudents);
+            setProgress({ current: 100, total: 100 });
             setImportedCount(finalUniqueStudents.length);
             setSuccess(true);
             setIsLoading(false);
             // Clear input
             if (fileInputRef.current) fileInputRef.current.value = '';
+            
+            // Reset progress after a short delay
+            setTimeout(() => {
+              setProgress({ current: 0, total: 0 });
+            }, 2000);
           } catch (importError) {
             console.error('Import error:', importError);
             setError('حدث خطأ أثناء استيراد البيانات. يرجى المحاولة مرة أخرى.');
             setIsLoading(false);
+            setProgress({ current: 0, total: 0 });
           }
         }
       } catch (err) {

@@ -128,17 +128,17 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
           <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
               {/* Class Filter */}
               <div className="relative">
-                  <Filter className="absolute top-3 right-3 text-gray-400" size={16} />
-                  <select 
+                  <Filter className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
+                  <CustomSelect
                     value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="pl-4 pr-10 py-2.5 border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 w-full md:w-48 appearance-none bg-white border text-sm font-bold text-gray-700"
-                  >
-                      <option value="all">جميع الفصول</option>
-                      {classes.filter(c => c !== 'all').map(c => (
-                          <option key={c} value={c}>{c}</option>
-                      ))}
-                  </select>
+                    onChange={(value) => setSelectedClass(value)}
+                    options={[
+                      { value: 'all', label: 'جميع الفصول' },
+                      ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
+                    ]}
+                    placeholder="جميع الفصول"
+                    className="w-full md:w-48 pl-10"
+                  />
               </div>
 
               {/* Challenge Filter */}

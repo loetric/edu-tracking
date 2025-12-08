@@ -116,13 +116,16 @@ const App: React.FC = () => {
   // --- Listen to auth state changes ---
   useEffect(() => {
     let isMounted = true;
+    let hasInitialSession = false;
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      // Handle all session events properly
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-        // User signed in, token refreshed, or initial session loaded
+      // Handle INITIAL_SESSION only once - don't clear user on refresh
+      if (event === 'INITIAL_SESSION') {
+        if (hasInitialSession) return; // Already handled
+        hasInitialSession = true;
+        
         if (session?.user) {
           try {
             const user = await api.getCurrentUser();
@@ -130,23 +133,47 @@ const App: React.FC = () => {
               setCurrentUser(user);
               setIsAppLoading(false);
             } else if (isMounted) {
-              // No user found but session exists - might be a profile issue
-              // Don't log out, just clear loading
+              // Session exists but no profile - don't log out, just clear loading
               setIsAppLoading(false);
             }
           } catch (error) {
-            console.error("Error getting user in auth state change:", error);
+            console.error("Error getting user in initial session:", error);
             if (isMounted) {
               // Don't log out on error - session might still be valid
               setIsAppLoading(false);
             }
           }
         } else if (isMounted) {
-          // No session - clear loading but don't clear user yet (might be temporary)
+          // No session in INITIAL_SESSION - user is logged out
+          setCurrentUser(null);
+          setIsAppLoading(false);
+        }
+        return; // Don't process INITIAL_SESSION further
+      }
+      
+      // Handle other events
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // User signed in or token refreshed
+        if (session?.user) {
+          try {
+            const user = await api.getCurrentUser();
+            if (user && isMounted) {
+              setCurrentUser(user);
+              setIsAppLoading(false);
+            } else if (isMounted) {
+              setIsAppLoading(false);
+            }
+          } catch (error) {
+            console.error("Error getting user in auth state change:", error);
+            if (isMounted) {
+              setIsAppLoading(false);
+            }
+          }
+        } else if (isMounted) {
           setIsAppLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
-        // User signed out - clear state
+        // User explicitly signed out - clear state
         if (isMounted) {
           setCurrentUser(null);
           setStudents([]);
@@ -160,7 +187,7 @@ const App: React.FC = () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [currentUser]); // Add currentUser as dependency to check if already loaded
+  }, []); // Remove currentUser dependency to prevent re-subscription on refresh
 
   // --- Initial System Load (Settings & Users) ---
   useEffect(() => {
