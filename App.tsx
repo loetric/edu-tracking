@@ -138,8 +138,8 @@ const App: React.FC = () => {
         setUsers(result.users);
       } catch (error) {
         console.error("Failed to load system data", error);
-        // Use default settings temporarily, but keep trying to load from database
-        setSettings(INITIAL_SETTINGS);
+        // Don't use mock data - keep settings as null and show error
+        // Only set users to empty array
         setUsers([]);
         // Retry loading settings after a delay
         setTimeout(async () => {
@@ -150,6 +150,7 @@ const App: React.FC = () => {
             setUsers(retryUsers);
           } catch (retryError) {
             console.error("Retry failed to load system data", retryError);
+            // Still don't use mock data - let user see the error
           }
         }, 2000);
       } finally {
