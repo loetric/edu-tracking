@@ -476,31 +476,34 @@ const App: React.FC = () => {
 
     setIsDataLoading(true);
     try {
-      await api.deleteStudent(studentId);
-      
-      // Remove from local state
+      // Remove from local state immediately for better UX
       setStudents(prev => prev.filter(s => s.id !== studentId));
       
-      // Verify deletion by refreshing from database
+      // Delete from database
+      await api.deleteStudent(studentId);
+      
+      // Wait a moment for database to commit
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Refresh students list from database to ensure consistency
       const updatedStudents = await api.getStudents();
       const stillExists = updatedStudents.some(s => s.id === studentId);
       
       if (stillExists) {
-        // Student still exists - refresh the list
+        // Student still exists - this shouldn't happen, but refresh the list
         setStudents(updatedStudents);
         alert({ 
           message: 'تحذير: يبدو أن الطالب لا يزال موجوداً. تم تحديث القائمة.', 
           type: 'warning' 
         });
       } else {
-        // Deletion successful
+        // Deletion successful - use the refreshed list
+        setStudents(updatedStudents);
         handleAddLog('حذف طالب', `تم حذف الطالب ${student.name}`);
         alert({ message: 'تم حذف الطالب بنجاح!', type: 'success' });
       }
     } catch (error: any) {
       console.error('Error deleting student:', error);
-      const errorMessage = error?.message || 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.';
-      alert({ message: errorMessage, type: 'error' });
       
       // Refresh students list to ensure consistency
       try {
@@ -509,6 +512,9 @@ const App: React.FC = () => {
       } catch (refreshError) {
         console.error('Error refreshing students after delete failure:', refreshError);
       }
+      
+      const errorMessage = error?.message || 'فشل في حذف الطالب. يرجى المحاولة مرة أخرى.';
+      alert({ message: errorMessage, type: 'error' });
     } finally {
       setIsDataLoading(false);
     }

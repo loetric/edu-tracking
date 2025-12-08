@@ -259,80 +259,34 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
         if (isExcel) {
           // Process Excel file
           const workbook = XLSX.read(data, { type: 'binary' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
           
-          // Convert to JSON
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+          // Find the best sheet with student data
+          const bestSheetName = findBestSheet(workbook);
           
-          if (jsonData.length < 2) {
-            setError('الملف لا يحتوي على بيانات كافية. يجب أن يحتوي على رأس وأقل من صف واحد.');
+          if (!bestSheetName) {
+            setError('لم يتم العثور على بيانات صالحة في الملف.');
             return;
           }
 
-          // Try to detect column headers (first row)
-          const headers = (jsonData[0] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
+          // Process the best sheet using the dedicated function
+          const sheetStudents = processSheet(workbook.Sheets[bestSheetName], bestSheetName);
           
-          // Find column indices
-          const findColumnIndex = (keywords: string[]): number => {
-            for (const keyword of keywords) {
-              const index = headers.findIndex(h => 
-                h.includes(keyword) || keyword.includes(h)
-              );
-              if (index !== -1) return index;
+          if (sheetStudents.length === 0) {
+            // Try processing all sheets if best sheet didn't work
+            let allStudents: Student[] = [];
+            for (const sheetName of workbook.SheetNames) {
+              const studentsFromSheet = processSheet(workbook.Sheets[sheetName], sheetName);
+              allStudents = [...allStudents, ...studentsFromSheet];
             }
-            return -1;
-          };
-
-          const studentNumberIndex = findColumnIndex(['رقم', 'number', 'id', 'student', 'طالب']);
-          const nameIndex = findColumnIndex(['اسم', 'name', 'الطالب']);
-          const classIndex = findColumnIndex(['صف', 'class', 'grade', 'الصف', 'الدرجة']);
-          const classRoomIndex = findColumnIndex(['فصل', 'classroom', 'room', 'الفصل']);
-          const phoneIndex = findColumnIndex(['جوال', 'phone', 'mobile', 'رقم', 'ولي', 'parent']);
-
-          // Process rows (skip header)
-          for (let i = 1; i < jsonData.length; i++) {
-            const row = jsonData[i] as any[];
-            if (!row || row.length === 0) continue;
-
-            const studentNumber = studentNumberIndex >= 0 ? String(row[studentNumberIndex] || '').trim() : '';
-            const name = nameIndex >= 0 ? String(row[nameIndex] || '').trim() : '';
-            const classGradeRaw = classIndex >= 0 ? String(row[classIndex] || '').trim() : '';
-            const classRoom = classRoomIndex >= 0 ? String(row[classRoomIndex] || '').trim() : '';
-            const phone = phoneIndex >= 0 ? String(row[phoneIndex] || '').trim() : '';
-
-            // Skip empty rows
-            if (!name && !studentNumber) continue;
-
-            // Extract classGrade (first part only)
-            let classGrade = extractClassGrade(classGradeRaw);
             
-            // If classRoom exists, combine it with classGrade
-            if (classRoom && classGrade) {
-              classGrade = `${classGrade}/${classRoom}`;
-            } else if (classRoom && !classGrade) {
-              classGrade = classRoom;
+            if (allStudents.length === 0) {
+              setError('لم يتم العثور على بيانات صالحة في الملف.');
+              return;
             }
-
-            // Generate ID (clean and validate)
-            const id = generateStudentId(studentNumber, i);
-            if (!id || id.length === 0) continue; // Skip if no valid ID
-
-            // Clean and validate name
-            const cleanedName = cleanStudentName(name);
-            if (!cleanedName || cleanedName.length === 0) continue; // Skip if no valid name
-
-            // Clean phone (limit to 13 digits)
-            const cleanedPhone = cleanPhoneNumber(phone);
-
-            newStudents.push({
-              id,
-              name: cleanedName,
-              classGrade: classGrade || 'غير محدد',
-              parentPhone: cleanedPhone || '',
-              challenge: 'none',
-              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
-            });
+            
+            newStudents = allStudents;
+          } else {
+            newStudents = sheetStudents;
           }
         } else {
           // Process CSV file (backward compatibility)
