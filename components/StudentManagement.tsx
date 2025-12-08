@@ -105,7 +105,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`,
       studentNumber: student.studentNumber || student.id
     });
-    setShowAddForm(true);
+    // Don't open add form - edit form is now a separate modal
   };
 
   const handleDeleteStudent = async (student: Student) => {
