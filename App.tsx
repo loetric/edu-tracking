@@ -686,7 +686,7 @@ const App: React.FC = () => {
       <LoginScreen 
         onLogin={handleLogin} 
         onRegister={handleRegister} 
-        settings={settings} 
+        settings={effectiveSettings} 
         users={users} 
       />
     );
@@ -763,7 +763,7 @@ const App: React.FC = () => {
       case 'settings':
         return (
             <SchoolSettingsForm 
-                settings={settings} 
+                settings={effectiveSettings} 
                 users={users}
                 schedule={schedule}
                 onSave={async (s) => { 
@@ -801,7 +801,7 @@ const App: React.FC = () => {
             <CounselorView 
                 students={students} 
                 onUpdateChallenge={handleUpdateChallenge} 
-                settings={settings}
+                settings={effectiveSettings}
                 onUpdateSettings={async (s) => { 
                    await api.updateSettings(s);
                    // Always refresh from database to ensure consistency
@@ -868,7 +868,7 @@ const App: React.FC = () => {
         setActiveTab={setActiveTab} 
         role={currentUser.role} 
         onLogout={handleLogout} 
-        settings={settings} 
+        settings={effectiveSettings} 
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
@@ -879,7 +879,7 @@ const App: React.FC = () => {
             onClose={() => setPdfData(null)} 
             student={pdfData.student} 
             record={pdfData.record}
-            settings={settings}
+            settings={effectiveSettings}
             schedule={schedule}
         />
       )}
@@ -889,8 +889,8 @@ const App: React.FC = () => {
           onClose={() => setBulkModalOpen(false)}
           students={students}
           records={currentRecords}
-          schoolName={settings.name}
-          schoolPhone={settings.whatsappPhone}
+          schoolName={effectiveSettings.name}
+          schoolPhone={effectiveSettings.whatsappPhone}
       />
 
       <InternalChat 
@@ -914,7 +914,7 @@ const App: React.FC = () => {
                     {activeTab === 'schedule' && (currentUser.role === 'admin' ? 'جدول الحصص العام (وإسناد الاحتياط)' : 'جدولي الدراسي')}
                     {activeTab === 'reports' && (currentUser.role === 'counselor' ? 'إعدادات التقارير والتحديات' : 'التقارير')}
                 </h1>
-                <p className="text-gray-500 text-sm mt-1">{settings.name}</p>
+                <p className="text-gray-500 text-sm mt-1">{effectiveSettings.name}</p>
             </div>
             
             <div className="flex items-center gap-4">
