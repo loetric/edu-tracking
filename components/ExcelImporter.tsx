@@ -70,6 +70,42 @@ const generateStudentId = (studentNumber?: string | number, index?: number): str
 };
 
 /**
+ * Find the header row by searching for common header keywords
+ */
+const findHeaderRow = (jsonData: any[][]): number => {
+  // Keywords that indicate a header row
+  const headerKeywords = [
+    'اسم', 'name', 'الطالب', 'student', 'student_name',
+    'رقم', 'number', 'id', 'student_id', 'طالب',
+    'جوال', 'phone', 'mobile', 'parent', 'ولي',
+    'صف', 'class', 'grade', 'الصف', 'class_grade',
+    'فصل', 'classroom', 'room', 'الفصل', 'section'
+  ];
+  
+  // Search from top to bottom (max 20 rows to avoid performance issues)
+  for (let i = 0; i < Math.min(jsonData.length, 20); i++) {
+    const row = jsonData[i] || [];
+    const rowText = row.map((cell: any) => String(cell || '').toLowerCase().trim()).join(' ');
+    
+    // Check if this row contains multiple header keywords
+    let matchCount = 0;
+    for (const keyword of headerKeywords) {
+      if (rowText.includes(keyword.toLowerCase())) {
+        matchCount++;
+      }
+    }
+    
+    // If we found 2 or more header keywords, this is likely the header row
+    if (matchCount >= 2) {
+      return i;
+    }
+  }
+  
+  // Default to first row if no header found
+  return 0;
+};
+
+/**
  * Process a single Excel sheet and extract student data
  */
 const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] => {
@@ -82,8 +118,9 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     return students; // Empty or insufficient data
   }
 
-  // Try to detect column headers (first row)
-  const headers = (jsonData[0] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
+  // Find the header row (not necessarily the first row)
+  const headerRowIndex = findHeaderRow(jsonData);
+  const headers = (jsonData[headerRowIndex] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
   
   // Find column indices with smart matching
   const findColumnIndex = (keywords: string[]): number => {
@@ -100,14 +137,20 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     return -1;
   };
 
-  const studentNumberIndex = findColumnIndex(['رقم', 'number', 'id', 'student', 'طالب', 'student_id', 'studentid']);
-  const nameIndex = findColumnIndex(['اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم']);
-  const classIndex = findColumnIndex(['صف', 'class', 'grade', 'الصف', 'الدرجة', 'class_grade', 'classgrade', 'level']);
+  const studentNumberIndex = findColumnIndex(['رقم', 'number', 'id', 'student', 'طالب', 'student_id', 'studentid', 'رقم الطالب']);
+  const nameIndex = findColumnIndex(['اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم', 'اسم الطالب']);
+  const classIndex = findColumnIndex(['صف', 'class', 'grade', 'الصف', 'الدرجة', 'class_grade', 'classgrade', 'level', 'رقم الصف']);
   const classRoomIndex = findColumnIndex(['فصل', 'classroom', 'room', 'الفصل', 'section', 'sec']);
   const phoneIndex = findColumnIndex(['جوال', 'phone', 'mobile', 'رقم', 'ولي', 'parent', 'parent_phone', 'parentphone', 'contact', 'telephone']);
 
-  // Process rows (skip header)
-  for (let i = 1; i < jsonData.length; i++) {
+  // Verify we found at least name or student number column
+  if (nameIndex === -1 && studentNumberIndex === -1) {
+    console.warn('Could not find name or student number columns in header row', headerRowIndex);
+    return students;
+  }
+
+  // Process rows starting from the row after the header
+  for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
     const row = jsonData[i] as any[];
     if (!row || row.length === 0) continue;
 
