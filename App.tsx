@@ -120,9 +120,10 @@ const App: React.FC = () => {
   useEffect(() => {
     const initSystem = async () => {
       try {
-        // Add timeout to prevent hanging
+        // Load settings and users from database - no timeout to ensure we get real data
+        // Use a longer timeout (30 seconds) to prevent hanging indefinitely
         const timeoutPromise = new Promise<{settings: SchoolSettings, users: User[]}>((_, reject) => 
-          setTimeout(() => reject(new Error(CONFIG.ERRORS.TIMEOUT)), CONFIG.TIMEOUTS.SESSION_CHECK)
+          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. يرجى التحقق من الاتصال بالإنترنت والمحاولة مرة أخرى')), 30000)
         );
         
         const dataPromise = Promise.all([
@@ -136,11 +137,21 @@ const App: React.FC = () => {
         const result = await Promise.race([dataPromise, timeoutPromise]);
         setSettings(result.settings);
         setUsers(result.users);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load system data", error);
         // Don't use mock data - keep settings as null and show error
         // Only set users to empty array
         setUsers([]);
+        
+        // Show error message to user if it's a timeout
+        if (error?.message?.includes('انتهت مهلة الاتصال')) {
+          alert({ 
+            message: error.message, 
+            type: 'error',
+            duration: 5000
+          });
+        }
+        
         // Retry loading settings after a delay
         setTimeout(async () => {
           try {
@@ -152,7 +163,7 @@ const App: React.FC = () => {
             console.error("Retry failed to load system data", retryError);
             // Still don't use mock data - let user see the error
           }
-        }, 2000);
+        }, 3000);
       } finally {
         setIsAppLoading(false);
       }
