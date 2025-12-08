@@ -59,14 +59,33 @@ const cleanStudentName = (name: string): string => {
 
 /**
  * Generates a unique student ID
+ * If studentNumber is provided and valid, use it. Otherwise generate a unique ID.
+ * If there are duplicates, append index to make it unique.
  */
-const generateStudentId = (studentNumber?: string | number, index?: number): string => {
+const generateStudentId = (studentNumber?: string | number, index?: number, existingIds?: Set<string>): string => {
+  let baseId: string;
+  
   if (studentNumber) {
     const cleaned = cleanStudentId(studentNumber);
-    if (cleaned) return cleaned;
+    if (cleaned) {
+      baseId = cleaned;
+    } else {
+      // Generate a numeric ID if no valid student number
+      baseId = `${Date.now()}${index || Math.floor(Math.random() * 1000)}`.slice(0, 10);
+    }
+  } else {
+    // Generate a numeric ID if no valid student number
+    baseId = `${Date.now()}${index || Math.floor(Math.random() * 1000)}`.slice(0, 10);
   }
-  // Generate a numeric ID if no valid student number
-  return `${Date.now()}${index || Math.floor(Math.random() * 1000)}`.slice(0, 10);
+  
+  // If we have existingIds set and baseId already exists, make it unique
+  if (existingIds && existingIds.has(baseId)) {
+    // Append index to make it unique
+    const uniqueId = `${baseId}_${index || Date.now()}`.slice(0, 20); // Max 20 chars
+    return uniqueId;
+  }
+  
+  return baseId;
 };
 
 /**
@@ -149,6 +168,9 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     return students;
   }
 
+  // Track IDs to ensure uniqueness within the sheet
+  const seenIds = new Set<string>();
+
   // Process rows starting from the row after the header
   for (let i = headerRowIndex + 1; i < jsonData.length; i++) {
     const row = jsonData[i] as any[];
@@ -173,9 +195,20 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
       classGrade = classRoom;
     }
 
-    // Generate ID (clean and validate)
-    const id = generateStudentId(studentNumber, i);
+    // Generate ID (clean and validate) - pass seenIds to ensure uniqueness
+    let id = generateStudentId(studentNumber, i, seenIds);
+    
+    // If ID still exists, keep trying until we get a unique one
+    let attempts = 0;
+    while (seenIds.has(id) && attempts < 100) {
+      id = generateStudentId(studentNumber, i + attempts * 1000, seenIds);
+      attempts++;
+    }
+    
     if (!id || id.length === 0) continue; // Skip if no valid ID
+    
+    // Add to seenIds to track uniqueness
+    seenIds.add(id);
 
     // Clean and validate name
     const cleanedName = cleanStudentName(name);
@@ -342,6 +375,9 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
 
           const lines = text.split(/\r\n|\n/);
           
+          // Track IDs to ensure uniqueness within CSV
+          const csvSeenIds = new Set<string>();
+          
           // Skip header (index 0)
           for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -373,7 +409,21 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
                 classGrade = classRoom;
               }
 
-              const id = generateStudentId(cleanedId, i);
+              // Generate unique ID - pass csvSeenIds to ensure uniqueness
+              let id = generateStudentId(cleanedId, i, csvSeenIds);
+              
+              // If ID still exists, keep trying until we get a unique one
+              let attempts = 0;
+              while (csvSeenIds.has(id) && attempts < 100) {
+                id = generateStudentId(cleanedId, i + attempts * 1000, csvSeenIds);
+                attempts++;
+              }
+              
+              if (!id || id.length === 0) continue; // Skip if no valid ID
+              
+              // Add to csvSeenIds to track uniqueness
+              csvSeenIds.add(id);
+              
               const cleanedPhone = cleanPhoneNumber(phone);
 
               newStudents.push({
@@ -391,8 +441,28 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
         if (newStudents.length === 0) {
           setError('لم يتم العثور على بيانات صالحة. تأكد من أن الملف يحتوي على بيانات الطلاب.');
         } else {
-          onImport(newStudents);
-          setImportedCount(newStudents.length);
+          // Final check: remove any remaining duplicates by ID
+          const finalSeenIds = new Set<string>();
+          const finalUniqueStudents = newStudents.filter(student => {
+            if (finalSeenIds.has(student.id)) {
+              return false; // Skip duplicate
+            }
+            finalSeenIds.add(student.id);
+            return true;
+          });
+          
+          if (finalUniqueStudents.length === 0) {
+            setError('جميع الطلاب في الملف مكررون. يرجى التحقق من الملف.');
+            return;
+          }
+          
+          if (finalUniqueStudents.length < newStudents.length) {
+            const duplicateCount = newStudents.length - finalUniqueStudents.length;
+            console.warn(`تم إزالة ${duplicateCount} طالب مكرر من الملف`);
+          }
+          
+          onImport(finalUniqueStudents);
+          setImportedCount(finalUniqueStudents.length);
           setSuccess(true);
           // Clear input
           if (fileInputRef.current) fileInputRef.current.value = '';
