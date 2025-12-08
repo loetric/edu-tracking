@@ -339,20 +339,21 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                         </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap w-32">
-                        <select
+                        <CustomSelect
                             value={record.attendance}
-                            onChange={(e) => handleStatusChange(student.id, 'attendance', e.target.value)}
+                            onChange={(value) => handleStatusChange(student.id, 'attendance', value)}
                             disabled={isAdmin}
-                            className={`block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 py-1.5 px-2 font-bold print:appearance-none print:bg-transparent print:border-0 ${
+                            options={[
+                              { value: 'present', label: 'حاضر' },
+                              { value: 'excused', label: 'مستأذن' },
+                              { value: 'absent', label: 'غائب' }
+                            ]}
+                            className={`block w-full text-sm font-bold ${
                             record.attendance === 'present' ? 'bg-green-100 text-green-800' : 
                             record.attendance === 'excused' ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                             } ${isAdmin ? 'opacity-100' : ''}`}
-                        >
-                            <option value="present">حاضر</option>
-                            <option value="excused">مستأذن</option>
-                            <option value="absent">غائب</option>
-                        </select>
+                        />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap w-32">
                         <StatusSelect 
