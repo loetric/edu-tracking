@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, FileSpreadsheet, Check, AlertTriangle, Download } from 'lucide-react';
+import { Upload, FileSpreadsheet, Check, AlertTriangle, Download, Loader2 } from 'lucide-react';
 import { Student } from '../types';
 // @ts-ignore - xlsx doesn't have types by default
 import * as XLSX from 'xlsx';
@@ -196,23 +196,16 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
     return students;
   }
   
-  // Debug: Log found columns
-  console.log('Found columns:', {
-    studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
-    name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
-    classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
-    classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
-    phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
-  });
-  
-  // Debug: Log found columns
-  console.log('Found columns:', {
-    studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
-    name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
-    classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
-    classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
-    phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
-  });
+  // Debug: Log found columns (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Found columns:', {
+      studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
+      name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
+      classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
+      classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
+      phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
+    });
+  }
 
   // Track IDs to ensure uniqueness within the sheet
   const seenIds = new Set<string>();
@@ -335,6 +328,8 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   const [availableSheets, setAvailableSheets] = useState<string[]>([]);
   const [selectedSheet, setSelectedSheet] = useState<string>('');
   const [showSheetSelector, setShowSheetSelector] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -361,6 +356,8 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
     setError(null);
     setSuccess(false);
     setImportedCount(0);
+    setIsLoading(true);
+    setLoadingMessage('جاري قراءة الملف...');
 
     // Check file extension
     const fileName = file.name.toLowerCase();
@@ -369,6 +366,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
 
     if (!isExcel && !isCSV) {
       setError('الرجاء رفع ملف بصيغة Excel (.xlsx, .xls) أو CSV.');
+      setIsLoading(false);
       return;
     }
 
@@ -376,26 +374,32 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
     
     reader.onload = (event) => {
       try {
+        setLoadingMessage('جاري معالجة البيانات...');
         const data = event.target?.result;
         let newStudents: Student[] = [];
 
         if (isExcel) {
           // Process Excel file
+          setLoadingMessage('جاري قراءة ملف Excel...');
           const workbook = XLSX.read(data, { type: 'binary' });
           
           // Find the best sheet with student data
+          setLoadingMessage('جاري البحث عن البيانات...');
           const bestSheetName = findBestSheet(workbook);
           
           if (!bestSheetName) {
             setError('لم يتم العثور على بيانات صالحة في الملف.');
+            setIsLoading(false);
             return;
           }
 
           // Process the best sheet using the dedicated function
+          setLoadingMessage('جاري استخراج بيانات الطلاب...');
           const sheetStudents = processSheet(workbook.Sheets[bestSheetName], bestSheetName);
           
           if (sheetStudents.length === 0) {
             // Try processing all sheets if best sheet didn't work
+            setLoadingMessage('جاري البحث في جميع الأوراق...');
             let allStudents: Student[] = [];
             for (const sheetName of workbook.SheetNames) {
               const studentsFromSheet = processSheet(workbook.Sheets[sheetName], sheetName);
@@ -404,6 +408,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
             
             if (allStudents.length === 0) {
               setError('لم يتم العثور على بيانات صالحة في الملف.');
+              setIsLoading(false);
               return;
             }
             
@@ -413,6 +418,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           }
         } else {
           // Process CSV file (backward compatibility)
+          setLoadingMessage('جاري معالجة ملف CSV...');
           let text = data as string;
           
           // Remove Byte Order Mark (BOM) if present
@@ -425,6 +431,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           // Track IDs to ensure uniqueness within CSV
           const csvSeenIds = new Set<string>();
           
+          setLoadingMessage(`جاري معالجة ${lines.length} سطر...`);
           // Skip header (index 0)
           for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -486,10 +493,13 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           }
         }
 
+        setLoadingMessage('جاري التحقق من البيانات...');
         if (newStudents.length === 0) {
           setError('لم يتم العثور على بيانات صالحة. تأكد من أن الملف يحتوي على بيانات الطلاب.');
+          setIsLoading(false);
         } else {
           // Final check: remove any remaining duplicates by ID
+          setLoadingMessage('جاري إزالة التكرارات...');
           const finalSeenIds = new Set<string>();
           const finalUniqueStudents = newStudents.filter(student => {
             if (finalSeenIds.has(student.id)) {
@@ -501,6 +511,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           
           if (finalUniqueStudents.length === 0) {
             setError('جميع الطلاب في الملف مكررون. يرجى التحقق من الملف.');
+            setIsLoading(false);
             return;
           }
           
@@ -509,15 +520,18 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
             console.warn(`تم إزالة ${duplicateCount} طالب مكرر من الملف`);
           }
           
+          setLoadingMessage('جاري استيراد البيانات...');
           onImport(finalUniqueStudents);
           setImportedCount(finalUniqueStudents.length);
           setSuccess(true);
+          setIsLoading(false);
           // Clear input
           if (fileInputRef.current) fileInputRef.current.value = '';
         }
       } catch (err) {
         console.error(err);
         setError('حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف Excel أو CSV صالح.');
+        setIsLoading(false);
       }
     };
 
@@ -628,28 +642,41 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           </p>
         </div>
 
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-10 transition-colors cursor-pointer ${
-            isDragging 
-              ? 'border-teal-500 bg-teal-50' 
-              : 'border-gray-300 hover:border-teal-400 hover:bg-gray-50'
-          }`}
-        >
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept=".xlsx,.xls,.csv"
-            onChange={handleFileSelect}
-          />
-          <Upload className="mx-auto text-gray-400 mb-4" size={40} />
-          <p className="font-medium text-gray-700">اضغط للرفع أو اسحب الملف هنا</p>
-          <p className="text-sm text-gray-400 mt-2">Excel (.xlsx, .xls) أو CSV (الحد الأقصى 10MB)</p>
-        </div>
+        {isLoading ? (
+          <div className="border-2 border-dashed border-teal-300 rounded-xl p-10 bg-teal-50">
+            <Loader2 className="mx-auto text-teal-600 mb-4 animate-spin" size={40} />
+            <p className="font-medium text-teal-700">{loadingMessage}</p>
+            <p className="text-sm text-teal-600 mt-2">يرجى الانتظار...</p>
+          </div>
+        ) : (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => !isLoading && fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-10 transition-colors ${
+              isLoading 
+                ? 'cursor-not-allowed opacity-50' 
+                : 'cursor-pointer'
+            } ${
+              isDragging 
+                ? 'border-teal-500 bg-teal-50' 
+                : 'border-gray-300 hover:border-teal-400 hover:bg-gray-50'
+            }`}
+          >
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileSelect}
+              disabled={isLoading}
+            />
+            <Upload className="mx-auto text-gray-400 mb-4" size={40} />
+            <p className="font-medium text-gray-700">اضغط للرفع أو اسحب الملف هنا</p>
+            <p className="text-sm text-gray-400 mt-2">Excel (.xlsx, .xls) أو CSV (الحد الأقصى 10MB)</p>
+          </div>
+        )}
 
         <div className="mt-6 flex justify-center">
           <button 
