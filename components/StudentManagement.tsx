@@ -433,11 +433,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 <span className="text-xs font-bold text-gray-500">#</span>
               </div>
               <div className="divide-y divide-gray-100">
-                {filteredStudents.map((student, index) => (
-                  <div key={student.id} className="px-3 py-4 text-center">
-                    <span className="text-xs font-medium text-gray-500">{index + 1}</span>
-                  </div>
-                ))}
+                {filteredStudents.map((student) => {
+                  // Get the index from the original students array (before filtering)
+                  const originalIndex = students.findIndex(s => s.id === student.id);
+                  const sequentialNumber = originalIndex >= 0 ? originalIndex + 1 : 0;
+                  return (
+                    <div key={student.id} className="px-3 py-4 text-center">
+                      <span className="text-xs font-medium text-gray-500">{sequentialNumber}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             
@@ -509,12 +514,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-100">
           {filteredStudents.length > 0 ? (
-            filteredStudents.map((student, index) => (
+            filteredStudents.map((student) => {
+              // Get the index from the original students array (before filtering)
+              const originalIndex = students.findIndex(s => s.id === student.id);
+              const sequentialNumber = originalIndex >= 0 ? originalIndex + 1 : 0;
+              return (
               <div key={student.id} className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-bold text-gray-500">{index + 1}</span>
+                      <span className="text-xs font-bold text-gray-500">{sequentialNumber}</span>
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-800 text-base">{student.name}</h3>
@@ -556,7 +565,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   </button>
                 </div>
               </div>
-            ))
+              );
+            })
           ) : (
             <div className="p-12 text-center text-gray-400">
               {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
