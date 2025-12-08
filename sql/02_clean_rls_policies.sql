@@ -40,6 +40,7 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 DROP POLICY IF EXISTS "Public read settings" ON public.settings;
 DROP POLICY IF EXISTS "Admin can update settings" ON public.settings;
 DROP POLICY IF EXISTS "Admin can insert settings" ON public.settings;
+DROP POLICY IF EXISTS "Authenticated can modify settings" ON public.settings;
 
 -- Public read access
 CREATE POLICY "Public read settings" ON public.settings
