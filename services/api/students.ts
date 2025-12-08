@@ -65,3 +65,30 @@ export const updateStudentChallenge = async (
   }
 };
 
+/**
+ * Update student data
+ */
+export const updateStudent = async (
+  studentId: string,
+  updates: Partial<Student>
+): Promise<Student | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('students')
+      .update(updates)
+      .eq('id', studentId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update student error:', error);
+      return null;
+    }
+
+    return data as Student;
+  } catch (error) {
+    console.error('Update student exception:', error);
+    return null;
+  }
+};
+

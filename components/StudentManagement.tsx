@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Student } from '../types';
-import { UserPlus, Upload, Search, Filter, X } from 'lucide-react';
+import { UserPlus, Upload, Search, Filter, X, Edit2 } from 'lucide-react';
 import { ExcelImporter } from './ExcelImporter';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -9,10 +9,11 @@ import { AlertModal } from './AlertModal';
 interface StudentManagementProps {
   students: Student[];
   onAddStudent: (student: Student) => void;
+  onUpdateStudent: (studentId: string, updates: Partial<Student>) => void;
   onImportStudents: (students: Student[]) => void;
 }
 
-export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onImportStudents }) => {
+export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onUpdateStudent, onImportStudents }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
@@ -79,6 +80,68 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     });
     setShowAddForm(false);
     alert({ message: 'تم إضافة الطالب بنجاح!', type: 'success' });
+  };
+
+  const handleEditStudent = (student: Student) => {
+    setEditingStudent(student);
+    setNewStudent({
+      id: student.id,
+      name: student.name,
+      classGrade: student.classGrade,
+      parentPhone: student.parentPhone,
+      challenge: student.challenge || 'none',
+      avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`
+    });
+    setShowAddForm(true);
+  };
+
+  const handleUpdateStudentSubmit = () => {
+    if (!editingStudent) return;
+    
+    if (!newStudent.name || !newStudent.classGrade || !newStudent.parentPhone) {
+      alert({ message: 'الرجاء تعبئة جميع الحقول المطلوبة', type: 'warning' });
+      return;
+    }
+
+    // Check if student ID already exists (if changed)
+    if (newStudent.id !== editingStudent.id && students.some(s => s.id === newStudent.id)) {
+      alert({ message: 'رقم الطالب مسجل مسبقاً', type: 'error' });
+      return;
+    }
+
+    onUpdateStudent(editingStudent.id, {
+      id: newStudent.id,
+      name: newStudent.name,
+      classGrade: newStudent.classGrade,
+      parentPhone: newStudent.parentPhone,
+      challenge: newStudent.challenge || 'none',
+      avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`
+    });
+    
+    // Reset form
+    setEditingStudent(null);
+    setNewStudent({
+      id: '',
+      name: '',
+      classGrade: '',
+      parentPhone: '',
+      challenge: 'none',
+      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
+    });
+    setShowAddForm(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStudent(null);
+    setNewStudent({
+      id: '',
+      name: '',
+      classGrade: '',
+      parentPhone: '',
+      challenge: 'none',
+      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
+    });
+    setShowAddForm(false);
   };
 
   const handleImport = async (newStudents: Student[]) => {
@@ -337,11 +400,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                         {student.challenge === 'none' ? 'عادي' : student.challenge}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleEditStudent(student)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                      >
+                        <Edit2 size={14} />
+                        <span>تحرير</span>
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
                     {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
                   </td>
                 </tr>

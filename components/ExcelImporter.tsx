@@ -50,11 +50,144 @@ const generateStudentId = (studentNumber?: string | number, index?: number): str
   return `imported-${Date.now()}-${index || Math.random().toString(36).substr(2, 9)}`;
 };
 
+/**
+ * Process a single Excel sheet and extract student data
+ */
+const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] => {
+  const students: Student[] = [];
+  
+  // Convert to JSON
+  const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  
+  if (jsonData.length < 2) {
+    return students; // Empty or insufficient data
+  }
+
+  // Try to detect column headers (first row)
+  const headers = (jsonData[0] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
+  
+  // Find column indices with smart matching
+  const findColumnIndex = (keywords: string[]): number => {
+    for (const keyword of keywords) {
+      const index = headers.findIndex(h => {
+        const hLower = h.toLowerCase();
+        const keywordLower = keyword.toLowerCase();
+        return hLower.includes(keywordLower) || 
+               keywordLower.includes(hLower) ||
+               hLower.replace(/\s+/g, '') === keywordLower.replace(/\s+/g, '');
+      });
+      if (index !== -1) return index;
+    }
+    return -1;
+  };
+
+  const studentNumberIndex = findColumnIndex(['رقم', 'number', 'id', 'student', 'طالب', 'student_id', 'studentid']);
+  const nameIndex = findColumnIndex(['اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم']);
+  const classIndex = findColumnIndex(['صف', 'class', 'grade', 'الصف', 'الدرجة', 'class_grade', 'classgrade', 'level']);
+  const classRoomIndex = findColumnIndex(['فصل', 'classroom', 'room', 'الفصل', 'section', 'sec']);
+  const phoneIndex = findColumnIndex(['جوال', 'phone', 'mobile', 'رقم', 'ولي', 'parent', 'parent_phone', 'parentphone', 'contact', 'telephone']);
+
+  // Process rows (skip header)
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i] as any[];
+    if (!row || row.length === 0) continue;
+
+    const studentNumber = studentNumberIndex >= 0 ? String(row[studentNumberIndex] || '').trim() : '';
+    const name = nameIndex >= 0 ? String(row[nameIndex] || '').trim() : '';
+    const classGradeRaw = classIndex >= 0 ? String(row[classIndex] || '').trim() : '';
+    const classRoom = classRoomIndex >= 0 ? String(row[classRoomIndex] || '').trim() : '';
+    const phone = phoneIndex >= 0 ? String(row[phoneIndex] || '').trim() : '';
+
+    // Skip empty rows
+    if (!name && !studentNumber) continue;
+
+    // Extract classGrade (first part only)
+    let classGrade = extractClassGrade(classGradeRaw);
+    
+    // If classRoom exists, combine it with classGrade
+    if (classRoom && classGrade) {
+      classGrade = `${classGrade}/${classRoom}`;
+    } else if (classRoom && !classGrade) {
+      classGrade = classRoom;
+    }
+
+    // Generate ID
+    const id = generateStudentId(studentNumber, i);
+
+    // Clean phone
+    const cleanedPhone = cleanPhoneNumber(phone);
+
+    students.push({
+      id,
+      name: name || `طالب ${i}`,
+      classGrade: classGrade || 'غير محدد',
+      parentPhone: cleanedPhone || '',
+      challenge: 'none',
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'طالب')}&background=random`
+    });
+  }
+  
+  return students;
+};
+
+/**
+ * Intelligently find the best sheet containing student data
+ */
+const findBestSheet = (workbook: XLSX.WorkBook): string | null => {
+  const sheetNames = workbook.SheetNames;
+  
+  // Keywords that indicate student data
+  const studentKeywords = ['طالب', 'student', 'students', 'الطلاب', 'بيانات', 'data', 'list'];
+  
+  // Score each sheet
+  const sheetScores = sheetNames.map(sheetName => {
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+    
+    if (jsonData.length < 2) return { name: sheetName, score: 0 };
+    
+    let score = 0;
+    const sheetNameLower = sheetName.toLowerCase();
+    
+    // Check sheet name
+    for (const keyword of studentKeywords) {
+      if (sheetNameLower.includes(keyword.toLowerCase())) {
+        score += 10;
+      }
+    }
+    
+    // Check headers (first row)
+    const headers = (jsonData[0] as any[]).map((h: any) => String(h || '').toLowerCase().trim());
+    const headerText = headers.join(' ');
+    
+    // Look for student-related columns
+    const studentColumns = ['رقم', 'number', 'id', 'student', 'طالب', 'اسم', 'name', 'الطالب'];
+    for (const col of studentColumns) {
+      if (headerText.includes(col.toLowerCase())) {
+        score += 5;
+      }
+    }
+    
+    // Prefer sheets with more rows (more data)
+    score += Math.min(jsonData.length - 1, 20); // Cap at 20 points
+    
+    return { name: sheetName, score };
+  });
+  
+  // Sort by score and return the best one
+  sheetScores.sort((a, b) => b.score - a.score);
+  
+  return sheetScores[0].score > 0 ? sheetScores[0].name : sheetNames[0];
+};
+
 export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
   const [importedCount, setImportedCount] = useState<number>(0);
+  const [availableSheets, setAvailableSheets] = useState<string[]>([]);
+  const [selectedSheet, setSelectedSheet] = useState<string>('');
+  const [showSheetSelector, setShowSheetSelector] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -242,6 +375,76 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
       reader.readAsBinaryString(file);
     } else {
       reader.readAsText(file, 'UTF-8');
+    }
+  };
+
+  // Handle sheet selection
+  const handleSheetSelect = (sheetName: string) => {
+    const workbook = (fileInputRef.current as any)?.workbook;
+    if (!workbook) return;
+    
+    const worksheet = workbook.Sheets[sheetName];
+    const newStudents = processSheet(worksheet, sheetName);
+    
+    if (newStudents.length === 0) {
+      setError('التبويب المحدد لا يحتوي على بيانات صالحة.');
+      setShowSheetSelector(false);
+      return;
+    }
+    
+    onImport(newStudents);
+    setImportedCount(newStudents.length);
+    setSuccess(true);
+    setShowSheetSelector(false);
+    setSelectedSheet('');
+    setAvailableSheets([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      (fileInputRef.current as any).workbook = null;
+    }
+  };
+
+  // Auto-select best sheet
+  const handleAutoSelect = () => {
+    const workbook = (fileInputRef.current as any)?.workbook;
+    if (!workbook) return;
+    
+    const bestSheet = findBestSheet(workbook);
+    if (bestSheet) {
+      handleSheetSelect(bestSheet);
+    } else {
+      setError('لم يتم العثور على تبويب يحتوي على بيانات الطلاب.');
+    }
+  };
+
+  // Process all sheets
+  const handleProcessAllSheets = () => {
+    const workbook = (fileInputRef.current as any)?.workbook;
+    if (!workbook) return;
+    
+    let allStudents: Student[] = [];
+    
+    for (const sheetName of workbook.SheetNames) {
+      const worksheet = workbook.Sheets[sheetName];
+      const students = processSheet(worksheet, sheetName);
+      allStudents = [...allStudents, ...students];
+    }
+    
+    if (allStudents.length === 0) {
+      setError('لم يتم العثور على بيانات صالحة في أي تبويب.');
+      setShowSheetSelector(false);
+      return;
+    }
+    
+    onImport(allStudents);
+    setImportedCount(allStudents.length);
+    setSuccess(true);
+    setShowSheetSelector(false);
+    setSelectedSheet('');
+    setAvailableSheets([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      (fileInputRef.current as any).workbook = null;
     }
   };
 

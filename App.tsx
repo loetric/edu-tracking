@@ -407,6 +407,25 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateStudent = async (studentId: string, updates: Partial<Student>) => {
+    setIsDataLoading(true);
+    try {
+      const updated = await api.updateStudent(studentId, updates);
+      if (updated) {
+        setStudents(prev => prev.map(s => s.id === studentId ? updated : s));
+        handleAddLog('تحديث طالب', `تم تحديث بيانات الطالب ${updated.name}`);
+        alert({ message: 'تم تحديث بيانات الطالب بنجاح!', type: 'success' });
+      } else {
+        alert({ message: 'فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error updating student:', error);
+      alert({ message: 'فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
   const handleImport = async (newStudents: Student[]) => {
     setIsDataLoading(true);
     try {

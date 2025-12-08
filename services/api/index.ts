@@ -38,6 +38,7 @@ export const api = {
   getStudents: students.getStudents,
   addStudent: students.addStudent,
   importStudents: students.importStudents,
+  updateStudent: students.updateStudent,
   updateStudentChallenge: students.updateStudentChallenge,
 
   // Schedule
