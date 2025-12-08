@@ -19,7 +19,7 @@ import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
 import { supabase } from './services/supabase';
-import { useModal } from './hooks/useModal';
+import useModal from './hooks/useModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { AlertModal } from './components/AlertModal';
 
