@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogEntry } from '../types';
 import { Clock, Activity, Search, Filter, X } from 'lucide-react';
+import { CustomSelect } from './CustomSelect';
 
 interface ArchiveLogProps {
   logs: LogEntry[];
@@ -68,28 +69,28 @@ export const ArchiveLog: React.FC<ArchiveLogProps> = ({ logs }) => {
           </div>
 
           {/* User Filter */}
-          <select
+          <CustomSelect
             value={filterUser}
-            onChange={(e) => setFilterUser(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
-          >
-            <option value="">جميع المستخدمين</option>
-            {uniqueUsers.map(user => (
-              <option key={user} value={user}>{user}</option>
-            ))}
-          </select>
+            onChange={(value) => setFilterUser(value)}
+            options={[
+              { value: '', label: 'جميع المستخدمين' },
+              ...uniqueUsers.map(user => ({ value: user, label: user }))
+            ]}
+            placeholder="جميع المستخدمين"
+            className="px-4 py-2"
+          />
 
           {/* Action Filter */}
-          <select
+          <CustomSelect
             value={filterAction}
-            onChange={(e) => setFilterAction(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
-          >
-            <option value="">جميع العمليات</option>
-            {uniqueActions.map(action => (
-              <option key={action} value={action}>{action}</option>
-            ))}
-          </select>
+            onChange={(value) => setFilterAction(value)}
+            options={[
+              { value: '', label: 'جميع العمليات' },
+              ...uniqueActions.map(action => ({ value: action, label: action }))
+            ]}
+            placeholder="جميع العمليات"
+            className="px-4 py-2"
+          />
 
           {/* Clear Filters */}
           {hasActiveFilters && (

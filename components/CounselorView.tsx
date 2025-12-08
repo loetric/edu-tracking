@@ -5,6 +5,7 @@ import { getChallengeColor, getChallengeLabel } from '../constants';
 import { ShieldAlert, Heart, Coins, AlertOctagon, User, FileText, Settings, Save, Link as LinkIcon, MessageSquare, Filter, ChevronDown, Printer, Search, X, Edit } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
+import { CustomSelect } from './CustomSelect';
 
 interface CounselorViewProps {
   students: Student[];
@@ -143,18 +144,17 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
               {/* Challenge Filter */}
               <div className="relative">
                   <ShieldAlert className="absolute top-3 right-3 text-gray-400" size={16} />
-                  <select 
+                  <CustomSelect
                     value={selectedChallengeFilter}
-                    onChange={(e) => setSelectedChallengeFilter(e.target.value)}
-                    className="pl-4 pr-10 py-2.5 border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 w-full md:w-56 appearance-none bg-white border text-sm font-bold text-gray-700"
-                  >
-                      <option value="all">كافة الطلاب</option>
-                      <option value="active_issues">جميع الحالات (لديهم تحديات)</option>
-                      <option disabled>──────────</option>
-                      {challengeTypes.filter(c => c.type !== 'none').map(c => (
-                          <option key={c.type} value={c.type}>{c.label}</option>
-                      ))}
-                  </select>
+                    onChange={(value) => setSelectedChallengeFilter(value)}
+                    options={[
+                      { value: 'all', label: 'كافة الطلاب' },
+                      { value: 'active_issues', label: 'جميع الحالات (لديهم تحديات)' },
+                      ...challengeTypes.filter(c => c.type !== 'none').map(c => ({ value: c.type, label: c.label }))
+                    ]}
+                    placeholder="كافة الطلاب"
+                    className="w-full md:w-56"
+                  />
               </div>
           </div>
 

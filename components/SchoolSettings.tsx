@@ -9,6 +9,7 @@ import { AVAILABLE_TEACHERS } from '../constants';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
 import { AlertModal } from './AlertModal';
+import { CustomSelect } from './CustomSelect';
 
 interface SchoolSettingsProps {
   settings: SchoolSettings;
@@ -432,11 +433,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                            </div>
                            <div>
                                <label className="block text-xs font-bold text-gray-500 mb-1">الدور / الصلاحية</label>
-                               <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value as Role})} className="w-full border rounded p-2 text-sm">
-                                   <option value="teacher">معلم</option>
-                                   <option value="counselor">موجه طلابي</option>
-                                   <option value="admin">مدير / إداري</option>
-                               </select>
+                               <CustomSelect
+                                 value={newUser.role || 'teacher'}
+                                 onChange={(value) => setNewUser({...newUser, role: value as Role})}
+                                 options={[
+                                   { value: 'teacher', label: 'معلم' },
+                                   { value: 'counselor', label: 'موجه طلابي' },
+                                   { value: 'admin', label: 'مدير / إداري' }
+                                 ]}
+                                 className="w-full"
+                               />
                            </div>
                        </div>
                        <div className="flex justify-end gap-2 pt-2">
@@ -480,15 +486,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                </div>
                                <div>
                                    <label className="block text-xs font-bold text-gray-500 mb-1">الدور / الصلاحية</label>
-                                   <select 
-                                       value={editFormData.role || 'teacher'} 
-                                       onChange={e => setEditFormData({...editFormData, role: e.target.value as Role})} 
-                                       className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                   >
-                                       <option value="teacher">معلم</option>
-                                       <option value="counselor">موجه طلابي</option>
-                                       <option value="admin">مدير / إداري</option>
-                                   </select>
+                                   <CustomSelect
+                                     value={editFormData.role || 'teacher'}
+                                     onChange={(value) => setEditFormData({...editFormData, role: value as Role})}
+                                     options={[
+                                       { value: 'teacher', label: 'معلم' },
+                                       { value: 'counselor', label: 'موجه طلابي' },
+                                       { value: 'admin', label: 'مدير / إداري' }
+                                     ]}
+                                     className="w-full"
+                                   />
                                </div>
                            </div>
                            
@@ -733,23 +740,21 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">اليوم</label>
-                             <select 
-                                value={newSession.day} 
-                                onChange={e => setNewSession({...newSession, day: e.target.value})} 
-                                className="w-full border rounded p-2 text-sm"
-                             >
-                                 {days.map(d => <option key={d} value={d}>{d}</option>)}
-                             </select>
+                             <CustomSelect
+                               value={newSession.day || 'الأحد'}
+                               onChange={(value) => setNewSession({...newSession, day: value})}
+                               options={days.map(d => ({ value: d, label: d }))}
+                               className="w-full"
+                             />
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">رقم الحصة</label>
-                             <select 
-                                value={newSession.period} 
-                                onChange={e => setNewSession({...newSession, period: parseInt(e.target.value)})} 
-                                className="w-full border rounded p-2 text-sm"
-                             >
-                                 {periods.map(p => <option key={p} value={p}>{p}</option>)}
-                             </select>
+                             <CustomSelect
+                               value={String(newSession.period || 1)}
+                               onChange={(value) => setNewSession({...newSession, period: parseInt(value)})}
+                               options={periods.map(p => ({ value: String(p), label: String(p) }))}
+                               className="w-full"
+                             />
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">المادة</label>
@@ -764,16 +769,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">الفصل</label>
                              {classGrades.length > 0 ? (
-                               <select 
-                                 value={newSession.classRoom || ''} 
-                                 onChange={e => setNewSession({...newSession, classRoom: e.target.value})} 
-                                 className="w-full border rounded p-2 text-sm"
-                               >
-                                 <option value="">اختر الفصل...</option>
-                                 {classGrades.sort().map(grade => (
-                                   <option key={grade} value={grade}>{grade}</option>
-                                 ))}
-                               </select>
+                               <CustomSelect
+                                 value={newSession.classRoom || ''}
+                                 onChange={(value) => setNewSession({...newSession, classRoom: value})}
+                                 options={[
+                                   { value: '', label: 'اختر الفصل...' },
+                                   ...classGrades.sort().map(grade => ({ value: grade, label: grade }))
+                                 ]}
+                                 placeholder="اختر الفصل..."
+                                 className="w-full"
+                               />
                              ) : (
                                <input 
                                  type="text" 
@@ -786,14 +791,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          </div>
                          <div className="md:col-span-2">
                              <label className="block text-xs font-bold text-gray-500 mb-1">المعلم</label>
-                             <select 
-                                value={newSession.teacher} 
-                                onChange={e => setNewSession({...newSession, teacher: e.target.value})} 
-                                className="w-full border rounded p-2 text-sm"
-                             >
-                                 <option value="">اختر المعلم...</option>
-                                 {allTeachers.map(t => <option key={t} value={t}>{t}</option>)}
-                             </select>
+                             <CustomSelect
+                               value={newSession.teacher || ''}
+                               onChange={(value) => setNewSession({...newSession, teacher: value})}
+                               options={[
+                                 { value: '', label: 'اختر المعلم...' },
+                                 ...allTeachers.map(t => ({ value: t, label: t }))
+                               ]}
+                               placeholder="اختر المعلم..."
+                               className="w-full"
+                             />
                          </div>
                      </div>
                      <div className="flex justify-end gap-2 pt-2">

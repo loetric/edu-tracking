@@ -120,14 +120,9 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      // Skip INITIAL_SESSION if we already handled it in checkSession
-      // This prevents duplicate loading and race conditions
-      if (event === 'INITIAL_SESSION' && currentUser) {
-        return; // Already handled
-      }
-      
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // User signed in or token refreshed - update user state
+      // Handle all session events properly
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        // User signed in, token refreshed, or initial session loaded
         if (session?.user) {
           try {
             const user = await api.getCurrentUser();
@@ -135,35 +130,19 @@ const App: React.FC = () => {
               setCurrentUser(user);
               setIsAppLoading(false);
             } else if (isMounted) {
+              // No user found but session exists - might be a profile issue
+              // Don't log out, just clear loading
               setIsAppLoading(false);
             }
           } catch (error) {
             console.error("Error getting user in auth state change:", error);
             if (isMounted) {
+              // Don't log out on error - session might still be valid
               setIsAppLoading(false);
             }
           }
         } else if (isMounted) {
-          setIsAppLoading(false);
-        }
-      } else if (event === 'INITIAL_SESSION') {
-        // Initial session - only handle if we don't have a user yet
-        if (session?.user && !currentUser) {
-          try {
-            const user = await api.getCurrentUser();
-            if (user && isMounted) {
-              setCurrentUser(user);
-              setIsAppLoading(false);
-            } else if (isMounted) {
-              setIsAppLoading(false);
-            }
-          } catch (error) {
-            console.error("Error getting user in initial session:", error);
-            if (isMounted) {
-              setIsAppLoading(false);
-            }
-          }
-        } else if (isMounted) {
+          // No session - clear loading but don't clear user yet (might be temporary)
           setIsAppLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {

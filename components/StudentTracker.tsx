@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Student, DailyRecord, StatusType, AttendanceStatus, Role, ScheduleItem } from '../types';
 import { getStatusColor, getStatusLabel, getChallengeColor, getChallengeLabel } from '../constants';
 import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass } from 'lucide-react';
+import { CustomSelect } from './CustomSelect';
 
 interface StudentTrackerProps {
   students: Student[];
@@ -115,18 +116,19 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   };
 
   const StatusSelect = ({ value, onChange, disabled }: { value: StatusType, onChange: (val: StatusType) => void, disabled?: boolean }) => (
-    <select
+    <CustomSelect
       value={value}
-      onChange={(e) => onChange(e.target.value as StatusType)}
-      disabled={disabled || isAdmin} // Disabled for Admin
-      className={`block w-full text-sm rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 py-1.5 px-2 transition-colors ${getStatusColor(value)} ${(disabled || isAdmin) ? 'opacity-90 cursor-not-allowed bg-opacity-50' : ''}`}
-    >
-      <option value="excellent">متميز (5)</option>
-      <option value="good">جيد (4)</option>
-      <option value="average">متوسط (3)</option>
-      <option value="poor">ضعيف (1)</option>
-      <option value="none">غير محدد</option>
-    </select>
+      onChange={(val) => onChange(val as StatusType)}
+      disabled={disabled || isAdmin}
+      options={[
+        { value: 'excellent', label: 'متميز (5)' },
+        { value: 'good', label: 'جيد (4)' },
+        { value: 'average', label: 'متوسط (3)' },
+        { value: 'poor', label: 'ضعيف (1)' },
+        { value: 'none', label: 'غير محدد' }
+      ]}
+      className={`block w-full text-sm ${getStatusColor(value)} ${(disabled || isAdmin) ? 'opacity-90 cursor-not-allowed bg-opacity-50' : ''}`}
+    />
   );
 
   const isSessionCompleted = (sessionId: string) => completedSessions.includes(sessionId);
@@ -438,54 +440,58 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3">
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">الحضور</p>
-                                    <select
+                                    <CustomSelect
                                         value={record.attendance}
-                                        onChange={(e) => handleStatusChange(student.id, 'attendance', e.target.value as AttendanceStatus)}
-                                        className="w-full text-sm border rounded p-2"
-                                    >
-                                        <option value="present">حاضر</option>
-                                        <option value="absent">غائب</option>
-                                        <option value="late">متأخر</option>
-                                    </select>
+                                        onChange={(value) => handleStatusChange(student.id, 'attendance', value as AttendanceStatus)}
+                                        options={[
+                                          { value: 'present', label: 'حاضر' },
+                                          { value: 'absent', label: 'غائب' },
+                                          { value: 'late', label: 'متأخر' }
+                                        ]}
+                                        className="w-full text-sm"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">المشاركة</p>
-                                    <select
+                                    <CustomSelect
                                         value={record.participation}
-                                        onChange={(e) => handleStatusChange(student.id, 'participation', e.target.value as StatusType)}
-                                        className="w-full text-sm border rounded p-2"
-                                    >
-                                        <option value="excellent">ممتاز</option>
-                                        <option value="good">جيد</option>
-                                        <option value="average">متوسط</option>
-                                        <option value="poor">ضعيف</option>
-                                    </select>
+                                        onChange={(value) => handleStatusChange(student.id, 'participation', value as StatusType)}
+                                        options={[
+                                          { value: 'excellent', label: 'ممتاز' },
+                                          { value: 'good', label: 'جيد' },
+                                          { value: 'average', label: 'متوسط' },
+                                          { value: 'poor', label: 'ضعيف' }
+                                        ]}
+                                        className="w-full text-sm"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">الواجبات</p>
-                                    <select
+                                    <CustomSelect
                                         value={record.homework}
-                                        onChange={(e) => handleStatusChange(student.id, 'homework', e.target.value as StatusType)}
-                                        className="w-full text-sm border rounded p-2"
-                                    >
-                                        <option value="excellent">ممتاز</option>
-                                        <option value="good">جيد</option>
-                                        <option value="average">متوسط</option>
-                                        <option value="poor">ضعيف</option>
-                                    </select>
+                                        onChange={(value) => handleStatusChange(student.id, 'homework', value as StatusType)}
+                                        options={[
+                                          { value: 'excellent', label: 'ممتاز' },
+                                          { value: 'good', label: 'جيد' },
+                                          { value: 'average', label: 'متوسط' },
+                                          { value: 'poor', label: 'ضعيف' }
+                                        ]}
+                                        className="w-full text-sm"
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-xs text-gray-500 mb-1">السلوك</p>
-                                    <select
+                                    <CustomSelect
                                         value={record.behavior}
-                                        onChange={(e) => handleStatusChange(student.id, 'behavior', e.target.value as StatusType)}
-                                        className="w-full text-sm border rounded p-2"
-                                    >
-                                        <option value="excellent">ممتاز</option>
-                                        <option value="good">جيد</option>
-                                        <option value="average">متوسط</option>
-                                        <option value="poor">ضعيف</option>
-                                    </select>
+                                        onChange={(value) => handleStatusChange(student.id, 'behavior', value as StatusType)}
+                                        options={[
+                                          { value: 'excellent', label: 'ممتاز' },
+                                          { value: 'good', label: 'جيد' },
+                                          { value: 'average', label: 'متوسط' },
+                                          { value: 'poor', label: 'ضعيف' }
+                                        ]}
+                                        className="w-full text-sm"
+                                    />
                                 </div>
                             </div>
                             

@@ -330,7 +330,24 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   const [showSheetSelector, setShowSheetSelector] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('جاري معالجة الملف...');
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Prevent page navigation during import
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isLoading) {
+        e.preventDefault();
+        e.returnValue = 'جاري استيراد البيانات. هل أنت متأكد من الخروج؟';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isLoading]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -656,8 +673,22 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
         {isLoading ? (
           <div className="border-2 border-dashed border-teal-300 rounded-xl p-10 bg-teal-50">
             <Loader2 className="mx-auto text-teal-600 mb-4 animate-spin" size={40} />
-            <p className="font-medium text-teal-700">{loadingMessage}</p>
-            <p className="text-sm text-teal-600 mt-2">يرجى الانتظار...</p>
+            <p className="font-medium text-teal-700 mb-2">{loadingMessage}</p>
+            {progress.total > 0 && (
+              <div className="mt-4">
+                <div className="flex justify-between text-sm text-teal-600 mb-2">
+                  <span>التقدم: {progress.current} / {progress.total}</span>
+                  <span>{Math.round((progress.current / progress.total) * 100)}%</span>
+                </div>
+                <div className="w-full bg-teal-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-teal-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            <p className="text-sm text-teal-600 mt-4">يرجى الانتظار... لا تغلق هذه الصفحة</p>
           </div>
         ) : (
           <div

@@ -5,6 +5,7 @@ import { ExcelImporter } from './ExcelImporter';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
 import { AlertModal } from './AlertModal';
+import { CustomSelect } from './CustomSelect';
 
 interface StudentManagementProps {
   students: Student[];
@@ -299,16 +300,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">الصف *</label>
               {availableClassGrades.length > 0 ? (
-                <select
+                <CustomSelect
                   value={newStudent.classGrade || ''}
-                  onChange={(e) => setNewStudent({ ...newStudent, classGrade: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
-                >
-                  <option value="">اختر الصف</option>
-                  {availableClassGrades.map(grade => (
-                    <option key={grade} value={grade}>{grade}</option>
-                  ))}
-                </select>
+                  onChange={(value) => setNewStudent({ ...newStudent, classGrade: value })}
+                  options={[
+                    { value: '', label: 'اختر الصف' },
+                    ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
+                  ]}
+                  placeholder="اختر الصف"
+                  className="w-full"
+                />
               ) : (
                 <input
                   type="text"
@@ -390,30 +391,31 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           </div>
 
           {/* Class Grade Filter */}
-          <select
+          <CustomSelect
             value={filterClassGrade}
-            onChange={(e) => setFilterClassGrade(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
-          >
-            <option value="">جميع الصفوف</option>
-            {uniqueClassGrades.map(grade => (
-              <option key={grade} value={grade}>{grade}</option>
-            ))}
-          </select>
+            onChange={(value) => setFilterClassGrade(value)}
+            options={[
+              { value: '', label: 'جميع الصفوف' },
+              ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
+            ]}
+            placeholder="جميع الصفوف"
+            className="px-4 py-2"
+          />
 
           {/* Challenge Filter */}
-          <select
+          <CustomSelect
             value={filterChallenge}
-            onChange={(e) => setFilterChallenge(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 bg-white"
-          >
-            <option value="">جميع الحالات</option>
-            {uniqueChallenges.map(challenge => (
-              <option key={challenge} value={challenge}>
-                {challenge === 'none' ? 'لا يوجد' : challenge}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFilterChallenge(value)}
+            options={[
+              { value: '', label: 'جميع الحالات' },
+              ...uniqueChallenges.map(challenge => ({ 
+                value: challenge, 
+                label: challenge === 'none' ? 'لا يوجد' : challenge 
+              }))
+            ]}
+            placeholder="جميع الحالات"
+            className="px-4 py-2"
+          />
 
           {/* Clear Filters */}
           {hasActiveFilters && (
