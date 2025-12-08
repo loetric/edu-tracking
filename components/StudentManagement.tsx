@@ -11,7 +11,7 @@ interface StudentManagementProps {
   onAddStudent: (student: Student) => void;
   onUpdateStudent: (studentId: string, updates: Partial<Student>) => void;
   onDeleteStudent: (studentId: string) => void;
-  onImportStudents: (students: Student[]) => void;
+  onImportStudents: (students: Student[]) => Promise<void>;
   settings: SchoolSettings;
 }
 
@@ -170,7 +170,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     setShowAddForm(false);
   };
 
-  const handleImport = async (newStudents: Student[]) => {
+  const handleImport = async (newStudents: Student[]): Promise<void> => {
     // Check for duplicate IDs
     const existingIds = new Set(students.map(s => s.id));
     const duplicates = newStudents.filter(s => existingIds.has(s.id));
@@ -196,8 +196,10 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       newStudents = newStudents.filter(s => !existingIds.has(s.id));
     }
     
-    onImportStudents(newStudents);
-    setShowImportForm(false);
+    // Call onImportStudents and wait for it to complete
+    await onImportStudents(newStudents);
+    // Keep the form open so user can see the success message
+    // User can manually close it if needed
   };
 
   const clearFilters = () => {

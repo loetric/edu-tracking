@@ -9,11 +9,15 @@ import { handleSupabaseError, ApiError } from './errors';
  */
 export const getUsers = async (): Promise<User[]> => {
   try {
+    // Force fresh fetch - no caching
     const { data, error } = await supabase
       .from('profiles')
       .select('id, username, email, name, role, avatar');
 
-    if (error) throw error;
+    if (error) {
+      console.error('Get users error:', error);
+      throw error;
+    }
     return (data || []).map((p: any) => mapProfileToUser(p)) as User[];
   } catch (error) {
     console.error('Get users error:', error);

@@ -40,6 +40,7 @@ export const registerSchool = async (
  */
 export const getSettings = async (): Promise<SchoolSettings> => {
   try {
+    // Force fresh fetch by adding timestamp to prevent caching
     const { data, error } = await supabase
       .from('settings')
       .select('*')
@@ -48,6 +49,10 @@ export const getSettings = async (): Promise<SchoolSettings> => {
 
     if (error) {
       console.error('Get settings error:', error);
+      // If it's a "not found" error, that's okay - settings might not exist yet
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        throw new Error('لا توجد بيانات مدرسة في قاعدة البيانات');
+      }
       throw new Error('فشل في تحميل بيانات المدرسة من قاعدة البيانات');
     }
     

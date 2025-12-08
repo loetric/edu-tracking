@@ -6,7 +6,7 @@ import { Student } from '../types';
 import * as XLSX from 'xlsx';
 
 interface ExcelImporterProps {
-  onImport: (newStudents: Student[]) => void;
+  onImport: (newStudents: Student[]) => Promise<void>;
 }
 
 /**
@@ -376,7 +376,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
 
     const reader = new FileReader();
     
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         setLoadingMessage('جاري معالجة البيانات...');
         const data = event.target?.result;
@@ -524,13 +524,20 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
             console.warn(`تم إزالة ${duplicateCount} طالب مكرر من الملف`);
           }
           
-          setLoadingMessage('جاري استيراد البيانات...');
-          onImport(finalUniqueStudents);
-          setImportedCount(finalUniqueStudents.length);
-          setSuccess(true);
-          setIsLoading(false);
-          // Clear input
-          if (fileInputRef.current) fileInputRef.current.value = '';
+          setLoadingMessage('جاري استيراد البيانات إلى قاعدة البيانات...');
+          // Call onImport and wait for it to complete
+          try {
+            await onImport(finalUniqueStudents);
+            setImportedCount(finalUniqueStudents.length);
+            setSuccess(true);
+            setIsLoading(false);
+            // Clear input
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          } catch (importError) {
+            console.error('Import error:', importError);
+            setError('حدث خطأ أثناء استيراد البيانات. يرجى المحاولة مرة أخرى.');
+            setIsLoading(false);
+          }
         }
       } catch (err) {
         console.error(err);

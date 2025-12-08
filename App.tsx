@@ -55,10 +55,16 @@ const App: React.FC = () => {
 
   // --- Check for existing session on mount ---
   useEffect(() => {
+    let isMounted = true;
+    let sessionChecked = false;
+    
     const checkSession = async () => {
       try {
         // First check if there's a session in storage (faster)
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        sessionChecked = true;
         
         if (session?.user) {
           // If session exists, get user profile (with timeout)
@@ -69,25 +75,42 @@ const App: React.FC = () => {
           const userPromise = api.getCurrentUser();
           const user = await Promise.race([userPromise, timeoutPromise]);
           
-          if (user) {
+          if (isMounted && user) {
             setCurrentUser(user);
-            // Clear loading once user is loaded
             setIsAppLoading(false);
-          } else {
+          } else if (isMounted) {
             // Timeout or no user - clear loading anyway
             setIsAppLoading(false);
           }
         } else {
           // No session - clear loading immediately
-          setIsAppLoading(false);
+          if (isMounted) {
+            setIsAppLoading(false);
+          }
         }
       } catch (error) {
         console.error("Error checking session:", error);
         // Don't block - allow app to continue
-        setIsAppLoading(false);
+        if (isMounted) {
+          setIsAppLoading(false);
+        }
       }
     };
+    
     checkSession();
+    
+    // Fallback timeout - ensure loading is cleared even if something goes wrong
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && !sessionChecked) {
+        console.warn("Session check timeout - clearing loading state");
+        setIsAppLoading(false);
+      }
+    }, 3000);
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(fallbackTimeout);
+    };
   }, []);
 
   // --- Listen to auth state changes ---
@@ -97,23 +120,50 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-        // User signed in, token refreshed, or initial session loaded - update user state
+      // Skip INITIAL_SESSION if we already handled it in checkSession
+      // This prevents duplicate loading and race conditions
+      if (event === 'INITIAL_SESSION' && currentUser) {
+        return; // Already handled
+      }
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // User signed in or token refreshed - update user state
         if (session?.user) {
           try {
             const user = await api.getCurrentUser();
             if (user && isMounted) {
               setCurrentUser(user);
-              // Clear loading if user is loaded
+              setIsAppLoading(false);
+            } else if (isMounted) {
               setIsAppLoading(false);
             }
           } catch (error) {
             console.error("Error getting user in auth state change:", error);
-            // Clear loading even on error to prevent hanging
-            setIsAppLoading(false);
+            if (isMounted) {
+              setIsAppLoading(false);
+            }
           }
-        } else {
-          // No session - clear loading
+        } else if (isMounted) {
+          setIsAppLoading(false);
+        }
+      } else if (event === 'INITIAL_SESSION') {
+        // Initial session - only handle if we don't have a user yet
+        if (session?.user && !currentUser) {
+          try {
+            const user = await api.getCurrentUser();
+            if (user && isMounted) {
+              setCurrentUser(user);
+              setIsAppLoading(false);
+            } else if (isMounted) {
+              setIsAppLoading(false);
+            }
+          } catch (error) {
+            console.error("Error getting user in initial session:", error);
+            if (isMounted) {
+              setIsAppLoading(false);
+            }
+          }
+        } else if (isMounted) {
           setIsAppLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
@@ -131,13 +181,14 @@ const App: React.FC = () => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [currentUser]); // Add currentUser as dependency to check if already loaded
 
   // --- Initial System Load (Settings & Users) ---
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     const initSystem = async () => {
-      let timeoutId: NodeJS.Timeout | null = null;
-      
       try {
         // Load settings and users from database - with timeout to prevent hanging
         // Load them separately to handle errors independently
@@ -146,22 +197,43 @@ const App: React.FC = () => {
         
         // Set a timeout to ensure we don't hang forever
         timeoutId = setTimeout(() => {
-          console.warn("Initial system load timeout - continuing anyway");
-          setIsAppLoading(false);
-        }, 5000); // 5 seconds max - shorter timeout to prevent hanging
+          if (isMounted) {
+            console.warn("Initial system load timeout - continuing anyway");
+            setIsAppLoading(false);
+          }
+        }, 10000); // 10 seconds - enough time for slow connections
         
-        try {
-          fetchedSettings = await api.getSettings();
-        } catch (settingsError: any) {
-          console.error("Failed to load settings", settingsError);
-          // Continue even if settings fail - we'll retry later
+        // Load settings and users in parallel with individual timeouts
+        const settingsPromise = api.getSettings().catch((err) => {
+          console.error("Failed to load settings", err);
+          return null;
+        });
+        
+        const usersPromise = api.getUsers().catch((err) => {
+          console.error("Failed to load users", err);
+          return [];
+        });
+        
+        // Wait for both with timeout
+        const results = await Promise.allSettled([
+          Promise.race([
+            settingsPromise,
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000))
+          ]),
+          Promise.race([
+            usersPromise,
+            new Promise<User[]>((resolve) => setTimeout(() => resolve([]), 8000))
+          ])
+        ]);
+        
+        if (!isMounted) return;
+        
+        if (results[0].status === 'fulfilled' && results[0].value) {
+          fetchedSettings = results[0].value;
         }
         
-        try {
-          fetchedUsers = await api.getUsers();
-        } catch (usersError: any) {
-          console.error("Failed to load users", usersError);
-          // Continue with empty users array
+        if (results[1].status === 'fulfilled') {
+          fetchedUsers = results[1].value || [];
         }
         
         if (timeoutId) {
@@ -169,35 +241,53 @@ const App: React.FC = () => {
           timeoutId = null;
         }
         
-        if (fetchedSettings) {
-          setSettings(fetchedSettings);
-        }
-        setUsers(fetchedUsers);
-        
-        // If settings failed, retry after a delay
-        if (!fetchedSettings) {
-          setTimeout(async () => {
-            try {
-              const retrySettings = await api.getSettings();
-              setSettings(retrySettings);
-            } catch (retryError) {
-              console.error("Retry failed to load settings", retryError);
-            }
-          }, 2000);
+        if (isMounted) {
+          if (fetchedSettings) {
+            setSettings(fetchedSettings);
+          }
+          setUsers(fetchedUsers);
+          
+          // If settings failed, retry after a delay
+          if (!fetchedSettings) {
+            setTimeout(async () => {
+              if (isMounted) {
+                try {
+                  const retrySettings = await api.getSettings();
+                  if (isMounted) {
+                    setSettings(retrySettings);
+                  }
+                } catch (retryError) {
+                  console.error("Retry failed to load settings", retryError);
+                }
+              }
+            }, 2000);
+          }
         }
       } catch (error: any) {
         console.error("Failed to load system data", error);
-        // Don't use mock data - keep settings as null
-        setUsers([]);
+        if (isMounted) {
+          // Don't use mock data - keep settings as null
+          setUsers([]);
+        }
       } finally {
         if (timeoutId) {
           clearTimeout(timeoutId);
         }
-        // Always clear loading - if user is logged in, onAuthStateChange will handle it
-        setIsAppLoading(false);
+        if (isMounted) {
+          // Always clear loading - if user is logged in, onAuthStateChange will handle it
+          setIsAppLoading(false);
+        }
       }
     };
+    
     initSystem();
+    
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   // --- Data Loading on Login ---
@@ -520,7 +610,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleImport = async (newStudents: Student[]) => {
+  const handleImport = async (newStudents: Student[]): Promise<void> => {
     // Don't set global loading - ExcelImporter has its own loading state
     // setIsDataLoading(true);
     try {

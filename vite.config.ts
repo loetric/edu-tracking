@@ -20,6 +20,20 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        // Add hash to filenames for cache busting
+        rollupOptions: {
+          output: {
+            entryFileNames: `assets/[name]-[hash].js`,
+            chunkFileNames: `assets/[name]-[hash].js`,
+            assetFileNames: `assets/[name]-[hash].[ext]`
+          }
+        },
+        // Use esbuild for minification (faster and built-in)
+        minify: 'esbuild',
+        // Generate source maps for debugging (disabled in production for smaller size)
+        sourcemap: mode === 'development'
       }
     };
 });

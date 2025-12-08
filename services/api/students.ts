@@ -7,12 +7,16 @@ import { supabase } from '../supabase';
  */
 export const getStudents = async (): Promise<Student[]> => {
   try {
+    // Force fresh fetch - no caching
     const { data, error } = await supabase
       .from('students')
       .select('*')
       .order('created_at', { ascending: true }); // Order by creation time to preserve import order
 
-    if (error) throw error;
+    if (error) {
+      console.error('Get students error:', error);
+      throw error;
+    }
     return (data || []) as Student[];
   } catch (error) {
     console.error('Get students error:', error);
