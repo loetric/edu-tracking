@@ -29,7 +29,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     classGrade: '',
     parentPhone: '',
     challenge: 'none',
-    avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
+    avatar: `https://ui-avatars.com/api/?name=طالب&background=random`,
+    studentNumber: ''
   });
 
   // Get available class grades from settings or from students
@@ -74,7 +75,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       classGrade: newStudent.classGrade,
       parentPhone: newStudent.parentPhone,
       challenge: newStudent.challenge || 'none',
-      avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`
+      avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`,
+      studentNumber: newStudent.studentNumber || newStudent.id
     } as Student);
     
     // Reset form
@@ -84,7 +86,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       classGrade: '',
       parentPhone: '',
       challenge: 'none',
-      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
+      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`,
+      studentNumber: ''
     });
     setShowAddForm(false);
     alert({ message: 'تم إضافة الطالب بنجاح!', type: 'success' });
@@ -98,7 +101,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       classGrade: student.classGrade,
       parentPhone: student.parentPhone,
       challenge: student.challenge || 'none',
-      avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`
+      avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`,
+      studentNumber: student.studentNumber || student.id
     });
     setShowAddForm(true);
   };
@@ -422,23 +426,42 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-right">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم الطالب</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-800">{student.id}</td>
-                    <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
+          <div className="flex">
+            {/* Sidebar with sequential numbers */}
+            <div className="w-16 bg-gray-50 border-l border-gray-200 flex-shrink-0">
+              <div className="sticky top-0 bg-gray-50 border-b border-gray-200 px-3 py-4">
+                <span className="text-xs font-bold text-gray-500">#</span>
+              </div>
+              <div className="divide-y divide-gray-100">
+                {filteredStudents.map((student, index) => (
+                  <div key={student.id} className="px-3 py-4 text-center">
+                    <span className="text-xs font-medium text-gray-500">{index + 1}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Main table */}
+            <div className="flex-1 overflow-x-auto">
+              <table className="w-full text-right">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم الطالب</th>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
+                    <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => (
+                      <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-800">
+                          {student.studentNumber || student.id}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{student.classGrade}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{student.parentPhone || '-'}</td>
                     <td className="px-6 py-4">
@@ -477,19 +500,26 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   </td>
                 </tr>
               )}
-            </tbody>
-          </table>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-100">
           {filteredStudents.length > 0 ? (
-            filteredStudents.map((student) => (
+            filteredStudents.map((student, index) => (
               <div key={student.id} className="p-4">
                 <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-base">{student.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">رقم: {student.id}</p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-gray-500">{index + 1}</span>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800 text-base">{student.name}</h3>
+                      <p className="text-sm text-gray-500 mt-1">رقم: {student.studentNumber || student.id}</p>
+                    </div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                     student.challenge === 'none' 

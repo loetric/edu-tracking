@@ -32,6 +32,7 @@ export interface Student {
   parentPhone: string;
   challenge: ChallengeType; 
   avatar?: string;
+  studentNumber?: string; // رقم الطالب الأصلي من الملف (للعرض)
 }
 
 export type StatusType = 'excellent' | 'good' | 'average' | 'poor' | 'none';

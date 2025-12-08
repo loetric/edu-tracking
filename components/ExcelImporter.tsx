@@ -223,7 +223,8 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
       classGrade: classGrade || 'غير محدد',
       parentPhone: cleanedPhone || '',
       challenge: 'none',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`,
+      studentNumber: studentNumber || id // حفظ رقم الطالب الأصلي
     });
   }
   
@@ -432,7 +433,8 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
                 classGrade: classGrade || 'غير محدد',
                 parentPhone: cleanedPhone || '',
                 challenge: 'none',
-                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`,
+                studentNumber: studentNumber || id // حفظ رقم الطالب الأصلي
               });
             }
           }

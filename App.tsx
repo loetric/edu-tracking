@@ -573,7 +573,7 @@ const App: React.FC = () => {
       }
       
       alert({ message: alertMessage, type: 'success' });
-      setTimeout(() => setActiveTab('tracking'), 500);
+      // Stay on students management page after import
     } catch (error: any) {
       console.error('Error importing students:', error);
       let errorMessage = 'فشل في استيراد الطلاب. يرجى المحاولة مرة أخرى.';
