@@ -257,22 +257,31 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب *</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">رقم الطالب * (أرقام فقط - بحد أقصى 10)</label>
               <input
                 type="text"
                 value={newStudent.id || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, id: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+                  setNewStudent({ ...newStudent, id: value });
+                }}
                 disabled={!!editingStudent}
+                maxLength={10}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="مثال: 12345"
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب *</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">اسم الطالب * (حروف فقط - بحد أقصى 50)</label>
               <input
                 type="text"
                 value={newStudent.name || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
+                onChange={(e) => {
+                  // Allow Arabic and English letters, spaces, and common Arabic characters
+                  const value = e.target.value.replace(/[^a-zA-Z\u0600-\u06FF\s\u0640]/g, '').slice(0, 50);
+                  setNewStudent({ ...newStudent, name: value });
+                }}
+                maxLength={50}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: أحمد محمد علي"
               />
@@ -301,11 +310,15 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               )}
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر *</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">رقم ولي الأمر * (أرقام فقط - بحد أقصى 13)</label>
               <input
                 type="tel"
                 value={newStudent.parentPhone || ''}
-                onChange={(e) => setNewStudent({ ...newStudent, parentPhone: e.target.value.replace(/[^0-9]/g, '') })}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 13);
+                  setNewStudent({ ...newStudent, parentPhone: value });
+                }}
+                maxLength={13}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                 placeholder="مثال: 966500000000"
               />

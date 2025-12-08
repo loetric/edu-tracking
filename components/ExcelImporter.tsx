@@ -33,11 +33,28 @@ const extractClassGrade = (text: string): string => {
 };
 
 /**
- * Cleans phone number - removes all non-numeric characters
+ * Cleans phone number - removes all non-numeric characters and limits to 13 digits
  */
 const cleanPhoneNumber = (phone: string): string => {
   if (!phone) return '';
-  return phone.replace(/[^0-9]/g, '');
+  return phone.replace(/[^0-9]/g, '').slice(0, 13);
+};
+
+/**
+ * Cleans student ID - removes all non-numeric characters and limits to 10 digits
+ */
+const cleanStudentId = (id: string | number): string => {
+  if (!id) return '';
+  return String(id).replace(/[^0-9]/g, '').slice(0, 10);
+};
+
+/**
+ * Cleans student name - removes non-letter characters and limits to 50 characters
+ */
+const cleanStudentName = (name: string): string => {
+  if (!name) return '';
+  // Allow Arabic and English letters, spaces, and common Arabic characters
+  return name.replace(/[^a-zA-Z\u0600-\u06FF\s\u0640]/g, '').slice(0, 50).trim();
 };
 
 /**
@@ -45,9 +62,11 @@ const cleanPhoneNumber = (phone: string): string => {
  */
 const generateStudentId = (studentNumber?: string | number, index?: number): string => {
   if (studentNumber) {
-    return String(studentNumber).trim();
+    const cleaned = cleanStudentId(studentNumber);
+    if (cleaned) return cleaned;
   }
-  return `imported-${Date.now()}-${index || Math.random().toString(36).substr(2, 9)}`;
+  // Generate a numeric ID if no valid student number
+  return `${Date.now()}${index || Math.floor(Math.random() * 1000)}`.slice(0, 10);
 };
 
 /**
@@ -111,19 +130,24 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
       classGrade = classRoom;
     }
 
-    // Generate ID
+    // Generate ID (clean and validate)
     const id = generateStudentId(studentNumber, i);
+    if (!id || id.length === 0) continue; // Skip if no valid ID
 
-    // Clean phone
+    // Clean and validate name
+    const cleanedName = cleanStudentName(name);
+    if (!cleanedName || cleanedName.length === 0) continue; // Skip if no valid name
+
+    // Clean phone (limit to 13 digits)
     const cleanedPhone = cleanPhoneNumber(phone);
 
     students.push({
       id,
-      name: name || `طالب ${i}`,
+      name: cleanedName,
       classGrade: classGrade || 'غير محدد',
       parentPhone: cleanedPhone || '',
       challenge: 'none',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'طالب')}&background=random`
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
     });
   }
   
@@ -290,19 +314,24 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
               classGrade = classRoom;
             }
 
-            // Generate ID
+            // Generate ID (clean and validate)
             const id = generateStudentId(studentNumber, i);
+            if (!id || id.length === 0) continue; // Skip if no valid ID
 
-            // Clean phone
+            // Clean and validate name
+            const cleanedName = cleanStudentName(name);
+            if (!cleanedName || cleanedName.length === 0) continue; // Skip if no valid name
+
+            // Clean phone (limit to 13 digits)
             const cleanedPhone = cleanPhoneNumber(phone);
 
             newStudents.push({
               id,
-              name: name || `طالب ${i}`,
+              name: cleanedName,
               classGrade: classGrade || 'غير محدد',
               parentPhone: cleanedPhone || '',
               challenge: 'none',
-              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'طالب')}&background=random`
+              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
             });
           }
         } else {
@@ -331,7 +360,13 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
               const classRoom = parts[3] || '';
               const phone = parts[4] || '';
 
-              if (!name && !studentNumber) continue;
+              // Clean and validate student ID
+              const cleanedId = cleanStudentId(studentNumber);
+              if (!cleanedId || cleanedId.length === 0) continue; // Skip if no valid ID
+
+              // Clean and validate name
+              const cleanedName = cleanStudentName(name);
+              if (!cleanedName || cleanedName.length === 0) continue; // Skip if no valid name
 
               let classGrade = extractClassGrade(classGradeRaw);
               
@@ -341,16 +376,16 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
                 classGrade = classRoom;
               }
 
-              const id = generateStudentId(studentNumber, i);
+              const id = generateStudentId(cleanedId, i);
               const cleanedPhone = cleanPhoneNumber(phone);
 
               newStudents.push({
                 id,
-                name: name || `طالب ${i}`,
+                name: cleanedName,
                 classGrade: classGrade || 'غير محدد',
                 parentPhone: cleanedPhone || '',
                 challenge: 'none',
-                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'طالب')}&background=random`
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanedName)}&background=random`
               });
             }
           }

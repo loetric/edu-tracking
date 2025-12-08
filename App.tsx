@@ -933,12 +933,15 @@ const App: React.FC = () => {
           schoolPhone={effectiveSettings.whatsappPhone}
       />
 
-      <InternalChat 
-          messages={chatMessages} 
-          onSendMessage={handleSendMessage} 
-          role={currentUser.role} 
-          currentUserName={currentUser.name}
-      />
+      {/* Show Internal Chat only on dashboard */}
+      {activeTab === 'dashboard' && (
+        <InternalChat 
+            messages={chatMessages} 
+            onSendMessage={handleSendMessage} 
+            role={currentUser.role} 
+            currentUserName={currentUser.name}
+        />
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 md:mr-64 p-4 md:p-8 transition-all duration-300 print:hidden w-full max-w-[100vw] overflow-x-hidden">
