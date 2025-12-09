@@ -211,15 +211,34 @@ export const updateStudent = async (
   updates: Partial<Student>
 ): Promise<Student | null> => {
   try {
+    // Filter out undefined values to avoid issues with missing columns
+    const cleanUpdates: Record<string, any> = {};
+    Object.keys(updates).forEach(key => {
+      if (updates[key as keyof Student] !== undefined) {
+        cleanUpdates[key] = updates[key as keyof Student];
+      }
+    });
+
+    // If no valid updates, return null
+    if (Object.keys(cleanUpdates).length === 0) {
+      throw new Error('لا توجد بيانات للتحديث');
+    }
+
     const { data, error } = await supabase
       .from('students')
-      .update(updates)
+      .update(cleanUpdates)
       .eq('id', studentId)
       .select()
       .single();
 
     if (error) {
       console.error('Update student error:', error);
+      
+      // Check if error is about missing column
+      if (error.message?.includes('status') || error.message?.includes('column') || error.code === '42703') {
+        throw new Error('عمود حالة الطالب غير موجود في قاعدة البيانات. يرجى تشغيل سكريبت SQL لإضافة العمود.');
+      }
+      
       // Throw error with message for better error handling
       throw new Error(error.message || 'فشل في تحديث بيانات الطالب');
     }
