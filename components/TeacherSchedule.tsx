@@ -174,113 +174,123 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
         {/* Admin Filters */}
         {role === 'admin' && (
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 items-center animate-in slide-in-from-top-2">
-                <div className="flex items-center gap-2 text-gray-600 font-bold text-sm">
-                    <Filter size={18} />
-                    <span>تصفية العرض حسب:</span>
-                </div>
-                
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <button 
-                        onClick={() => { setFilterType('all'); setFilterValue(''); }}
-                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                        الكل
-                    </button>
-                    <button 
-                        onClick={() => { 
-                            setFilterType('teacher'); 
-                            setFilterValue(uniqueTeachers[0] || ''); 
-                        }}
-                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                        المعلم
-                    </button>
-                    <button 
-                        onClick={() => { 
-                            setFilterType('class'); 
-                            setFilterValue(uniqueClasses[0] || ''); 
-                        }}
-                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                        الصف
-                    </button>
-                    <button 
-                        onClick={() => { 
-                            setFilterType('subject'); 
-                            setFilterValue(uniqueSubjects[0] || ''); 
-                        }}
-                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'subject' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                        المادة
-                    </button>
-                </div>
+            <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm">
+                <div className="flex flex-col gap-3 md:gap-4">
+                    <div className="flex items-center gap-2">
+                        <Filter size={16} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+                        <span className="font-bold text-gray-700 text-sm md:text-base">الفلاتر</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                        <div className="md:col-span-2 lg:col-span-1">
+                            <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">نوع التصفية</label>
+                            <div className="flex flex-wrap gap-2">
+                                <button 
+                                    onClick={() => { setFilterType('all'); setFilterValue(''); }}
+                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                                >
+                                    الكل
+                                </button>
+                                <button 
+                                    onClick={() => { 
+                                        setFilterType('teacher'); 
+                                        setFilterValue(uniqueTeachers[0] || ''); 
+                                    }}
+                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                                >
+                                    المعلم
+                                </button>
+                                <button 
+                                    onClick={() => { 
+                                        setFilterType('class'); 
+                                        setFilterValue(uniqueClasses[0] || ''); 
+                                    }}
+                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                                >
+                                    الصف
+                                </button>
+                                <button 
+                                    onClick={() => { 
+                                        setFilterType('subject'); 
+                                        setFilterValue(uniqueSubjects[0] || ''); 
+                                    }}
+                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'subject' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                                >
+                                    المادة
+                                </button>
+                            </div>
+                        </div>
 
-                {filterType !== 'all' && (
-                    <div className="relative flex-1 w-full min-w-[150px]">
-                        <CustomSelect
-                            value={filterValue}
-                            onChange={(value) => setFilterValue(value)}
-                            options={
-                                filterType === 'teacher' 
-                                    ? uniqueTeachers.map(t => ({ value: t, label: t }))
-                                    : filterType === 'class'
-                                    ? uniqueClasses.map(c => ({ value: c, label: c }))
-                                    : uniqueSubjects.map(s => ({ value: s, label: s }))
-                            }
-                            placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
-                            className="w-full text-sm"
-                        />
+                        {filterType !== 'all' && (
+                            <div className="md:col-span-2 lg:col-span-3">
+                                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">
+                                    {filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}
+                                </label>
+                                <CustomSelect
+                                    value={filterValue}
+                                    onChange={(value) => setFilterValue(value)}
+                                    options={
+                                        filterType === 'teacher' 
+                                            ? uniqueTeachers.map(t => ({ value: t, label: t }))
+                                            : filterType === 'class'
+                                            ? uniqueClasses.map(c => ({ value: c, label: c }))
+                                            : uniqueSubjects.map(s => ({ value: s, label: s }))
+                                    }
+                                    placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
+                                    className="w-full text-xs md:text-sm"
+                                />
+                            </div>
+                        )}
                     </div>
-                )}
-                
-                {/* Quick Navigation Buttons */}
-                {filterType !== 'all' && filterValue && (
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => {
-                                if (filterType === 'teacher') {
-                                    const currentIndex = uniqueTeachers.indexOf(filterValue);
-                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueTeachers.length - 1;
-                                    setFilterValue(uniqueTeachers[prevIndex]);
-                                } else if (filterType === 'class') {
-                                    const currentIndex = uniqueClasses.indexOf(filterValue);
-                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueClasses.length - 1;
-                                    setFilterValue(uniqueClasses[prevIndex]);
-                                } else if (filterType === 'subject') {
-                                    const currentIndex = uniqueSubjects.indexOf(filterValue);
-                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueSubjects.length - 1;
-                                    setFilterValue(uniqueSubjects[prevIndex]);
-                                }
-                            }}
-                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                            title="السابق"
-                        >
-                            ←
-                        </button>
-                        <button
-                            onClick={() => {
-                                if (filterType === 'teacher') {
-                                    const currentIndex = uniqueTeachers.indexOf(filterValue);
-                                    const nextIndex = currentIndex < uniqueTeachers.length - 1 ? currentIndex + 1 : 0;
-                                    setFilterValue(uniqueTeachers[nextIndex]);
-                                } else if (filterType === 'class') {
-                                    const currentIndex = uniqueClasses.indexOf(filterValue);
-                                    const nextIndex = currentIndex < uniqueClasses.length - 1 ? currentIndex + 1 : 0;
-                                    setFilterValue(uniqueClasses[nextIndex]);
-                                } else if (filterType === 'subject') {
-                                    const currentIndex = uniqueSubjects.indexOf(filterValue);
-                                    const nextIndex = currentIndex < uniqueSubjects.length - 1 ? currentIndex + 1 : 0;
-                                    setFilterValue(uniqueSubjects[nextIndex]);
-                                }
-                            }}
-                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-                            title="التالي"
-                        >
-                            →
-                        </button>
-                    </div>
-                )}
+                    
+                    {/* Quick Navigation Buttons */}
+                    {filterType !== 'all' && filterValue && (
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => {
+                                    if (filterType === 'teacher') {
+                                        const currentIndex = uniqueTeachers.indexOf(filterValue);
+                                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueTeachers.length - 1;
+                                        setFilterValue(uniqueTeachers[prevIndex]);
+                                    } else if (filterType === 'class') {
+                                        const currentIndex = uniqueClasses.indexOf(filterValue);
+                                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueClasses.length - 1;
+                                        setFilterValue(uniqueClasses[prevIndex]);
+                                    } else if (filterType === 'subject') {
+                                        const currentIndex = uniqueSubjects.indexOf(filterValue);
+                                        const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueSubjects.length - 1;
+                                        setFilterValue(uniqueSubjects[prevIndex]);
+                                    }
+                                }}
+                                className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                                title="السابق"
+                            >
+                                ←
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (filterType === 'teacher') {
+                                        const currentIndex = uniqueTeachers.indexOf(filterValue);
+                                        const nextIndex = currentIndex < uniqueTeachers.length - 1 ? currentIndex + 1 : 0;
+                                        setFilterValue(uniqueTeachers[nextIndex]);
+                                    } else if (filterType === 'class') {
+                                        const currentIndex = uniqueClasses.indexOf(filterValue);
+                                        const nextIndex = currentIndex < uniqueClasses.length - 1 ? currentIndex + 1 : 0;
+                                        setFilterValue(uniqueClasses[nextIndex]);
+                                    } else if (filterType === 'subject') {
+                                        const currentIndex = uniqueSubjects.indexOf(filterValue);
+                                        const nextIndex = currentIndex < uniqueSubjects.length - 1 ? currentIndex + 1 : 0;
+                                        setFilterValue(uniqueSubjects[nextIndex]);
+                                    }
+                                }}
+                                className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                                title="التالي"
+                            >
+                                →
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         )}
       </div>

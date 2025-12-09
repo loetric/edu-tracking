@@ -47,64 +47,76 @@ export const ArchiveLog: React.FC<ArchiveLogProps> = ({ logs }) => {
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-50 p-4 rounded-xl mb-6 border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+      <div className="bg-white p-4 md:p-6 rounded-xl mb-6 border border-gray-100 shadow-sm">
+        <div className="flex flex-col gap-3 md:gap-4">
           <div className="flex items-center gap-2">
-            <Filter size={18} className="text-gray-500" />
-            <span className="font-bold text-gray-700">الفلاتر:</span>
+            <Filter size={16} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
+            <span className="font-bold text-gray-700 text-sm md:text-base">الفلاتر</span>
           </div>
           
-          {/* Search */}
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="بحث في السجلات..."
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+            {/* Search */}
+            <div className="md:col-span-1 lg:col-span-2">
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">البحث</label>
+              <div className="relative">
+                <Search size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="بحث في السجلات..."
+                  className="w-full pr-10 pl-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                />
+              </div>
+            </div>
+
+            {/* User Filter */}
+            <div>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">المستخدم</label>
+              <CustomSelect
+                value={filterUser}
+                onChange={(value) => setFilterUser(value)}
+                options={[
+                  { value: '', label: 'جميع المستخدمين' },
+                  ...uniqueUsers.map(user => ({ value: user, label: user }))
+                ]}
+                placeholder="جميع المستخدمين"
+                className="w-full text-xs md:text-sm"
+              />
+            </div>
+
+            {/* Action Filter */}
+            <div>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">الإجراء</label>
+              <CustomSelect
+                value={filterAction}
+                onChange={(value) => setFilterAction(value)}
+                options={[
+                  { value: '', label: 'جميع العمليات' },
+                  ...uniqueActions.map(action => ({ value: action, label: action }))
+                ]}
+                placeholder="جميع العمليات"
+                className="w-full text-xs md:text-sm"
               />
             </div>
           </div>
 
-          {/* User Filter */}
-          <CustomSelect
-            value={filterUser}
-            onChange={(value) => setFilterUser(value)}
-            options={[
-              { value: '', label: 'جميع المستخدمين' },
-              ...uniqueUsers.map(user => ({ value: user, label: user }))
-            ]}
-            placeholder="جميع المستخدمين"
-            className="px-4 py-2"
-          />
-
-          {/* Action Filter */}
-          <CustomSelect
-            value={filterAction}
-            onChange={(value) => setFilterAction(value)}
-            options={[
-              { value: '', label: 'جميع العمليات' },
-              ...uniqueActions.map(action => ({ value: action, label: action }))
-            ]}
-            placeholder="جميع العمليات"
-            className="px-4 py-2"
-          />
-
           {/* Clear Filters */}
           {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X size={16} />
-              <span className="text-sm">مسح الفلاتر</span>
-            </button>
+            <div className="md:col-span-3 flex justify-end">
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+              >
+                <X size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                <span>مسح الفلاتر</span>
+              </button>
+            </div>
           )}
         </div>
+        
         {hasActiveFilters && (
-          <div className="mt-3 text-sm text-gray-600">
+          <div className="mt-3 text-xs md:text-sm text-gray-600">
             النتائج المفلترة: <span className="font-bold text-teal-600">{filteredLogs.length}</span> من <span className="font-bold">{logs.length}</span>
           </div>
         )}

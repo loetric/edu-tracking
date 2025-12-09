@@ -73,17 +73,17 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-right border border-gray-300 rounded-lg 
+          w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm text-right border border-gray-300 rounded-lg 
           bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500
-          flex items-center justify-between
-          ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:border-gray-400'}
+          flex items-center justify-between transition-colors
+          ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:border-teal-400 hover:bg-gray-50'}
         `}
       >
-        <span className={`truncate flex-1 text-right ${selectedOption ? 'text-gray-800' : 'text-gray-400'}`}>
+        <span className={`truncate flex-1 text-right ${selectedOption ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown 
-          size={12} 
+          size={14} 
           className={`md:w-4 md:h-4 text-gray-400 transition-transform flex-shrink-0 mr-2 ${isOpen ? 'transform rotate-180' : ''}`}
         />
       </button>

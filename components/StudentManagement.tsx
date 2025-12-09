@@ -568,17 +568,18 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               </div>
             </div>
 
-            {/* Clear Filters */}
-            {hasActiveFilters && (
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <div className="flex justify-end">
               <button
                 onClick={clearFilters}
-                className="flex items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors w-full md:w-auto justify-center"
+                className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
               >
-                <X size={12} className="md:w-4 md:h-4 flex-shrink-0" />
+                <X size={14} className="md:w-4 md:h-4 flex-shrink-0" />
                 <span>مسح الفلاتر</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
