@@ -403,12 +403,15 @@ const App: React.FC = () => {
   }, []); // Remove currentUser dependency to prevent re-subscription on refresh
 
   // --- Initial System Load (Settings & Users) ---
+  // CRITICAL: Load settings even when user is not logged in
+  // Settings should be publicly readable for login screen
   useEffect(() => {
     let isMounted = true;
     let timeoutId: NodeJS.Timeout | null = null;
     
     const initSystem = async () => {
       try {
+        console.log('=== initSystem: Starting initial system load ===');
         // Load settings and users from database - with timeout to prevent hanging
         // Load them separately to handle errors independently
         let fetchedSettings: SchoolSettings | null = null;
@@ -420,40 +423,66 @@ const App: React.FC = () => {
             console.warn("Initial system load timeout - continuing anyway");
             setIsAppLoading(false);
           }
-        }, 10000); // 10 seconds - enough time for slow connections
+        }, 15000); // Increased to 15 seconds
         
-        // Load settings and users in parallel with individual timeouts
-        const settingsPromise = api.getSettings().catch((err) => {
-          console.error("Failed to load settings", err);
-          return null;
-        });
+        // Load settings FIRST - it's needed for login screen even without user
+        console.log('=== initSystem: Loading settings ===');
+        try {
+          fetchedSettings = await Promise.race([
+            api.getSettings(),
+            new Promise<SchoolSettings | null>((resolve) => 
+              setTimeout(() => {
+                console.warn("Settings load timeout");
+                resolve(null);
+              }, 10000)
+            )
+          ]);
+          if (fetchedSettings) {
+            console.log('=== initSystem: Settings loaded successfully ===', fetchedSettings.name);
+          } else {
+            console.warn('=== initSystem: Settings load returned null ===');
+          }
+        } catch (settingsErr: any) {
+          console.error("=== initSystem: Failed to load settings ===", settingsErr);
+          // Retry settings after a delay
+          setTimeout(async () => {
+            if (isMounted) {
+              try {
+                console.log('=== initSystem: Retrying settings load ===');
+                const retrySettings = await api.getSettings();
+                if (isMounted && retrySettings) {
+                  console.log('=== initSystem: Settings loaded on retry ===', retrySettings.name);
+                  setSettings(retrySettings);
+                }
+              } catch (retryError) {
+                console.error("=== initSystem: Retry failed to load settings ===", retryError);
+              }
+            }
+          }, 2000);
+        }
         
-        const usersPromise = api.getUsers().catch((err) => {
-          console.error("Failed to load users", err);
-          return [];
-        });
-        
-        // Wait for both with timeout
-        const results = await Promise.allSettled([
-          Promise.race([
-            settingsPromise,
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000))
-          ]),
-          Promise.race([
-            usersPromise,
-            new Promise<User[]>((resolve) => setTimeout(() => resolve([]), 8000))
-          ])
-        ]);
+        // Load users in parallel (but only if we have a session)
+        console.log('=== initSystem: Loading users ===');
+        try {
+          fetchedUsers = await Promise.race([
+            api.getUsers().catch((err) => {
+              // Users might fail if no session - that's okay
+              console.warn("Failed to load users (might need auth):", err);
+              return [];
+            }),
+            new Promise<User[]>((resolve) => 
+              setTimeout(() => {
+                console.warn("Users load timeout");
+                resolve([]);
+              }, 8000)
+            )
+          ]);
+        } catch (usersErr: any) {
+          console.warn("=== initSystem: Failed to load users ===", usersErr);
+          fetchedUsers = [];
+        }
         
         if (!isMounted) return;
-        
-        if (results[0].status === 'fulfilled' && results[0].value) {
-          fetchedSettings = results[0].value;
-        }
-        
-        if (results[1].status === 'fulfilled') {
-          fetchedUsers = results[1].value || [];
-        }
         
         if (timeoutId) {
           clearTimeout(timeoutId);
@@ -462,28 +491,15 @@ const App: React.FC = () => {
         
         if (isMounted) {
           if (fetchedSettings) {
+            console.log('=== initSystem: Setting settings state ===', fetchedSettings.name);
             setSettings(fetchedSettings);
+          } else {
+            console.warn('=== initSystem: Settings not loaded, will use fallback ===');
           }
           setUsers(fetchedUsers);
-          
-          // If settings failed, retry after a delay
-          if (!fetchedSettings) {
-            setTimeout(async () => {
-              if (isMounted) {
-                try {
-                  const retrySettings = await api.getSettings();
-                  if (isMounted) {
-                    setSettings(retrySettings);
-                  }
-                } catch (retryError) {
-                  console.error("Retry failed to load settings", retryError);
-                }
-              }
-            }, 2000);
-          }
         }
       } catch (error: any) {
-        console.error("Failed to load system data", error);
+        console.error("=== initSystem: Failed to load system data ===", error);
         if (isMounted) {
           // Don't use mock data - keep settings as null
           setUsers([]);
@@ -494,6 +510,7 @@ const App: React.FC = () => {
         }
         if (isMounted) {
           // Always clear loading - if user is logged in, onAuthStateChange will handle it
+          console.log('=== initSystem: Clearing app loading state ===');
           setIsAppLoading(false);
         }
       }
