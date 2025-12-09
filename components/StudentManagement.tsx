@@ -41,8 +41,10 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     ? [...settings.classGrades].sort()
     : Array.from(new Set(students.map(s => s.classGrade))).sort();
 
-  // Get unique class grades for filter (from actual student data)
-  const uniqueClassGrades = Array.from(new Set(students.map(s => s.classGrade))).sort();
+  // Get unique class grades for filter (only from settings, not from student data)
+  const uniqueClassGrades = settings?.classGrades && settings.classGrades.length > 0
+    ? [...settings.classGrades].sort()
+    : [];
   
   // Get unique challenges for filter
   const uniqueChallenges = Array.from(new Set(students.map(s => s.challenge || 'none'))).sort();
@@ -513,73 +515,72 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       )}
 
       {/* Filters */}
-      <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-2 md:gap-4 items-start md:items-center">
-          <div className="flex items-center gap-1.5 md:gap-2 w-full md:w-auto">
-            <Filter size={14} className="md:w-[18px] md:h-[18px] text-gray-500 flex-shrink-0" />
-            <span className="font-bold text-gray-700 text-xs md:text-sm">الفلاتر:</span>
+      <div className="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          {/* Filter Icon & Label */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Filter size={12} className="text-gray-500 flex-shrink-0" />
+            <span className="font-medium text-gray-600 text-[10px] md:text-xs">الفلاتر:</span>
           </div>
           
-          <div className="w-full md:flex md:flex-row md:items-center md:gap-4 md:flex-1">
-            {/* Search */}
-            <div className="flex-1 min-w-0 mb-2 md:mb-0">
-              <div className="relative">
-                <Search size={14} className="md:w-[18px] md:h-[18px] absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="بحث بالاسم، الرقم، أو الجوال..."
-                  className="w-full pr-8 md:pr-10 pl-3 md:pl-4 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2 w-full md:w-auto">
-              {/* Class Grade Filter */}
-              <div className="flex-1 md:flex-initial min-w-0">
-                <CustomSelect
-                  value={filterClassGrade}
-                  onChange={(value) => setFilterClassGrade(value)}
-                  options={[
-                    { value: '', label: 'جميع الصفوف' },
-                    ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
-                  ]}
-                  placeholder="جميع الصفوف"
-                  className="w-full text-xs md:text-sm"
-                />
-              </div>
-
-              {/* Challenge Filter */}
-              <div className="flex-1 md:flex-initial min-w-0">
-                <CustomSelect
-                  value={filterChallenge}
-                  onChange={(value) => setFilterChallenge(value)}
-                  options={[
-                    { value: '', label: 'جميع الحالات' },
-                    ...uniqueChallenges.map(challenge => ({ 
-                      value: challenge, 
-                      label: challenge === 'none' ? 'لا يوجد' : challenge 
-                    }))
-                  ]}
-                  placeholder="جميع الحالات"
-                  className="w-full text-xs md:text-sm"
-                />
-              </div>
+          {/* Search */}
+          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
+            <div className="relative">
+              <Search size={12} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="بحث..."
+                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
+              />
             </div>
           </div>
+
+          {/* Class Grade Filter */}
+          {uniqueClassGrades.length > 0 && (
+            <div className="w-[120px] md:w-[150px] flex-shrink-0">
+              <CustomSelect
+                value={filterClassGrade}
+                onChange={(value) => setFilterClassGrade(value)}
+                options={[
+                  { value: '', label: 'جميع الصفوف' },
+                  ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
+                ]}
+                placeholder="جميع الصفوف"
+                className="w-full text-[10px] md:text-xs"
+              />
+            </div>
+          )}
+
+          {/* Challenge Filter */}
+          {role !== 'admin' && (
+            <div className="w-[120px] md:w-[150px] flex-shrink-0">
+              <CustomSelect
+                value={filterChallenge}
+                onChange={(value) => setFilterChallenge(value)}
+                options={[
+                  { value: '', label: 'جميع الحالات' },
+                  ...uniqueChallenges.map(challenge => ({ 
+                    value: challenge, 
+                    label: challenge === 'none' ? 'لا يوجد' : challenge 
+                  }))
+                ]}
+                placeholder="جميع الحالات"
+                className="w-full text-[10px] md:text-xs"
+              />
+            </div>
+          )}
 
           {/* Clear Filters */}
           {hasActiveFilters && (
-            <div className="flex justify-end">
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
-              >
-                <X size={14} className="md:w-4 md:h-4 flex-shrink-0" />
-                <span>مسح الفلاتر</span>
-              </button>
-            </div>
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 px-2 py-1 text-[10px] md:text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors border border-gray-200 flex-shrink-0"
+            >
+              <X size={10} className="flex-shrink-0" />
+              <span>مسح</span>
+            </button>
           )}
         </div>
       </div>

@@ -145,94 +145,78 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       )}
 
       {/* Filters & Actions Bar */}
-      <div className="bg-gradient-to-r from-teal-50 to-blue-50 p-4 md:p-6 rounded-xl shadow-sm border border-teal-200 print:hidden">
-          <div className="flex flex-col gap-4">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                  <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
-                      <Filter size={20} className="text-teal-600" />
-                      فلترة الطلاب
-                  </h3>
-                  <button 
-                    onClick={handlePrintList}
-                    className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-bold shadow-md text-sm md:text-base"
-                  >
-                      <Printer size={18} />
-                      <span className="hidden sm:inline">طباعة الكشف</span>
-                      <span className="sm:hidden">طباعة</span>
-                  </button>
+      <div className="bg-gradient-to-r from-teal-50 to-blue-50 p-2 md:p-3 rounded-lg shadow-sm border border-teal-200 print:hidden">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+              {/* Filter Icon & Label */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                  <Filter size={12} className="text-teal-600 flex-shrink-0" />
+                  <span className="font-medium text-gray-700 text-[10px] md:text-xs">الفلاتر:</span>
               </div>
 
-              {/* Filters Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Class Filter - Required */}
+              {/* Class Filter - Required */}
+              <div className="w-[120px] md:w-[150px] flex-shrink-0">
+                  <CustomSelect
+                    value={selectedClass}
+                    onChange={(value) => setSelectedClass(value)}
+                    options={[
+                      { value: 'all', label: 'اختر الفصل' },
+                      ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
+                    ]}
+                    placeholder="اختر الفصل"
+                    className="w-full text-[10px] md:text-xs"
+                  />
+              </div>
+              {selectedClass === 'all' && (
+                  <span className="text-[9px] md:text-[10px] text-red-500 flex-shrink-0">* مطلوب</span>
+              )}
+
+              {/* Search by Name */}
+              <div className="flex-1 min-w-[120px] md:min-w-[200px]">
                   <div className="relative">
-                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                          <Filter size={14} className="text-teal-600" />
-                          الفصل <span className="text-red-500">*</span>
-                      </label>
-                      <CustomSelect
-                        value={selectedClass}
-                        onChange={(value) => setSelectedClass(value)}
-                        options={[
-                          { value: 'all', label: 'اختر الفصل' },
-                          ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
-                        ]}
-                        placeholder="اختر الفصل"
-                        className="w-full"
+                      <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={12} />
+                      <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="بحث بالاسم..."
+                          className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
+                          disabled={selectedClass === 'all'}
                       />
-                      {selectedClass === 'all' && (
-                          <p className="text-xs text-red-500 mt-1">يجب اختيار فصل لعرض الطلاب</p>
+                      {searchQuery && (
+                          <button
+                              onClick={() => setSearchQuery('')}
+                              className="absolute top-0.5 left-1 text-gray-400 hover:text-gray-600 p-0.5"
+                          >
+                              <X size={10} />
+                          </button>
                       )}
                   </div>
-
-                  {/* Search by Name */}
-                  <div className="relative">
-                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                          <Search size={14} className="text-teal-600" />
-                          البحث بالاسم
-                      </label>
-                      <div className="relative">
-                          <Search className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
-                          <input
-                              type="text"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              placeholder="ابحث عن طالب..."
-                              className="w-full border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-teal-500 focus:border-teal-500"
-                              disabled={selectedClass === 'all'}
-                          />
-                          {searchQuery && (
-                              <button
-                                  onClick={() => setSearchQuery('')}
-                                  className="absolute top-2.5 left-2 text-gray-400 hover:text-gray-600 p-1"
-                              >
-                                  <X size={14} />
-                              </button>
-                          )}
-                      </div>
-                  </div>
-
-                  {/* Challenge Filter */}
-                  <div className="relative">
-                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                          <ShieldAlert size={14} className="text-teal-600" />
-                          حالة التحدي
-                      </label>
-                      <CustomSelect
-                        value={selectedChallengeFilter}
-                        onChange={(value) => setSelectedChallengeFilter(value)}
-                        options={[
-                          { value: 'all', label: 'كافة الطلاب' },
-                          { value: 'active_issues', label: 'جميع الحالات (لديهم تحديات)' },
-                          ...challengeTypes.filter(c => c.type !== 'none').map(c => ({ value: c.type, label: c.label }))
-                        ]}
-                        placeholder="كافة الطلاب"
-                        className="w-full"
-                        disabled={selectedClass === 'all'}
-                      />
-                  </div>
               </div>
+
+              {/* Challenge Filter */}
+              <div className="w-[120px] md:w-[150px] flex-shrink-0">
+                  <CustomSelect
+                    value={selectedChallengeFilter}
+                    onChange={(value) => setSelectedChallengeFilter(value)}
+                    options={[
+                      { value: 'all', label: 'كافة الطلاب' },
+                      { value: 'active_issues', label: 'لديهم تحديات' },
+                      ...challengeTypes.filter(c => c.type !== 'none').map(c => ({ value: c.type, label: c.label }))
+                    ]}
+                    placeholder="كافة الطلاب"
+                    className="w-full text-[10px] md:text-xs"
+                    disabled={selectedClass === 'all'}
+                  />
+              </div>
+
+              {/* Print Button */}
+              <button 
+                onClick={handlePrintList}
+                className="flex items-center gap-1 px-2 md:px-3 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors font-medium shadow-sm text-[10px] md:text-xs flex-shrink-0"
+              >
+                  <Printer size={12} />
+                  <span>طباعة</span>
+              </button>
           </div>
       </div>
 

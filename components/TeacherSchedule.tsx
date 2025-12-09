@@ -174,78 +174,73 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
         {/* Admin Filters */}
         {role === 'admin' && (
-            <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 shadow-sm">
-                <div className="flex flex-col gap-3 md:gap-4">
-                    <div className="flex items-center gap-2">
-                        <Filter size={16} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
-                        <span className="font-bold text-gray-700 text-sm md:text-base">الفلاتر</span>
+            <div className="bg-white p-2 md:p-3 rounded-lg border border-gray-100 shadow-sm">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    {/* Filter Icon & Label */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                        <Filter size={12} className="text-teal-600 flex-shrink-0" />
+                        <span className="font-medium text-gray-700 text-[10px] md:text-xs">الفلاتر:</span>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                        <div className="md:col-span-2 lg:col-span-1">
-                            <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">نوع التصفية</label>
-                            <div className="flex flex-wrap gap-2">
-                                <button 
-                                    onClick={() => { setFilterType('all'); setFilterValue(''); }}
-                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                                >
-                                    الكل
-                                </button>
-                                <button 
-                                    onClick={() => { 
-                                        setFilterType('teacher'); 
-                                        setFilterValue(uniqueTeachers[0] || ''); 
-                                    }}
-                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                                >
-                                    المعلم
-                                </button>
-                                <button 
-                                    onClick={() => { 
-                                        setFilterType('class'); 
-                                        setFilterValue(uniqueClasses[0] || ''); 
-                                    }}
-                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                                >
-                                    الصف
-                                </button>
-                                <button 
-                                    onClick={() => { 
-                                        setFilterType('subject'); 
-                                        setFilterValue(uniqueSubjects[0] || ''); 
-                                    }}
-                                    className={`flex-1 px-3 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'subject' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
-                                >
-                                    المادة
-                                </button>
-                            </div>
-                        </div>
+                    {/* Filter Type Buttons */}
+                    <div className="flex flex-wrap gap-1.5 flex-shrink-0">
+                        <button 
+                            onClick={() => { setFilterType('all'); setFilterValue(''); }}
+                            className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-medium transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        >
+                            الكل
+                        </button>
+                        <button 
+                            onClick={() => { 
+                                setFilterType('teacher'); 
+                                setFilterValue(uniqueTeachers[0] || ''); 
+                            }}
+                            className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-medium transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        >
+                            المعلم
+                        </button>
+                        <button 
+                            onClick={() => { 
+                                setFilterType('class'); 
+                                setFilterValue(uniqueClasses[0] || ''); 
+                            }}
+                            className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-medium transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        >
+                            الصف
+                        </button>
+                        <button 
+                            onClick={() => { 
+                                setFilterType('subject'); 
+                                setFilterValue(uniqueSubjects[0] || ''); 
+                            }}
+                            className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-medium transition-colors ${filterType === 'subject' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        >
+                            المادة
+                        </button>
+                    </div>
 
-                        {filterType !== 'all' && (
-                            <div className="md:col-span-2 lg:col-span-3">
-                                <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">
-                                    {filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}
-                                </label>
-                                <CustomSelect
-                                    value={filterValue}
-                                    onChange={(value) => setFilterValue(value)}
-                                    options={
-                                        filterType === 'teacher' 
-                                            ? uniqueTeachers.map(t => ({ value: t, label: t }))
-                                            : filterType === 'class'
-                                            ? uniqueClasses.map(c => ({ value: c, label: c }))
-                                            : uniqueSubjects.map(s => ({ value: s, label: s }))
-                                    }
-                                    placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
-                                    className="w-full text-xs md:text-sm"
-                                />
-                            </div>
-                        )}
-                    </div>
-                    
+                    {/* Filter Value Select */}
+                    {filterType !== 'all' && (
+                        <div className="w-[120px] md:w-[180px] flex-shrink-0">
+                            <CustomSelect
+                                value={filterValue}
+                                onChange={(value) => setFilterValue(value)}
+                                options={
+                                    filterType === 'teacher' 
+                                        ? uniqueTeachers.map(t => ({ value: t, label: t }))
+                                        : filterType === 'class'
+                                        ? uniqueClasses.map(c => ({ value: c, label: c }))
+                                        : uniqueSubjects.map(s => ({ value: s, label: s }))
+                                }
+                                placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
+                                className="w-full text-[10px] md:text-xs"
+                            />
+                        </div>
+                    )}
+
                     {/* Quick Navigation Buttons */}
                     {filterType !== 'all' && filterValue && (
-                        <div className="flex justify-end gap-2">
+                        <div className="flex gap-1 flex-shrink-0">
                             <button
                                 onClick={() => {
                                     if (filterType === 'teacher') {
@@ -262,7 +257,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         setFilterValue(uniqueSubjects[prevIndex]);
                                     }
                                 }}
-                                className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                                className="px-2 py-1 bg-white border border-gray-300 rounded-md text-[10px] md:text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                                 title="السابق"
                             >
                                 ←
@@ -283,7 +278,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         setFilterValue(uniqueSubjects[nextIndex]);
                                     }
                                 }}
-                                className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs md:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                                className="px-2 py-1 bg-white border border-gray-300 rounded-md text-[10px] md:text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                                 title="التالي"
                             >
                                 →

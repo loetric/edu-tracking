@@ -292,69 +292,65 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-col gap-3 md:gap-4">
-          <div className="flex items-center gap-2">
-            <Filter size={16} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
-            <span className="font-bold text-gray-700 text-sm md:text-base">الفلاتر</span>
+      <div className="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
+          {/* Filter Icon & Label */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Filter size={12} className="text-teal-600 flex-shrink-0" />
+            <span className="font-medium text-gray-700 text-[10px] md:text-xs">الفلاتر:</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {/* Search */}
-            <div className="md:col-span-1 lg:col-span-2">
-              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">البحث</label>
-              <div className="relative">
-                <Search className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="بحث في الملفات..."
-                  className="w-full border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute top-2.5 left-2 text-gray-400 hover:text-gray-600 p-1"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Type Filter */}
-            <div>
-              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">نوع الملف</label>
-              <CustomSelect
-                value={filterType}
-                onChange={(value) => setFilterType(value as FileType | 'all')}
-                options={[
-                  { value: 'all', label: 'جميع الأنواع' },
-                  { value: 'general', label: 'ملف عام' },
-                  { value: 'circular', label: 'تعميم' },
-                  { value: 'decision', label: 'قرار' }
-                ]}
-                className="w-full text-xs md:text-sm"
+          {/* Search */}
+          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={12} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="بحث..."
+                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute top-0.5 left-1 text-gray-400 hover:text-gray-600 p-0.5"
+                >
+                  <X size={10} />
+                </button>
+              )}
             </div>
+          </div>
 
-            {/* Access Level Filter */}
-            <div>
-              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1.5">مستوى الوصول</label>
-              <CustomSelect
-                value={filterAccess}
-                onChange={(value) => setFilterAccess(value as FileAccessLevel | 'all')}
-                options={[
-                  { value: 'all', label: 'جميع المستويات' },
-                  { value: 'public', label: 'العموم' },
-                  { value: 'teachers', label: 'المعلمون' },
-                  { value: 'counselors', label: 'الموجهون' },
-                  { value: 'teachers_counselors', label: 'المعلمون والموجهون' }
-                ]}
-                className="w-full text-xs md:text-sm"
-              />
-            </div>
+          {/* Type Filter */}
+          <div className="w-[120px] md:w-[150px] flex-shrink-0">
+            <CustomSelect
+              value={filterType}
+              onChange={(value) => setFilterType(value as FileType | 'all')}
+              options={[
+                { value: 'all', label: 'جميع الأنواع' },
+                { value: 'general', label: 'ملف عام' },
+                { value: 'circular', label: 'تعميم' },
+                { value: 'decision', label: 'قرار' }
+              ]}
+              className="w-full text-[10px] md:text-xs"
+            />
+          </div>
+
+          {/* Access Level Filter */}
+          <div className="w-[120px] md:w-[150px] flex-shrink-0">
+            <CustomSelect
+              value={filterAccess}
+              onChange={(value) => setFilterAccess(value as FileAccessLevel | 'all')}
+              options={[
+                { value: 'all', label: 'جميع المستويات' },
+                { value: 'public', label: 'العموم' },
+                { value: 'teachers', label: 'المعلمون' },
+                { value: 'counselors', label: 'الموجهون' },
+                { value: 'teachers_counselors', label: 'المعلمون والموجهون' }
+              ]}
+              className="w-full text-[10px] md:text-xs"
+            />
           </div>
         </div>
       </div>
