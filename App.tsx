@@ -13,6 +13,8 @@ import { PDFReport } from './components/PDFReport';
 import { CounselorView } from './components/CounselorView';
 import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
+import { UserProfile } from './components/UserProfile';
+import { FileSharing } from './components/FileSharing';
 import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User } from './types';
 import { AVAILABLE_TEACHERS } from './constants';
 import { CONFIG } from './config';
@@ -1350,6 +1352,8 @@ const App: React.FC = () => {
                 completedSessions={completedSessions} 
                 onAssignSubstitute={currentUser.role === 'admin' ? handleAssignSubstitute : undefined}
                 role={currentUser.role}
+                subjects={subjects}
+                onUpdateSchedule={currentUser.role === 'admin' ? handleUpdateSchedule : undefined}
                 availableTeachers={allTeachers}
             />
         );
@@ -1388,6 +1392,10 @@ const App: React.FC = () => {
                 onSessionEnter={handleSessionEnter}
                 completedSessions={completedSessions}
             />;
+      case 'files':
+        return <FileSharing role={currentUser.role} onAddLog={handleAddLog} />;
+      case 'profile':
+        return <UserProfile user={currentUser} />;
       default:
         return (
             <div className="flex flex-col items-center justify-center h-full text-gray-400">
@@ -1474,6 +1482,8 @@ const App: React.FC = () => {
                     {activeTab === 'settings' && 'إعدادات النظام'}
                     {activeTab === 'schedule' && (currentUser.role === 'admin' ? 'جدول الحصص العام (وإسناد الاحتياط)' : 'جدولي الدراسي')}
                     {activeTab === 'reports' && (currentUser.role === 'counselor' ? 'إعدادات التقارير والتحديات' : 'التقارير')}
+                    {activeTab === 'files' && 'مشاركة الملفات'}
+                    {activeTab === 'profile' && 'حسابي'}
                 </h1>
                 <p className="text-gray-500 text-sm mt-1">{effectiveSettings.name}</p>
             </div>

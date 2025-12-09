@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     challenge jsonb,
     avatar text,
     studentNumber text, -- رقم الطالب الأصلي من الملف (للعرض)
+    status text DEFAULT 'regular' CHECK (status IN ('regular', 'dropped', 'expelled')), -- حالة الطالب: منتظم، منقطع، مفصول
     created_at timestamptz DEFAULT now() NOT NULL
 );
 

@@ -2,6 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Print Styles for Counselor View */
+@media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+  
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  /* Hide non-essential elements */
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  /* Ensure proper page breaks */
+  .print\\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  /* Optimize table printing */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  
+  th, td {
+    border: 1px solid #d1d5db;
+    padding: 8px;
+  }
+  
+  /* Ensure readable text */
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  /* Prevent background colors from being removed */
+  .print\\:bg-gray-100 {
+    background-color: #f3f4f6 !important;
+  }
+  
+  .print\\:bg-white {
+    background-color: white !important;
+  }
+  
+  /* Ensure borders are visible */
+  .print\\:border-gray-300 {
+    border-color: #d1d5db !important;
+  }
+  
+  .print\\:border-gray-200 {
+    border-color: #e5e7eb !important;
+  }
+  
+  /* Text colors for print */
+  .print\\:text-gray-800 {
+    color: #1f2937 !important;
+  }
+  
+  .print\\:text-gray-700 {
+    color: #374151 !important;
+  }
+  
+  .print\\:text-gray-600 {
+    color: #4b5563 !important;
+  }
+}
+
 body {
   font-family: 'Cairo', sans-serif;
 }

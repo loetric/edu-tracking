@@ -377,14 +377,14 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             disabled={isAbsent}
                         />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                            type="text"
+                        <td className="px-6 py-4">
+                        <textarea
                             placeholder={isAdmin ? "" : "أضف ملاحظة..."}
                             value={record.notes}
                             disabled={isAdmin}
                             onChange={(e) => handleStatusChange(student.id, 'notes', e.target.value)}
-                            className={`text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 w-full print:border-0 print:bg-transparent ${isAdmin ? 'bg-transparent border-none' : ''}`}
+                            rows={2}
+                            className={`text-sm border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500 w-full print:border-0 print:bg-transparent resize-none ${isAdmin ? 'bg-transparent border-none' : ''}`}
                         />
                         </td>
                         

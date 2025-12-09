@@ -31,7 +31,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     parentPhone: '',
     challenge: 'none',
     avatar: `https://ui-avatars.com/api/?name=طالب&background=random`,
-    studentNumber: ''
+    studentNumber: '',
+    status: 'regular' // حالة الطالب: منتظم، منقطع، مفصول
   });
 
   // Get available class grades from settings or from students, sorted nicely
@@ -77,7 +78,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       parentPhone: newStudent.parentPhone,
       challenge: newStudent.challenge || 'none',
       avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`,
-      studentNumber: newStudent.studentNumber || newStudent.id
+      studentNumber: newStudent.studentNumber || newStudent.id,
+      status: newStudent.status || 'regular' // حالة الطالب
     } as Student);
     
     // Reset form
@@ -88,7 +90,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       parentPhone: '',
       challenge: 'none',
       avatar: `https://ui-avatars.com/api/?name=طالب&background=random`,
-      studentNumber: ''
+      studentNumber: '',
+      status: 'regular'
     });
     setShowAddForm(false);
     alert({ message: 'تم إضافة الطالب بنجاح!', type: 'success' });
@@ -103,7 +106,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       parentPhone: student.parentPhone,
       challenge: student.challenge || 'none',
       avatar: student.avatar || `https://ui-avatars.com/api/?name=${student.name}&background=random`,
-      studentNumber: student.studentNumber || student.id
+      studentNumber: student.studentNumber || student.id,
+      status: student.status || 'regular' // حالة الطالب
     });
     // Don't open add form - edit form is now a separate modal
   };
@@ -142,7 +146,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       classGrade: newStudent.classGrade,
       parentPhone: newStudent.parentPhone,
       challenge: newStudent.challenge || 'none',
-      avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`
+      avatar: newStudent.avatar || `https://ui-avatars.com/api/?name=${newStudent.name}&background=random`,
+      status: newStudent.status || 'regular' // حالة الطالب
     });
     
     // Reset form
@@ -153,7 +158,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       classGrade: '',
       parentPhone: '',
       challenge: 'none',
-      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`
+      avatar: `https://ui-avatars.com/api/?name=طالب&background=random`,
+      studentNumber: '',
+      status: 'regular'
     });
     setShowAddForm(false);
   };
@@ -333,6 +340,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 placeholder="مثال: 966500000000"
               />
             </div>
+            <div>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">حالة الطالب *</label>
+              <CustomSelect
+                value={newStudent.status || 'regular'}
+                onChange={(value) => setNewStudent({ ...newStudent, status: value as 'regular' | 'dropped' | 'expelled' })}
+                options={[
+                  { value: 'regular', label: 'منتظم' },
+                  { value: 'dropped', label: 'منقطع' },
+                  { value: 'expelled', label: 'مفصول' }
+                ]}
+                placeholder="اختر الحالة"
+                className="w-full text-sm"
+              />
+            </div>
           </div>
           <div className="mt-3 md:mt-4 flex justify-end gap-2">
             <button
@@ -433,6 +454,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                     maxLength={13}
                     className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
                     placeholder="مثال: 966500000000"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">حالة الطالب *</label>
+                  <CustomSelect
+                    value={newStudent.status || 'regular'}
+                    onChange={(value) => setNewStudent({ ...newStudent, status: value as 'regular' | 'dropped' | 'expelled' })}
+                    options={[
+                      { value: 'regular', label: 'منتظم' },
+                      { value: 'dropped', label: 'منقطع' },
+                      { value: 'expelled', label: 'مفصول' }
+                    ]}
+                    placeholder="اختر الحالة"
+                    className="w-full text-sm"
                   />
                 </div>
               </div>
@@ -560,7 +595,8 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">الحالة</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">التحدي</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">حالة الطالب</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
               </tr>
             </thead>
@@ -590,6 +626,18 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                           {student.challenge === 'none' ? 'عادي' : student.challenge}
                         </span>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          (student.status || 'regular') === 'regular'
+                            ? 'bg-blue-100 text-blue-700'
+                            : (student.status || 'regular') === 'dropped'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {(student.status || 'regular') === 'regular' ? 'منتظم' :
+                           (student.status || 'regular') === 'dropped' ? 'منقطع' : 'مفصول'}
+                        </span>
+                      </td>
                       <td className="px-4 md:px-6 py-3 md:py-4">
                         <div className="flex items-center gap-1.5 md:gap-2">
                           <button
@@ -613,7 +661,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                     {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
                   </td>
                 </tr>
@@ -641,13 +689,25 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       <p className="text-xs text-gray-500 mt-0.5">رقم: {student.studentNumber || student.id}</p>
                     </div>
                   </div>
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
-                    student.challenge === 'none' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-orange-100 text-orange-700'
-                  }`}>
-                    {student.challenge === 'none' ? 'عادي' : student.challenge}
-                  </span>
+                  <div className="flex flex-col gap-1 items-end">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
+                      student.challenge === 'none' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      {student.challenge === 'none' ? 'عادي' : student.challenge}
+                    </span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
+                      (student.status || 'regular') === 'regular'
+                        ? 'bg-blue-100 text-blue-700'
+                        : (student.status || 'regular') === 'dropped'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {(student.status || 'regular') === 'regular' ? 'منتظم' :
+                       (student.status || 'regular') === 'dropped' ? 'منقطع' : 'مفصول'}
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-2 space-y-0.5">
                   <p className="text-xs text-gray-600">

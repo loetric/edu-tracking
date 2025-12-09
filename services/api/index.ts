@@ -11,6 +11,8 @@ import * as records from './records';
 import * as chat from './chat';
 import * as logs from './logs';
 import * as data from './data';
+import * as subjects from './subjects';
+import * as files from './files';
 
 // Export all functions as a single api object (backward compatible)
 export const api = {
@@ -71,9 +73,21 @@ export const api = {
   deleteAllChatMessages: data.deleteAllChatMessages,
   deleteAllLogs: data.deleteAllLogs,
   deleteAllCompletedSessions: data.deleteAllCompletedSessions,
-  deleteAllSubstitutions: data.deleteAllSubstitutions
+  deleteAllSubstitutions: data.deleteAllSubstitutions,
+
+  // Subjects management
+  getSubjects: subjects.getSubjects,
+  addSubject: subjects.addSubject,
+  updateSubject: subjects.updateSubject,
+  deleteSubject: subjects.deleteSubject,
+
+  // Files management
+  getFiles: files.getFiles,
+  uploadFile: files.uploadFile,
+  updateFile: files.updateFile,
+  deleteFile: files.deleteFile
 };
 
 // Also export individual modules for direct imports if needed
-export { auth, users, settings, students, schedule, records, chat, logs, data };
+export { auth, users, settings, students, schedule, records, chat, logs, data, subjects, files };
 

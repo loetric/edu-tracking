@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Users, FileText, Upload, History, Settings, LogOut, Calendar, School, X, UserCog } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Upload, History, Settings, LogOut, Calendar, School, X, UserCog, User, FolderOpen } from 'lucide-react';
 import { Role, SchoolSettings } from '../types';
 
 interface SidebarProps {
@@ -21,6 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
     { id: 'tracking', label: 'متابعة الطلاب', icon: Users, roles: ['admin', 'teacher'] },
     { id: 'students', label: 'إدارة الطلاب', icon: UserCog, roles: ['admin'] },
     { id: 'reports', label: 'التقارير', icon: FileText, roles: ['admin', 'counselor'] },
+    { id: 'files', label: 'مشاركة الملفات', icon: FolderOpen, roles: ['admin', 'teacher', 'counselor'] },
     { id: 'archive', label: 'سجل الحركات', icon: History, roles: ['admin'] },
   ];
 

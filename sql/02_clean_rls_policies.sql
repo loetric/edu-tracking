@@ -245,8 +245,102 @@ CREATE POLICY "Authenticated delete substitutions" ON public.substitutions
     USING (auth.role() = 'authenticated');
 
 -- ============================================
+-- SUBJECTS POLICIES
+-- ============================================
+DROP POLICY IF EXISTS "Public can select subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Authenticated can insert subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Authenticated can update subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Authenticated can delete subjects" ON public.subjects;
+
+-- Public read access (needed for dropdowns)
+CREATE POLICY "Public can select subjects" ON public.subjects
+    FOR SELECT
+    USING (true);
+
+-- Authenticated users can insert subjects
+CREATE POLICY "Authenticated can insert subjects" ON public.subjects
+    FOR INSERT
+    WITH CHECK (auth.role() = 'authenticated');
+
+-- Authenticated users can update subjects
+CREATE POLICY "Authenticated can update subjects" ON public.subjects
+    FOR UPDATE
+    USING (auth.role() = 'authenticated')
+    WITH CHECK (auth.role() = 'authenticated');
+
+-- Authenticated users can delete subjects
+CREATE POLICY "Authenticated can delete subjects" ON public.subjects
+    FOR DELETE
+    USING (auth.role() = 'authenticated');
+
+-- ============================================
 -- Success Message
 -- ============================================
+-- ============================================
+-- FILES POLICIES
+-- ============================================
+DROP POLICY IF EXISTS "Select files based on access level" ON public.files;
+DROP POLICY IF EXISTS "Admin can insert files" ON public.files;
+DROP POLICY IF EXISTS "Admin can update files" ON public.files;
+DROP POLICY IF EXISTS "Admin can delete files" ON public.files;
+
+-- All authenticated users can read files based on access level
+CREATE POLICY "Select files based on access level" ON public.files
+    FOR SELECT
+    USING (
+        auth.role() = 'authenticated' AND (
+            access_level = 'public' OR
+            (access_level = 'teachers' AND EXISTS (
+                SELECT 1 FROM public.profiles 
+                WHERE id = auth.uid() AND role = 'teacher'
+            )) OR
+            (access_level = 'counselors' AND EXISTS (
+                SELECT 1 FROM public.profiles 
+                WHERE id = auth.uid() AND role = 'counselor'
+            )) OR
+            (access_level = 'teachers_counselors' AND EXISTS (
+                SELECT 1 FROM public.profiles 
+                WHERE id = auth.uid() AND role IN ('teacher', 'counselor')
+            ))
+        )
+    );
+
+-- Only admins can insert files
+CREATE POLICY "Admin can insert files" ON public.files
+    FOR INSERT
+    WITH CHECK (
+        auth.role() = 'authenticated' AND EXISTS (
+            SELECT 1 FROM public.profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+-- Only admins can update files
+CREATE POLICY "Admin can update files" ON public.files
+    FOR UPDATE
+    USING (
+        auth.role() = 'authenticated' AND EXISTS (
+            SELECT 1 FROM public.profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    )
+    WITH CHECK (
+        auth.role() = 'authenticated' AND EXISTS (
+            SELECT 1 FROM public.profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
+-- Only admins can delete files
+CREATE POLICY "Admin can delete files" ON public.files
+    FOR DELETE
+    USING (
+        auth.role() = 'authenticated' AND EXISTS (
+            SELECT 1 FROM public.profiles 
+            WHERE id = auth.uid() AND role = 'admin'
+        )
+    );
+
 DO $$
 BEGIN
     RAISE NOTICE '✅ RLS policies created successfully!';

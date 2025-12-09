@@ -25,6 +25,7 @@ export interface SchoolSettings {
 }
 
 export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'other';
+export type StudentStatus = 'regular' | 'dropped' | 'expelled'; // منتظم، منقطع، مفصول
 
 export interface Student {
   id: string;
@@ -34,6 +35,7 @@ export interface Student {
   challenge: ChallengeType; 
   avatar?: string;
   studentNumber?: string; // رقم الطالب الأصلي من الملف (للعرض)
+  status?: StudentStatus; // حالة الطالب: منتظم، منقطع، مفصول
 }
 
 export type StatusType = 'excellent' | 'good' | 'average' | 'poor' | 'none';
@@ -63,6 +65,14 @@ export interface StatData {
   value: number;
 }
 
+export interface Subject {
+  id: string;
+  name: string;
+  code?: string; // رمز المادة (اختياري)
+  description?: string; // وصف المادة (اختياري)
+  created_at?: Date;
+}
+
 export interface ScheduleItem {
   id: string;
   day: string;
@@ -89,4 +99,22 @@ export interface ChatMessage {
   text: string;
   timestamp: Date;
   isSystem?: boolean;
+}
+
+export type FileType = 'general' | 'circular' | 'decision';
+export type FileCategory = 'excel' | 'word' | 'pdf' | 'image' | 'other';
+export type FileAccessLevel = 'public' | 'teachers' | 'counselors' | 'teachers_counselors';
+
+export interface SharedFile {
+  id: string;
+  name: string;
+  description?: string;
+  file_url: string;
+  file_type: FileType;
+  file_category: FileCategory;
+  file_size?: number;
+  access_level: FileAccessLevel;
+  uploaded_by?: string;
+  created_at: Date;
+  updated_at: Date;
 }

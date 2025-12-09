@@ -322,8 +322,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                                         </div>
                                     ) : <span className="text-gray-300">-</span>}
                                 </td>
-                                <td className="border border-gray-300 p-1 text-[9px] text-gray-400 italic">
-                                   {/* Empty for manual notes or implies standard day */}
+                                <td className="border border-gray-300 p-1 text-[9px] text-gray-600 leading-relaxed break-words">
+                                   {record.notes || '-'}
                                 </td>
                             </tr>
                         )) : (
@@ -343,7 +343,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                             <FileText size={14} />
                             الملاحظات العامة على اليوم الدراسي
                         </div>
-                        <p className="text-sm font-medium leading-relaxed text-gray-800 mt-1 p-1">{record.notes}</p>
+                        <p className="text-sm font-medium leading-relaxed text-gray-800 mt-1 p-1 break-words whitespace-pre-wrap">{record.notes}</p>
                     </div>
                 )}
 

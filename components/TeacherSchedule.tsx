@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScheduleItem, Role } from '../types';
+import { ScheduleItem, Role, Subject } from '../types';
 import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle } from 'lucide-react';
 
 interface TeacherScheduleProps {
@@ -11,18 +11,19 @@ interface TeacherScheduleProps {
   availableTeachers?: string[]; // Dynamic list of teachers
 }
 
-export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [] }) => {
+export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
   
   // Filters for Admin
-  const [filterType, setFilterType] = useState<'all' | 'teacher' | 'class'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'teacher' | 'class' | 'subject'>('all');
   const [filterValue, setFilterValue] = useState<string>('');
 
   // Extract unique values for filters
-  const uniqueTeachers = Array.from(new Set(schedule.map(s => s.teacher || s.originalTeacher || ''))).filter(Boolean);
+  const uniqueTeachers = Array.from(new Set(schedule.map(s => s.teacher || s.originalTeacher || ''))).filter(Boolean).sort();
   const uniqueClasses = Array.from(new Set(schedule.map(s => s.classRoom))).sort();
+  const uniqueSubjects = Array.from(new Set(schedule.map(s => s.subject))).sort();
 
   // Get sessions based on filters
   const getSessions = (day: string, period: number) => {
@@ -33,11 +34,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             sessions = sessions.filter(s => s.teacher === filterValue || s.originalTeacher === filterValue);
         } else if (filterType === 'class') {
             sessions = sessions.filter(s => s.classRoom === filterValue);
+        } else if (filterType === 'subject') {
+            sessions = sessions.filter(s => s.subject === filterValue);
         }
     }
     
     return sessions;
   };
+
+  const isSessionTracked = (sessionId: string) => completedSessions.includes(sessionId);
 
   const getSessionStyle = (session: ScheduleItem) => {
       if (session.isSubstituted) {

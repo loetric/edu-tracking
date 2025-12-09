@@ -118,6 +118,24 @@ export const CONFIG = {
 
   // Temporary Message ID Prefix
   TEMP_MESSAGE_PREFIX: 'temp-',
+
+  // File Upload Configuration
+  FILES: {
+    MAX_SIZE_MB: 10,
+    ALLOWED_TYPES: [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp'
+    ],
+    STORAGE_BUCKET: 'files',
+  },
 } as const;
 
 // Helper function to format rate limit error message

@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../services/supabase';
-import { SchoolSettings, User, Role, ScheduleItem } from '../types';
+import { SchoolSettings, User, Role, ScheduleItem, Subject } from '../types';
 import { PasswordReset } from './PasswordReset';
 import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2 } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
@@ -15,6 +15,7 @@ interface SchoolSettingsProps {
   settings: SchoolSettings;
   users: User[];
   schedule?: ScheduleItem[];
+  currentUser: User | null;
   onSave: (settings: SchoolSettings) => void;
   onUpdateUsers: (users: User[]) => void;
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
@@ -24,11 +25,37 @@ interface SchoolSettingsProps {
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects'>('general');
   
   // Class Grades Management State
   const [classGrades, setClassGrades] = useState<string[]>(settings?.classGrades || []);
   const [newClassGrade, setNewClassGrade] = useState('');
+  
+  // Subjects Management State
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [newSubject, setNewSubject] = useState<Partial<Subject>>({ name: '', code: '', description: '' });
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+  
+  // Load subjects on mount and when tab changes
+  useEffect(() => {
+    if (activeTab === 'subjects') {
+      loadSubjects();
+    }
+  }, [activeTab]);
+  
+  const loadSubjects = async () => {
+    setIsLoadingSubjects(true);
+    try {
+      const loadedSubjects = await api.getSubjects();
+      setSubjects(loadedSubjects);
+    } catch (error) {
+      console.error('Failed to load subjects:', error);
+      alert({ message: 'فشل في تحميل المواد الدراسية', type: 'error' });
+    } finally {
+      setIsLoadingSubjects(false);
+    }
+  };
   
   // User Management State
     const [newUser, setNewUser] = useState<Partial<User & { email?: string }>>({ role: 'teacher', name: '', username: '', password: '', email: '' });
@@ -78,6 +105,89 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     if (shouldDelete) {
       setClassGrades(classGrades.filter(g => g !== grade));
       alert({ message: 'تم حذف الصف بنجاح', type: 'success' });
+    }
+  };
+
+  // Subjects Management Functions
+  const handleAddSubject = async () => {
+    if (!newSubject.name?.trim()) {
+      alert({ message: 'الرجاء إدخال اسم المادة', type: 'warning' });
+      return;
+    }
+
+    try {
+      const addedSubject = await api.addSubject({
+        name: newSubject.name.trim(),
+        code: newSubject.code?.trim() || undefined,
+        description: newSubject.description?.trim() || undefined
+      });
+
+      if (addedSubject) {
+        setSubjects([...subjects, addedSubject]);
+        setNewSubject({ name: '', code: '', description: '' });
+        alert({ message: 'تم إضافة المادة بنجاح', type: 'success' });
+      }
+    } catch (error: any) {
+      console.error('Add subject error:', error);
+      alert({ message: error?.message || 'فشل في إضافة المادة', type: 'error' });
+    }
+  };
+
+  const handleEditSubject = (subject: Subject) => {
+    setEditingSubject(subject);
+    setNewSubject({
+      name: subject.name,
+      code: subject.code || '',
+      description: subject.description || ''
+    });
+  };
+
+  const handleUpdateSubject = async () => {
+    if (!editingSubject || !newSubject.name?.trim()) {
+      alert({ message: 'الرجاء إدخال اسم المادة', type: 'warning' });
+      return;
+    }
+
+    try {
+      const updatedSubject = await api.updateSubject(editingSubject.id, {
+        name: newSubject.name.trim(),
+        code: newSubject.code?.trim() || undefined,
+        description: newSubject.description?.trim() || undefined
+      });
+
+      if (updatedSubject) {
+        setSubjects(subjects.map(s => s.id === editingSubject.id ? updatedSubject : s));
+        setEditingSubject(null);
+        setNewSubject({ name: '', code: '', description: '' });
+        alert({ message: 'تم تحديث المادة بنجاح', type: 'success' });
+      }
+    } catch (error: any) {
+      console.error('Update subject error:', error);
+      alert({ message: error?.message || 'فشل في تحديث المادة', type: 'error' });
+    }
+  };
+
+  const handleDeleteSubject = async (subjectId: string) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    const shouldDelete = await confirm({
+      title: 'حذف المادة',
+      message: `هل أنت متأكد من حذف المادة "${subject?.name}"؟\n\nسيتم حذف هذه المادة من القائمة فقط، ولن يتم حذف الجداول الدراسية المرتبطة بها.`,
+      type: 'warning',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء'
+    });
+
+    if (shouldDelete) {
+      try {
+        const deleted = await api.deleteSubject(subjectId);
+        if (deleted) {
+          setSubjects(subjects.filter(s => s.id !== subjectId));
+          alert({ message: 'تم حذف المادة بنجاح', type: 'success' });
+        }
+      } catch (error: any) {
+        console.error('Delete subject error:', error);
+        alert({ message: error?.message || 'فشل في حذف المادة', type: 'error' });
+      }
     }
   };
 
@@ -912,6 +1022,168 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           </div>
         )}
 
+        {activeTab === 'subjects' && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div>
+                <h3 className="font-bold text-gray-800">تعريف المواد الدراسية</h3>
+                <p className="text-xs text-gray-500">إضافة وإدارة قائمة المواد الدراسية التي ستظهر في جميع النماذج</p>
+              </div>
+            </div>
+
+            {/* Add Subject Form */}
+            <div className="bg-white border-2 border-teal-100 p-6 rounded-xl shadow-sm space-y-4">
+              <h4 className="font-bold text-teal-800 flex items-center gap-2">
+                <BookOpen size={18}/>
+                {editingSubject ? 'تعديل المادة' : 'إضافة مادة جديدة'}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">اسم المادة *</label>
+                  <input
+                    type="text"
+                    value={newSubject.name || ''}
+                    onChange={e => setNewSubject({...newSubject, name: e.target.value})}
+                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    placeholder="مثال: الرياضيات"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">رمز المادة (اختياري)</label>
+                  <input
+                    type="text"
+                    value={newSubject.code || ''}
+                    onChange={e => setNewSubject({...newSubject, code: e.target.value})}
+                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    placeholder="مثال: MATH"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 mb-1">الوصف (اختياري)</label>
+                  <textarea
+                    value={newSubject.description || ''}
+                    onChange={e => setNewSubject({...newSubject, description: e.target.value})}
+                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    placeholder="وصف المادة..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {editingSubject && (
+                  <button
+                    onClick={() => {
+                      setEditingSubject(null);
+                      setNewSubject({ name: '', code: '', description: '' });
+                    }}
+                    className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg"
+                  >
+                    إلغاء
+                  </button>
+                )}
+                <button
+                  onClick={editingSubject ? handleUpdateSubject : handleAddSubject}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg font-bold hover:bg-teal-700 flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  {editingSubject ? 'حفظ التعديلات' : 'إضافة'}
+                </button>
+              </div>
+            </div>
+
+            {/* Subjects List */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              {isLoadingSubjects ? (
+                <div className="p-12 text-center text-gray-400">
+                  <p>جاري التحميل...</p>
+                </div>
+              ) : subjects.length > 0 ? (
+                <>
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-right">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">اسم المادة</th>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">الرمز</th>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">الوصف</th>
+                          <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {subjects.map((subject) => (
+                          <tr key={subject.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-800">{subject.name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{subject.code || '-'}</td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{subject.description || '-'}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleEditSubject(subject)}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                                >
+                                  <Edit2 size={14} />
+                                  <span>تعديل</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSubject(subject.id)}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                >
+                                  <Trash2 size={14} />
+                                  <span>حذف</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="md:hidden divide-y divide-gray-100">
+                    {subjects.map((subject) => (
+                      <div key={subject.id} className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="font-bold text-gray-800">{subject.name}</h3>
+                            {subject.code && <p className="text-xs text-gray-500 mt-0.5">الرمز: {subject.code}</p>}
+                            {subject.description && <p className="text-xs text-gray-600 mt-1">{subject.description}</p>}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditSubject(subject)}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 rounded-lg transition-colors"
+                          >
+                            <Edit2 size={12} />
+                            <span>تعديل</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSubject(subject.id)}
+                            className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={12} />
+                            <span>حذف</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="p-12 text-center text-gray-400">
+                  <BookOpen size={48} className="mx-auto mb-2 opacity-20" />
+                  <p>لم يتم إضافة أي مواد حتى الآن</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>ملاحظة:</strong> المواد المعرفة هنا ستظهر في قوائم الاختيار عند إضافة أو تعديل الجداول الدراسية، مما يضمن اتساق البيانات في النظام.
+              </p>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'setup' && (
           <div className="space-y-6 animate-in fade-in">
              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -955,13 +1227,26 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">المادة</label>
-                             <input 
-                                type="text" 
-                                value={newSession.subject} 
-                                onChange={e => setNewSession({...newSession, subject: e.target.value})} 
-                                className="w-full border rounded p-2 text-sm" 
-                                placeholder="مثال: رياضيات" 
-                            />
+                             {subjects.length > 0 ? (
+                               <CustomSelect
+                                 value={newSession.subject || ''}
+                                 onChange={(value) => setNewSession({...newSession, subject: value})}
+                                 options={[
+                                   { value: '', label: 'اختر المادة...' },
+                                   ...subjects.map(s => ({ value: s.name, label: s.name }))
+                                 ]}
+                                 placeholder="اختر المادة..."
+                                 className="w-full"
+                               />
+                             ) : (
+                               <input 
+                                  type="text" 
+                                  value={newSession.subject} 
+                                  onChange={e => setNewSession({...newSession, subject: e.target.value})} 
+                                  className="w-full border rounded p-2 text-sm" 
+                                  placeholder="مثال: رياضيات" 
+                              />
+                             )}
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">الفصل</label>

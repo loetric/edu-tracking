@@ -24,6 +24,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
 
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [selectedChallengeFilter, setSelectedChallengeFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStudentForEdit, setSelectedStudentForEdit] = useState<Student | null>(null);
 
   // Extract unique classes
@@ -61,9 +62,24 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
           : selectedChallengeFilter === 'active_issues' // Special filter for any issue
               ? student.challenge !== 'none'
               : student.challenge === selectedChallengeFilter;
+      const matchSearch = searchQuery.trim() === '' || 
+          student.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
       
-      return matchClass && matchChallenge;
+      return matchClass && matchChallenge && matchSearch;
   });
+
+  // Group students by class
+  const studentsByClass = filteredStudents.reduce((acc, student) => {
+      const classGrade = student.classGrade || 'غير محدد';
+      if (!acc[classGrade]) {
+          acc[classGrade] = [];
+      }
+      acc[classGrade].push(student);
+      return acc;
+  }, {} as Record<string, Student[]>);
+
+  // Sort classes alphabetically
+  const sortedClasses = Object.keys(studentsByClass).sort();
 
   return (
     <div className="space-y-6">
@@ -125,7 +141,27 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
 
       {/* Filters & Actions Bar */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto flex-1">
+              {/* Search by Name */}
+              <div className="relative flex-1 md:flex-initial min-w-[200px]">
+                  <Search className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
+                  <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="بحث بالاسم..."
+                      className="w-full border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-teal-500 focus:border-teal-500"
+                  />
+                  {searchQuery && (
+                      <button
+                          onClick={() => setSearchQuery('')}
+                          className="absolute top-2.5 left-2 text-gray-400 hover:text-gray-600 p-1"
+                      >
+                          <X size={14} />
+                      </button>
+                  )}
+              </div>
+
               {/* Class Filter */}
               <div className="relative">
                   <Filter className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
@@ -160,106 +196,149 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
 
           <button 
             onClick={handlePrintList}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-bold shadow-md"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-bold shadow-md flex-shrink-0"
           >
               <Printer size={18} />
-              طباعة الكشف
+              <span className="hidden sm:inline">طباعة الكشف</span>
+              <span className="sm:hidden">طباعة</span>
           </button>
       </div>
 
-      {/* Main List View */}
+      {/* Main List View - Grouped by Class */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none">
           {/* Header for Print */}
-          <div className="hidden print:block p-8 border-b border-gray-200 text-center">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">كشف الطلاب - توجيه وإرشاد</h1>
-              <p className="text-gray-500">
-                  الفلتر: {selectedClass === 'all' ? 'جميع الفصول' : selectedClass} | 
-                  التصنيف: {selectedChallengeFilter === 'all' ? 'الكل' : challengeTypes.find(c => c.type === selectedChallengeFilter)?.label}
+          <div className="hidden print:block p-4 md:p-6 border-b-2 border-gray-300 text-center">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">كشف الطلاب - توجيه وإرشاد</h1>
+              <p className="text-sm md:text-base text-gray-600">
+                  {selectedClass === 'all' ? 'جميع الفصول' : `الفصل: ${selectedClass}`} | 
+                  {selectedChallengeFilter === 'all' ? ' كافة الطلاب' : ` ${challengeTypes.find(c => c.type === selectedChallengeFilter)?.label}`}
+                  {searchQuery && ` | البحث: ${searchQuery}`}
+              </p>
+              <p className="text-xs md:text-sm text-gray-500 mt-1">
+                  تاريخ الطباعة: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
           </div>
 
           {filteredStudents.length > 0 ? (
             <>
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-right">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider">
-                        <tr>
-                            <th className="px-6 py-4 font-bold">الطالب</th>
-                            <th className="px-6 py-4 font-bold">الصف</th>
-                            <th className="px-6 py-4 font-bold">حالة التحدي</th>
-                            <th className="px-6 py-4 font-bold text-left print:hidden">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredStudents.map(student => {
-                            const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
-                            return (
-                                <tr key={student.id} className="hover:bg-gray-50 transition-colors group">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 print:hidden">
-                                                <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-gray-800">{student.name}</p>
-                                                <p className="text-xs text-gray-400 font-mono print:text-gray-600">{student.parentPhone}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600">
-                                        {student.classGrade}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${challengeInfo.color}`}>
-                                            <challengeInfo.icon size={12} />
-                                            {challengeInfo.label}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-left print:hidden">
-                                        <button 
-                                            onClick={() => setSelectedStudentForEdit(student)}
-                                            className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
-                                        >
-                                            <Edit size={14} />
-                                            تعديل الحالة
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            {/* Desktop View - Grouped by Class */}
+            <div className="hidden md:block">
+                {sortedClasses.map(classGrade => {
+                    const classStudents = studentsByClass[classGrade];
+                    return (
+                        <div key={classGrade} className="border-b border-gray-200 last:border-b-0 print:break-inside-avoid">
+                            {/* Class Header */}
+                            <div className="bg-teal-50 print:bg-gray-100 border-b border-teal-200 print:border-gray-300 px-6 py-3 print:py-2">
+                                <h2 className="text-lg font-bold text-teal-800 print:text-gray-800 flex items-center justify-between">
+                                    <span>الصف: {classGrade}</span>
+                                    <span className="text-sm font-normal text-teal-600 print:text-gray-600">
+                                        ({classStudents.length} طالب)
+                                    </span>
+                                </h2>
+                            </div>
+                            
+                            {/* Students Table for this Class */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-right">
+                                    <thead className="bg-gray-50 print:bg-gray-100 border-b border-gray-200 print:border-gray-300">
+                                        <tr>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">الطالب</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">رقم ولي الأمر</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">حالة التحدي</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-left print:hidden">إجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 print:divide-gray-200">
+                                        {classStudents.map(student => {
+                                            const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
+                                            return (
+                                                <tr key={student.id} className="hover:bg-gray-50 print:hover:bg-transparent transition-colors group print:break-inside-avoid">
+                                                    <td className="px-4 md:px-6 py-3 print:py-2">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 print:hidden flex-shrink-0">
+                                                                <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="font-bold text-gray-800 text-sm md:text-base print:text-sm">{student.name}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 md:px-6 py-3 print:py-2 text-sm font-mono text-gray-600 print:text-gray-700">
+                                                        {student.parentPhone}
+                                                    </td>
+                                                    <td className="px-4 md:px-6 py-3 print:py-2">
+                                                        <span className={`inline-flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full text-xs font-bold border print:border-gray-300 ${challengeInfo.color} print:bg-white print:text-gray-800`}>
+                                                            <challengeInfo.icon size={12} className="print:hidden" />
+                                                            {challengeInfo.label}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 md:px-6 py-3 print:py-2 text-left print:hidden">
+                                                        <button 
+                                                            onClick={() => setSelectedStudentForEdit(student)}
+                                                            className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
+                                                        >
+                                                            <Edit size={14} />
+                                                            تعديل
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-                {filteredStudents.map(student => {
-                    const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
+            {/* Mobile View - Grouped by Class */}
+            <div className="md:hidden space-y-4">
+                {sortedClasses.map(classGrade => {
+                    const classStudents = studentsByClass[classGrade];
                     return (
-                        <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-3 md:p-4 shadow-sm">
-                            <div className="flex items-center justify-between mb-3 gap-2">
-                                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
-                                    <img src={student.avatar} alt={student.name} className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-gray-200 flex-shrink-0" />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="font-bold text-gray-800 text-sm md:text-base truncate">{student.name}</p>
-                                        <p className="text-xs text-gray-400 font-mono truncate">{student.parentPhone}</p>
-                                    </div>
-                                </div>
-                                <span className={`inline-flex items-center gap-1 px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold border ${challengeInfo.color} flex-shrink-0`}>
-                                    <challengeInfo.icon size={10} className="md:w-3 md:h-3" />
-                                    <span className="hidden sm:inline">{challengeInfo.label}</span>
-                                </span>
+                        <div key={classGrade} className="border border-gray-200 rounded-lg overflow-hidden">
+                            {/* Class Header */}
+                            <div className="bg-teal-50 border-b border-teal-200 px-4 py-2.5">
+                                <h2 className="text-base font-bold text-teal-800 flex items-center justify-between">
+                                    <span>{classGrade}</span>
+                                    <span className="text-xs font-normal text-teal-600">
+                                        ({classStudents.length} طالب)
+                                    </span>
+                                </h2>
                             </div>
-                            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                                <span className="text-sm font-medium text-gray-600">{student.classGrade}</span>
-                                <button 
-                                    onClick={() => setSelectedStudentForEdit(student)}
-                                    className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 md:px-4 py-2 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 w-full md:w-auto justify-center"
-                                >
-                                    <Edit size={14} className="md:w-4 md:h-4 flex-shrink-0" />
-                                    <span>تعديل الحالة</span>
-                                </button>
+                            
+                            {/* Students Cards for this Class */}
+                            <div className="p-3 space-y-2">
+                                {classStudents.map(student => {
+                                    const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
+                                    return (
+                                        <div key={student.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                                            <div className="flex items-center justify-between mb-2 gap-2">
+                                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                    <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="font-bold text-gray-800 text-sm truncate">{student.name}</p>
+                                                        <p className="text-xs text-gray-400 font-mono truncate">{student.parentPhone}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${challengeInfo.color} flex-shrink-0`}>
+                                                    <challengeInfo.icon size={10} />
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                                <span className="text-xs text-gray-600">{challengeInfo.label}</span>
+                                                <button 
+                                                    onClick={() => setSelectedStudentForEdit(student)}
+                                                    className="text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
+                                                >
+                                                    <Edit size={12} />
+                                                    تعديل
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     );
@@ -273,7 +352,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
              </div>
           )}
           
-          <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 font-bold">
+          <div className="p-4 bg-gray-50 print:bg-gray-100 border-t border-gray-200 print:border-gray-300 text-xs md:text-sm text-gray-500 print:text-gray-700 font-bold">
               العدد الإجمالي: {filteredStudents.length} طالب
           </div>
       </div>
