@@ -62,6 +62,25 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       }
   };
 
+  // Check if schedule is empty
+  if (!schedule || schedule.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in relative">
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <Calendar size={64} className="text-gray-300 mb-4" />
+          <h3 className="text-xl font-bold text-gray-700 mb-2">
+            {role === 'admin' ? 'لا يوجد جداول دراسية' : 'لا يوجد جدول دراسي'}
+          </h3>
+          <p className="text-gray-500 max-w-md">
+            {role === 'admin' 
+              ? 'لم يتم إعداد الجداول الدراسية بعد. يرجى الذهاب إلى الإعدادات لإضافة الجداول الدراسية.'
+              : 'لم يتم إعداد جدول دراسي لك بعد. يرجى التواصل مع مدير النظام.'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in relative">
       

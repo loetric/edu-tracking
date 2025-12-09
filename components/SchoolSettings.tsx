@@ -31,6 +31,13 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const [classGrades, setClassGrades] = useState<string[]>(settings?.classGrades || []);
   const [newClassGrade, setNewClassGrade] = useState('');
   
+  // Update classGrades when settings change
+  useEffect(() => {
+    if (settings?.classGrades) {
+      setClassGrades(settings.classGrades);
+    }
+  }, [settings?.classGrades]);
+  
   // Subjects Management State
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [newSubject, setNewSubject] = useState<Partial<Subject>>({ name: '', code: '', description: '' });

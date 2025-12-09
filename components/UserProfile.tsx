@@ -36,51 +36,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onClose }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 animate-in fade-in">
-      {onClose && (
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800">حسابي</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="إغلاق"
-          >
-            <X size={20} className="text-gray-500" />
-          </button>
-        </div>
-      )}
-      
-      {!onClose && (
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">حسابي</h2>
-      )}
-
       <div className="space-y-6">
-        {/* Profile Header */}
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 pb-6 border-b border-gray-200">
-          <div className="relative">
-            <img 
-              src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=random`} 
-              alt={user.name}
-              className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-teal-100 shadow-lg object-cover"
-            />
-            <div className="absolute bottom-0 right-0 bg-teal-500 rounded-full p-2 border-4 border-white shadow-md">
-              <User size={16} className="text-white" />
-            </div>
-          </div>
-          
-          <div className="flex-1 text-center md:text-right">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">{user.name}</h3>
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-              <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-bold border ${getRoleColor(user.role)}`}>
-                {getRoleLabel(user.role)}
-              </span>
-            </div>
-            {user.subject && (
-              <p className="text-sm md:text-base text-gray-600">
-                <span className="font-bold">المادة:</span> {user.subject}
-              </p>
-            )}
-          </div>
-        </div>
 
         {/* User Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

@@ -870,7 +870,9 @@ const App: React.FC = () => {
           const allClassGrades = [...currentClassGrades, ...newClassGrades].sort();
           const updatedSettings = { ...settings, classGrades: allClassGrades };
           await api.updateSettings(updatedSettings);
-          setSettings(updatedSettings);
+          // Refresh settings from database to ensure consistency
+          const freshSettings = await api.getSettings();
+          setSettings(freshSettings);
           
           handleAddLog('تحديث الفصول', `تم إضافة ${newClassGrades.length} فصل جديد تلقائياً من الملف المستورد`);
         }
@@ -1503,6 +1505,26 @@ const App: React.FC = () => {
                 </h1>
                 <p className="text-gray-500 text-sm mt-1">{effectiveSettings.name}</p>
             </div>
+            {activeTab === 'profile' && (
+              <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                <div className="relative">
+                  <img 
+                    src={currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.name}&background=random`} 
+                    alt={currentUser.name}
+                    className="w-16 h-16 rounded-full border-2 border-teal-200 shadow-md object-cover"
+                  />
+                </div>
+                <div className="text-right">
+                  <h3 className="text-lg font-bold text-gray-800">{currentUser.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    {currentUser.role === 'admin' ? 'مدير النظام' : currentUser.role === 'teacher' ? 'معلم' : 'موجه طلابي'}
+                  </p>
+                  {currentUser.email && (
+                    <p className="text-xs text-gray-500 mt-1">{currentUser.email}</p>
+                  )}
+                </div>
+              </div>
+            )}
             
             <div className="flex items-center gap-4">
                 <div className="text-left hidden lg:block">
