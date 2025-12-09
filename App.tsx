@@ -189,9 +189,10 @@ const App: React.FC = () => {
           }
           
           // If we got here, sessionResult should be valid
+          let sessionError: any = null;
           if (sessionResult) {
             session = sessionResult?.data?.session;
-            const sessionError = sessionResult?.error;
+            sessionError = sessionResult?.error;
           } else {
             // sessionResult is null (timeout case handled above)
             // If we have authUser from getUser(), continue
@@ -203,9 +204,11 @@ const App: React.FC = () => {
               }
               return;
             }
+            // If we have authUser from getUser() fallback, skip session error check
+            // and continue to profile fetch
           }
           
-          if (sessionError && !session) {
+          if (sessionError && !session && !authUser) {
             console.warn("=== checkSession: getSession() error ===", sessionError);
             // If getSession failed, try getUser() as fallback
             console.log('=== checkSession: Trying getUser() as fallback ===');
