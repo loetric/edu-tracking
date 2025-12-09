@@ -66,9 +66,16 @@ const App: React.FC = () => {
         console.log('=== checkAndLoadSession: Starting ===');
         
         // First, check localStorage for expired sessions
-        const storedSession = typeof window !== 'undefined' 
-          ? localStorage.getItem('supabase.auth.token') 
-          : null;
+        // Chrome-specific: Wrap in try-catch as Chrome may block localStorage access
+        let storedSession: string | null = null;
+        try {
+          storedSession = typeof window !== 'undefined' 
+            ? localStorage.getItem('supabase.auth.token') 
+            : null;
+        } catch (storageError) {
+          console.warn('=== checkAndLoadSession: localStorage access blocked (Chrome privacy mode?) ===', storageError);
+          // Continue anyway - getUser() will handle it
+        }
         
         if (storedSession) {
           try {
@@ -76,14 +83,26 @@ const App: React.FC = () => {
             if (parsed && parsed.expires_at) {
               const expiresAt = parsed.expires_at * 1000;
               const now = Date.now();
-              if (expiresAt < now) {
+              // Add 5 minute buffer for Chrome's stricter token validation
+              const bufferTime = 5 * 60 * 1000; // 5 minutes
+              if (expiresAt < (now - bufferTime)) {
                 console.warn('=== checkAndLoadSession: Stored session is expired, clearing ===');
-                if (typeof window !== 'undefined') {
-                  const allStorageKeys = Object.keys(localStorage).filter(
-                    key => key.includes('supabase') || key.includes('auth')
-                  );
-                  allStorageKeys.forEach(key => localStorage.removeItem(key));
-                  localStorage.removeItem('supabase.auth.token');
+                try {
+                  if (typeof window !== 'undefined' && window.localStorage) {
+                    const allStorageKeys = Object.keys(localStorage).filter(
+                      key => key.includes('supabase') || key.includes('auth')
+                    );
+                    allStorageKeys.forEach(key => {
+                      try {
+                        localStorage.removeItem(key);
+                      } catch (e) {
+                        // Ignore individual removal errors
+                      }
+                    });
+                    localStorage.removeItem('supabase.auth.token');
+                  }
+                } catch (clearError) {
+                  console.warn('=== checkAndLoadSession: Failed to clear localStorage ===', clearError);
                 }
                 sessionChecked = true;
                 if (isMounted) {
@@ -99,22 +118,28 @@ const App: React.FC = () => {
         }
         
         // Try to get user directly using getUser() - this is more reliable than getSession()
+        // Use a longer timeout for Chrome compatibility
         console.log('=== checkAndLoadSession: Trying getUser() ===');
         try {
-          const { data: { user: authUser }, error: getUserError } = await Promise.race([
-            supabase.auth.getUser(),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('getUser timeout')), 3000)
-            )
-          ]) as any;
+          // Increase timeout for Chrome - it may be slower to access localStorage
+          const getUserPromise = supabase.auth.getUser();
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('getUser timeout')), 5000) // Increased to 5 seconds for Chrome
+          );
+          
+          const result = await Promise.race([getUserPromise, timeoutPromise]) as any;
           
           if (!isMounted) return;
           
+          const { data: { user: authUser }, error: getUserError } = result || { data: { user: null }, error: null };
+          
           if (getUserError) {
             console.warn('=== checkAndLoadSession: getUser() error ===', getUserError);
+            // In Chrome, sometimes getUser() fails even with valid session
+            // Don't immediately log out - let onAuthStateChange handle it
             sessionChecked = true;
             if (isMounted) {
-              setCurrentUser(null);
+              // Don't set currentUser to null here - let INITIAL_SESSION handle it
               setIsAppLoading(false);
             }
             return;
@@ -134,10 +159,13 @@ const App: React.FC = () => {
               }
             } catch (profileError) {
               console.warn('=== checkAndLoadSession: Failed to load profile ===', profileError);
+              // Don't log out on profile error - session might still be valid
             }
           }
         } catch (timeoutError) {
           console.warn('=== checkAndLoadSession: getUser() timeout ===', timeoutError);
+          // In Chrome, timeout might occur even with valid session
+          // Don't log out - let onAuthStateChange handle it
         }
         
         // If we get here, no valid session was found
