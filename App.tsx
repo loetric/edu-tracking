@@ -78,39 +78,43 @@ const App: React.FC = () => {
         }
         
         if (session?.user) {
-          // If session exists, get user profile (with timeout)
-          const timeoutPromise = new Promise<null>((resolve) => 
-            setTimeout(() => resolve(null), CONFIG.TIMEOUTS.SESSION_CHECK)
-          );
+          console.log('Session found in checkSession, fetching user profile...');
+          // Retry logic for getting user
+          let user: User | null = null;
+          let retries = 3;
           
-          const userPromise = api.getCurrentUser();
-          const user = await Promise.race([userPromise, timeoutPromise]);
+          while (retries > 0 && !user) {
+            try {
+              user = await api.getCurrentUser();
+              if (user) break;
+            } catch (userError) {
+              console.warn(`Error getting user in checkSession (${retries} retries left):`, userError);
+              retries--;
+              if (retries > 0) {
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
+          }
           
-          if (isMounted && user) {
+          if (user && isMounted) {
+            console.log('User profile loaded in checkSession:', user.name);
             setCurrentUser(user);
             setIsAppLoading(false);
-            // Data will be loaded by the loadDashboardData effect when currentUser is set
+            // Trigger data loading
+            setIsDataLoading(true);
           } else if (isMounted) {
-            // Timeout or no user - but session exists, so keep trying
-            // Don't clear user immediately - might be network issue
+            // Session exists but no profile after retries - might be new user or profile not created yet
+            console.warn("Session exists but no profile found after retries in checkSession");
+            // Don't sign out - profile might be created by trigger
+            setCurrentUser(null);
             setIsAppLoading(false);
-            // Retry getting user after a short delay
-            setTimeout(async () => {
-              if (isMounted) {
-                try {
-                  const retryUser = await api.getCurrentUser();
-                  if (retryUser && isMounted) {
-                    setCurrentUser(retryUser);
-                  }
-                } catch (retryError) {
-                  console.warn("Retry getCurrentUser failed:", retryError);
-                }
-              }
-            }, 1000);
           }
         } else {
           // No session - clear loading immediately
+          console.log('No session found in checkSession');
           if (isMounted) {
+            setCurrentUser(null);
             setIsAppLoading(false);
           }
         }
@@ -148,21 +152,45 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
+      console.log('Auth state change:', event, session?.user?.id);
+      
       // Handle INITIAL_SESSION only once - don't clear user on refresh
       if (event === 'INITIAL_SESSION') {
-        if (hasInitialSession) return; // Already handled
+        if (hasInitialSession) {
+          console.log('INITIAL_SESSION already handled, skipping');
+          return; // Already handled
+        }
         hasInitialSession = true;
         
         if (session?.user) {
+          console.log('INITIAL_SESSION: Session found, loading user...');
           try {
-            const user = await api.getCurrentUser();
+            // Retry logic for getting user
+            let user: User | null = null;
+            let retries = 3;
+            
+            while (retries > 0 && !user) {
+              try {
+                user = await api.getCurrentUser();
+                if (user) break;
+              } catch (error) {
+                console.warn(`Error getting user in INITIAL_SESSION (${retries} retries left):`, error);
+                retries--;
+                if (retries > 0) {
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+            }
+            
             if (user && isMounted) {
+              console.log('INITIAL_SESSION: User loaded:', user.name);
               setCurrentUser(user);
               setIsAppLoading(false);
-              // Load data after user is set
-              // This will be handled by the loadDashboardData effect below
+              // Trigger data loading
+              setIsDataLoading(true);
             } else if (isMounted) {
               // Session exists but no profile - don't log out, just clear loading
+              console.warn('INITIAL_SESSION: Session exists but no profile found');
               setIsAppLoading(false);
             }
           } catch (error) {
@@ -174,6 +202,7 @@ const App: React.FC = () => {
           }
         } else if (isMounted) {
           // No session in INITIAL_SESSION - user is logged out
+          console.log('INITIAL_SESSION: No session found');
           setCurrentUser(null);
           setIsAppLoading(false);
         }
@@ -182,13 +211,16 @@ const App: React.FC = () => {
       
       // Handle other events
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // User signed in or token refreshed
+        console.log('Auth event:', event, 'Session:', session?.user?.id);
         if (session?.user) {
           try {
             const user = await api.getCurrentUser();
             if (user && isMounted) {
+              console.log('User loaded in auth state change:', user.name);
               setCurrentUser(user);
               setIsAppLoading(false);
+              // Trigger data loading
+              setIsDataLoading(true);
             } else if (isMounted) {
               setIsAppLoading(false);
             }
@@ -203,6 +235,7 @@ const App: React.FC = () => {
         }
       } else if (event === 'SIGNED_OUT') {
         // User explicitly signed out - clear state
+        console.log('User signed out');
         if (isMounted) {
           setCurrentUser(null);
           setStudents([]);
@@ -337,18 +370,40 @@ const App: React.FC = () => {
           let freshSettings: SchoolSettings | null = null;
           let freshUsers: User[] = [];
           
-          try {
-            freshSettings = await api.getSettings();
-          } catch (settingsError: any) {
-            console.error("Failed to load settings in dashboard", settingsError);
-            // Continue even if settings fail
+          // Retry logic for settings
+          let settingsRetries = 3;
+          while (settingsRetries > 0 && !freshSettings) {
+            try {
+              freshSettings = await api.getSettings();
+              if (freshSettings) break;
+            } catch (settingsError: any) {
+              console.warn(`Failed to load settings in dashboard (${settingsRetries} retries left):`, settingsError);
+              settingsRetries--;
+              if (settingsRetries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            }
           }
           
-          try {
-            freshUsers = await api.getUsers();
-          } catch (usersError: any) {
-            console.error("Failed to load users in dashboard", usersError);
-            // Continue with empty users array
+          if (!freshSettings) {
+            console.error("Failed to load settings after retries");
+          }
+          
+          // Retry logic for users
+          let usersRetries = 3;
+          while (usersRetries > 0) {
+            try {
+              freshUsers = await api.getUsers();
+              break;
+            } catch (usersError: any) {
+              console.warn(`Failed to load users in dashboard (${usersRetries} retries left):`, usersError);
+              usersRetries--;
+              if (usersRetries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              } else {
+                freshUsers = [];
+              }
+            }
           }
           
           if (freshSettings) {
@@ -1031,8 +1086,11 @@ const App: React.FC = () => {
     reportLink: ''
   } as SchoolSettings;
 
-  // Auth Screen
-  if (!currentUser) {
+  // Auth Screen - Check both currentUser and session to ensure consistency
+  // This prevents issues on mobile where state might not sync properly
+  const shouldShowLogin = !currentUser;
+  
+  if (shouldShowLogin) {
     return (
       <LoginScreen 
         onLogin={handleLogin} 

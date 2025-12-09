@@ -16,10 +16,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storage: window.localStorage,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     storageKey: 'supabase.auth.token',
-    // Force fresh session check on every page load
-    flowType: 'pkce'
+    flowType: 'pkce',
+    // Ensure session persists across refreshes
+    debug: false
   },
   // Disable caching for database queries
   db: {
@@ -30,6 +31,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0'
+    }
+  },
+  // Real-time configuration
+  realtime: {
+    params: {
+      eventsPerSecond: 10
     }
   }
 });
