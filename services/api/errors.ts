@@ -84,6 +84,25 @@ export const handleSupabaseError = (error: any): ApiError => {
     );
   }
 
+  // Database errors during user creation
+  if (
+    errorMessage.includes('database error') ||
+    errorMessage.includes('database error saving') ||
+    errorCode === 'unexpected_failure' ||
+    (error.status === 500 && errorMessage.includes('user'))
+  ) {
+    console.log('=== handleSupabaseError: Detected database error during user creation ===');
+    return new ApiError(
+      'DATABASE_ERROR',
+      'حدث خطأ في قاعدة البيانات أثناء إنشاء المستخدم. يرجى التحقق من:\n' +
+      '• أن trigger function موجودة وتعمل بشكل صحيح\n' +
+      '• أن RLS policies تسمح بإنشاء profiles\n' +
+      '• أن جميع الحقول المطلوبة موجودة',
+      500,
+      error
+    );
+  }
+
   // Password errors
   if (error.message?.includes('Password') || error.message?.includes('password')) {
     return new ApiError(
