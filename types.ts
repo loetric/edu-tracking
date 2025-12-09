@@ -9,6 +9,7 @@ export interface User {
   role: Role;
   avatar?: string;
   subject?: string; // For teachers
+  email?: string; // Email address for user management
 }
 
 export interface SchoolSettings {

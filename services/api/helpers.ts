@@ -11,7 +11,8 @@ export const mapProfileToUser = (profile: any): User => {
     username: profile.username,
     name: profile.name,
     role: profile.role as Role,
-    avatar: profile.avatar
+    avatar: profile.avatar,
+    email: profile.email || undefined // Include email if available
   } as User;
 };
 
