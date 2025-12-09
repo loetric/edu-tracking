@@ -18,6 +18,8 @@ DROP POLICY IF EXISTS "Authenticated can insert profiles" ON public.profiles;
 -- This policy allows:
 -- 1. Authenticated users to insert their own profile
 -- 2. SECURITY DEFINER functions (like trigger) to insert profiles
+-- Note: SECURITY DEFINER functions run with the privileges of the function owner,
+-- so they can bypass RLS. However, we still need a permissive policy to allow it.
 CREATE POLICY "Allow profile insert" ON public.profiles
     FOR INSERT
     WITH CHECK (
@@ -25,7 +27,9 @@ CREATE POLICY "Allow profile insert" ON public.profiles
         auth.role() = 'authenticated' OR
         -- Allow if it's the user's own profile (id matches auth.uid())
         auth.uid() = id OR
-        -- Allow SECURITY DEFINER functions (triggers) - this is always true for functions
+        -- Allow all inserts (needed for SECURITY DEFINER trigger functions)
+        -- The trigger function runs with elevated privileges, but RLS still checks policies
+        -- By allowing all inserts here, we ensure the trigger can work
         true
     );
 
