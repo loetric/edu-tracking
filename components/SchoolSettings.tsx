@@ -686,6 +686,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                            <tr>
                                <th className="p-4">الاسم</th>
                                <th className="p-4">اسم المستخدم</th>
+                               <th className="p-4">البريد الإلكتروني</th>
                                <th className="p-4">الصلاحية</th>
                                <th className="p-4">إجراءات</th>
                            </tr>
