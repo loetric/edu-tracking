@@ -18,6 +18,7 @@ import { AVAILABLE_TEACHERS } from './constants';
 import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
 import { api } from './services/api';
+import { fetchUserProfile } from './services/api/helpers';
 import { supabase } from './services/supabase';
 import { useModal } from './hooks/useModal';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -74,31 +75,77 @@ const App: React.FC = () => {
           storedSessionLength: storedSession?.length
         });
         
-        // FINAL FIX: Use getUser() directly instead of getSession()
-        // getUser() is more reliable and faster, and it validates the session server-side
+        // FINAL FIX: Try getSession() first (reads from localStorage), then getUser() as fallback
+        // getSession() is faster for initial check, getUser() validates server-side
         let user: User | null = null;
         let authUser: any = null;
+        let session: any = null;
         
         try {
-          console.log('=== checkSession: Using getUser() for session check ===');
-          const { data: { user: authUserData }, error: getUserError } = await supabase.auth.getUser();
+          // First try getSession() - it reads from localStorage directly
+          console.log('=== checkSession: Trying getSession() first ===');
+          const sessionResult = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 3000))
+          ]) as any;
           
           if (!isMounted) {
             console.log('=== checkSession: Component unmounted, aborting ===');
             return;
           }
           
-          if (getUserError) {
-            console.warn("=== checkSession: getUser() error ===", getUserError);
-            // If we have stored session but getUser failed, might be network issue
-            if (storedSession) {
-              console.log('=== checkSession: Stored session exists but getUser failed, will wait for auth state change ===');
-              // Don't clear user - wait for auth state change to handle it
+          session = sessionResult?.data?.session;
+          const sessionError = sessionResult?.error;
+          
+          if (sessionError && !session) {
+            console.warn("=== checkSession: getSession() error ===", sessionError);
+            // If getSession failed, try getUser() as fallback
+            console.log('=== checkSession: Trying getUser() as fallback ===');
+            try {
+              const { data: { user: authUserData }, error: getUserError } = await supabase.auth.getUser();
+              if (getUserError) {
+                console.warn("=== checkSession: getUser() also failed ===", getUserError);
+                // No session at all
+                if (!storedSession) {
+                  sessionChecked = true;
+                  if (isMounted) {
+                    setCurrentUser(null);
+                    setIsAppLoading(false);
+                  }
+                  return;
+                }
+                // Stored session exists but both failed - wait for auth state change
+                console.log('=== checkSession: Stored session exists but both methods failed, will wait for auth state change ===');
+                sessionChecked = true;
+                setIsAppLoading(false);
+                return;
+              }
+              if (authUserData) {
+                authUser = authUserData;
+                console.log('=== checkSession: Got user from getUser() fallback ===', authUser.id);
+              }
+            } catch (getUserErr) {
+              console.warn("=== checkSession: getUser() exception ===", getUserErr);
+              if (!storedSession) {
+                sessionChecked = true;
+                if (isMounted) {
+                  setCurrentUser(null);
+                  setIsAppLoading(false);
+                }
+                return;
+              }
               sessionChecked = true;
               setIsAppLoading(false);
               return;
             }
-            // No stored session and getUser failed - user is logged out
+          } else if (session?.user) {
+            authUser = session.user;
+            console.log('=== checkSession: Got session from getSession(), userId:', authUser.id);
+          }
+          
+          if (!authUser) {
+            // No user found - user is logged out
+            console.log('=== checkSession: No auth user found - user is logged out ===');
             sessionChecked = true;
             if (isMounted) {
               setCurrentUser(null);
