@@ -66,14 +66,49 @@ const App: React.FC = () => {
         console.log('=== checkSession: Starting session check ===');
         
         // CRITICAL: Check localStorage first to see if session exists
+        // Also check for other Supabase storage keys that might exist
         const storedSession = typeof window !== 'undefined' 
           ? localStorage.getItem('supabase.auth.token') 
           : null;
         
+        // Check for other possible Supabase storage keys
+        const allStorageKeys = typeof window !== 'undefined' 
+          ? Object.keys(localStorage).filter(key => key.includes('supabase') || key.includes('auth'))
+          : [];
+        
         console.log('=== checkSession: localStorage check ===', {
           hasStoredSession: !!storedSession,
-          storedSessionLength: storedSession?.length
+          storedSessionLength: storedSession?.length,
+          allStorageKeys: allStorageKeys
         });
+        
+        // If we have a stored session but it's invalid, clear it
+        if (storedSession) {
+          try {
+            // Try to parse the session to see if it's valid JSON
+            const parsed = JSON.parse(storedSession);
+            if (parsed && parsed.expires_at) {
+              const expiresAt = parsed.expires_at * 1000; // Convert to milliseconds
+              const now = Date.now();
+              if (expiresAt < now) {
+                console.warn('=== checkSession: Stored session is expired, clearing ===');
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('supabase.auth.token');
+                  // Clear all Supabase-related keys
+                  allStorageKeys.forEach(key => localStorage.removeItem(key));
+                }
+              } else {
+                console.log('=== checkSession: Stored session is valid, expires at:', new Date(expiresAt).toISOString());
+              }
+            }
+          } catch (parseError) {
+            console.warn('=== checkSession: Failed to parse stored session, clearing ===', parseError);
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('supabase.auth.token');
+              allStorageKeys.forEach(key => localStorage.removeItem(key));
+            }
+          }
+        }
         
         // FINAL FIX: Try getSession() first (reads from localStorage), then getUser() as fallback
         // getSession() is faster for initial check, getUser() validates server-side
