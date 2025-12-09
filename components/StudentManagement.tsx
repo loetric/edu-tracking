@@ -14,9 +14,10 @@ interface StudentManagementProps {
   onDeleteStudent: (studentId: string) => void;
   onImportStudents: (students: Student[]) => Promise<void>;
   settings: SchoolSettings;
+  role?: 'admin' | 'teacher' | 'counselor';
 }
 
-export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onUpdateStudent, onDeleteStudent, onImportStudents, settings }) => {
+export const StudentManagement: React.FC<StudentManagementProps> = ({ students, onAddStudent, onUpdateStudent, onDeleteStudent, onImportStudents, settings, role = 'admin' }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [showAddForm, setShowAddForm] = useState(false);
   const [showImportForm, setShowImportForm] = useState(false);
@@ -595,7 +596,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">التحدي</th>
+                {role === 'counselor' && (
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700">التحدي</th>
+                )}
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">حالة الطالب</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">إجراءات</th>
               </tr>
@@ -617,15 +620,17 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                       <td className="px-6 py-4 text-sm text-gray-800">{student.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{student.classGrade}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{student.parentPhone || '-'}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          student.challenge === 'none' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-orange-100 text-orange-700'
-                        }`}>
-                          {student.challenge === 'none' ? 'عادي' : student.challenge}
-                        </span>
-                      </td>
+                      {role === 'counselor' && (
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                            student.challenge === 'none' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-orange-100 text-orange-700'
+                          }`}>
+                            {student.challenge === 'none' ? 'عادي' : student.challenge}
+                          </span>
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           (student.status || 'regular') === 'regular'
@@ -661,7 +666,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
+                  <td colSpan={role === 'counselor' ? 8 : 7} className="px-6 py-12 text-center text-gray-400">
                     {hasActiveFilters ? 'لا توجد نتائج تطابق الفلاتر' : 'لا يوجد طلاب مسجلين'}
                   </td>
                 </tr>
@@ -690,13 +695,15 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                     </div>
                   </div>
                   <div className="flex flex-col gap-1 items-end">
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
-                      student.challenge === 'none' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-orange-100 text-orange-700'
-                    }`}>
-                      {student.challenge === 'none' ? 'عادي' : student.challenge}
-                    </span>
+                    {role === 'counselor' && (
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
+                        student.challenge === 'none' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {student.challenge === 'none' ? 'عادي' : student.challenge}
+                      </span>
+                    )}
                     <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold flex-shrink-0 ${
                       (student.status || 'regular') === 'regular'
                         ? 'bg-blue-100 text-blue-700'

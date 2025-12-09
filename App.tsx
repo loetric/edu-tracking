@@ -1119,7 +1119,7 @@ const App: React.FC = () => {
         `• جميع الاحتياطات\n\n` +
         `⚠️ سيتم الحفاظ على:\n` +
         `• بيانات المستخدمين والصلاحيات\n` +
-        `• إعدادات المدرسة\n\n` +
+        `• إعدادات المدرسة (بما في ذلك قائمة الفصول)\n\n` +
         `هل أنت متأكد من حذف جميع هذه البيانات؟\n` +
         `هذه العملية لا يمكن التراجع عنها!`;
       
@@ -1330,6 +1330,7 @@ const App: React.FC = () => {
             onDeleteStudent={handleDeleteStudent}
             onImportStudents={handleImport}
             settings={effectiveSettings}
+            role={currentUser.role}
           />
         );
       case 'import':
@@ -1364,6 +1365,14 @@ const App: React.FC = () => {
             />
         );
       case 'schedule':
+        if (!currentUser) {
+          return (
+            <div className="flex flex-col items-center justify-center h-96">
+              <Loader2 size={CONFIG.UI.LOADER_SIZE_MEDIUM} className="text-teal-500 animate-spin mb-4" />
+              <p className="text-gray-500 font-bold">جارٍ التحميل...</p>
+            </div>
+          );
+        }
         return (
             <TeacherSchedule 
                 schedule={currentUser.role === 'admin' ? effectiveSchedule : currentSchedule} 
@@ -1505,39 +1514,23 @@ const App: React.FC = () => {
                 </h1>
                 <p className="text-gray-500 text-sm mt-1">{effectiveSettings.name}</p>
             </div>
-            {activeTab === 'profile' && (
-              <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                <div className="relative">
-                  <img 
-                    src={currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.name}&background=random`} 
-                    alt={currentUser.name}
-                    className="w-16 h-16 rounded-full border-2 border-teal-200 shadow-md object-cover"
-                  />
-                </div>
-                <div className="text-right">
-                  <h3 className="text-lg font-bold text-gray-800">{currentUser.name}</h3>
-                  <p className="text-sm text-gray-600">
-                    {currentUser.role === 'admin' ? 'مدير النظام' : currentUser.role === 'teacher' ? 'معلم' : 'موجه طلابي'}
-                  </p>
-                  {currentUser.email && (
-                    <p className="text-xs text-gray-500 mt-1">{currentUser.email}</p>
-                  )}
-                </div>
-              </div>
-            )}
-            
             <div className="flex items-center gap-4">
-                <div className="text-left hidden lg:block">
-                    <p className="text-sm font-bold text-gray-800">
-                        {currentUser.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        {currentUser.role === 'admin' ? 'صلاحيات كاملة' : currentUser.role === 'teacher' ? 'معلم مادة' : 'توجيه وإرشاد'}
-                    </p>
-                </div>
-                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
-                    <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full" />
-                </div>
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className="flex items-center gap-3 md:gap-4 bg-white p-2 md:p-3 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <div className="text-left hidden lg:block">
+                      <p className="text-sm font-bold text-gray-800">
+                          {currentUser.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                          {currentUser.role === 'admin' ? 'صلاحيات كاملة' : currentUser.role === 'teacher' ? 'معلم مادة' : 'توجيه وإرشاد'}
+                      </p>
+                  </div>
+                  <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
+                      <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full" />
+                  </div>
+                </button>
             </div>
         </header>
 

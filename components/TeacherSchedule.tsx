@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ScheduleItem, Role, Subject } from '../types';
 import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle } from 'lucide-react';
+import { CustomSelect } from './CustomSelect';
 
 interface TeacherScheduleProps {
   schedule: ScheduleItem[];
@@ -217,19 +218,19 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
                 {filterType !== 'all' && (
                     <div className="relative flex-1 w-full min-w-[150px]">
-                        <ChevronDown className="absolute top-3 right-3 text-gray-400 pointer-events-none z-10" size={16} />
-                        <select
+                        <CustomSelect
                             value={filterValue}
-                            onChange={(e) => setFilterValue(e.target.value)}
-                            className="w-full bg-white border-gray-300 rounded-lg py-2 pl-4 pr-10 text-sm font-bold focus:ring-teal-500 focus:border-teal-500 appearance-none border"
-                        >
-                            {filterType === 'teacher' 
-                                ? uniqueTeachers.map(t => <option key={t} value={t}>{t}</option>)
-                                : filterType === 'class'
-                                ? uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)
-                                : uniqueSubjects.map(s => <option key={s} value={s}>{s}</option>)
+                            onChange={(value) => setFilterValue(value)}
+                            options={
+                                filterType === 'teacher' 
+                                    ? uniqueTeachers.map(t => ({ value: t, label: t }))
+                                    : filterType === 'class'
+                                    ? uniqueClasses.map(c => ({ value: c, label: c }))
+                                    : uniqueSubjects.map(s => ({ value: s, label: s }))
                             }
-                        </select>
+                            placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
+                            className="w-full text-sm"
+                        />
                     </div>
                 )}
                 

@@ -23,7 +23,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
     { id: 'reports', label: 'التقارير', icon: FileText, roles: ['admin', 'counselor'] },
     { id: 'files', label: 'مشاركة الملفات', icon: FolderOpen, roles: ['admin', 'teacher', 'counselor'] },
     { id: 'archive', label: 'سجل الحركات', icon: History, roles: ['admin'] },
-    { id: 'profile', label: 'حسابي', icon: User, roles: ['admin', 'teacher', 'counselor'] },
   ];
 
   const allowedItems = allItems.filter(item => item.roles.includes(role || ''));

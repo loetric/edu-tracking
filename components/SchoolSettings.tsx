@@ -530,12 +530,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     <div className="max-w-4xl mx-auto">
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
-        <button onClick={() => setActiveTab('general')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
-        <button onClick={() => setActiveTab('users')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
-        <button onClick={() => setActiveTab('password')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
-        <button onClick={() => setActiveTab('classes')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
-        <button onClick={() => setActiveTab('subjects')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
-        <button onClick={() => setActiveTab('setup')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
+        <div className="flex flex-wrap gap-2 md:gap-3 border-b border-gray-200 pb-2">
+          <button onClick={() => setActiveTab('general')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
+          <button onClick={() => setActiveTab('users')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
+          <button onClick={() => setActiveTab('password')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
+          <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
+          <button onClick={() => setActiveTab('classes')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
+          <button onClick={() => setActiveTab('subjects')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
+          <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
+          <button onClick={() => setActiveTab('setup')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">

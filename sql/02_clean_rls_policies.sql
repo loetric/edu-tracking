@@ -306,41 +306,40 @@ CREATE POLICY "Select files based on access level" ON public.files
     );
 
 -- Only admins can insert files
+-- Using the same pattern as schedule policies which work correctly
 CREATE POLICY "Admin can insert files" ON public.files
     FOR INSERT
     WITH CHECK (
-        auth.role() = 'authenticated' AND 
         EXISTS (
-            SELECT 1 FROM public.profiles p
+            SELECT 1 FROM public.profiles p 
             WHERE p.id = auth.uid() AND p.role = 'admin'
         )
     );
 
 -- Only admins can update files
+-- Using the same pattern as schedule policies which work correctly
 CREATE POLICY "Admin can update files" ON public.files
     FOR UPDATE
     USING (
-        auth.role() = 'authenticated' AND 
         EXISTS (
-            SELECT 1 FROM public.profiles p
+            SELECT 1 FROM public.profiles p 
             WHERE p.id = auth.uid() AND p.role = 'admin'
         )
     )
     WITH CHECK (
-        auth.role() = 'authenticated' AND 
         EXISTS (
-            SELECT 1 FROM public.profiles p
+            SELECT 1 FROM public.profiles p 
             WHERE p.id = auth.uid() AND p.role = 'admin'
         )
     );
 
 -- Only admins can delete files
+-- Using the same pattern as schedule policies which work correctly
 CREATE POLICY "Admin can delete files" ON public.files
     FOR DELETE
     USING (
-        auth.role() = 'authenticated' AND 
         EXISTS (
-            SELECT 1 FROM public.profiles p
+            SELECT 1 FROM public.profiles p 
             WHERE p.id = auth.uid() AND p.role = 'admin'
         )
     );
