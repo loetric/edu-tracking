@@ -444,7 +444,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       {/* Upload/Edit Modal */}
       {showUploadForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
             <div className="bg-teal-600 p-6 text-white flex justify-between items-center">
               <h3 className="text-xl font-bold">
                 {editingFile ? 'تعديل ملف' : 'رفع ملف جديد'}

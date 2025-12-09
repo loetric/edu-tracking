@@ -17,12 +17,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
   // Define all possible items
   const allItems = [
     { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, roles: ['admin', 'teacher', 'counselor'] },
-    { id: 'schedule', label: 'جدولي الدراسي', icon: Calendar, roles: ['teacher'] },
-    { id: 'tracking', label: 'متابعة الطلاب', icon: Users, roles: ['admin', 'teacher'] },
+    { id: 'schedule', label: 'جدولي الدراسي', icon: Calendar, roles: ['teacher', 'admin'] }, // Both teacher and admin see schedule, but with different labels
+    { id: 'tracking', label: 'متابعة الطلاب', icon: Users, roles: ['teacher'] }, // Only teachers see "متابعة الطلاب"
     { id: 'students', label: 'إدارة الطلاب', icon: UserCog, roles: ['admin'] },
     { id: 'reports', label: 'التقارير', icon: FileText, roles: ['admin', 'counselor'] },
     { id: 'files', label: 'مشاركة الملفات', icon: FolderOpen, roles: ['admin', 'teacher', 'counselor'] },
     { id: 'archive', label: 'سجل الحركات', icon: History, roles: ['admin'] },
+    { id: 'profile', label: 'حسابي', icon: User, roles: ['admin', 'teacher', 'counselor'] },
   ];
 
   const allowedItems = allItems.filter(item => item.roles.includes(role || ''));
@@ -72,24 +73,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
 
         <nav className="flex-1 overflow-y-auto py-2 md:py-4 scrollbar-thin scrollbar-thumb-gray-200">
           <ul className="space-y-0.5 md:space-y-1 px-2 md:px-3">
-            {allowedItems.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    onClose(); // Close sidebar on mobile when item selected
-                  }}
-                  className={`w-full flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group ${
-                    activeTab === item.id
-                      ? 'bg-teal-50 text-teal-700 font-bold border-r-4 border-teal-500 shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon size={16} className={`md:w-5 md:h-5 transition-colors flex-shrink-0 ${activeTab === item.id ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                  <span className="text-xs md:text-base">{item.label}</span>
-                </button>
-              </li>
-            ))}
+            {allowedItems.map((item) => {
+              // Custom label for schedule based on role
+              const displayLabel = item.id === 'schedule' && role === 'admin' 
+                ? 'الجداول الدراسية' 
+                : item.id === 'schedule' && role === 'teacher'
+                ? 'جدولي الدراسي'
+                : item.label;
+              
+              return (
+                <li key={`${item.id}-${item.roles.join('-')}`}>
+                  <button
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      onClose(); // Close sidebar on mobile when item selected
+                    }}
+                    className={`w-full flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group ${
+                      activeTab === item.id
+                        ? 'bg-teal-50 text-teal-700 font-bold border-r-4 border-teal-500 shadow-sm'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <item.icon size={16} className={`md:w-5 md:h-5 transition-colors flex-shrink-0 ${activeTab === item.id ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                    <span className="text-xs md:text-base">{displayLabel}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
 
           {role === 'admin' && (

@@ -188,12 +188,17 @@ export const updateStudentChallenge = async (
   challenge: ChallengeType
 ): Promise<void> => {
   try {
-    await supabase
+    const { error } = await supabase
       .from('students')
       .update({ challenge })
       .eq('id', studentId);
+
+    if (error) {
+      console.error('Update student challenge error:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error('Update student challenge error:', error);
+    console.error('Update student challenge exception:', error);
     throw error;
   }
 };

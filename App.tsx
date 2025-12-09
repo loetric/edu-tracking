@@ -956,9 +956,20 @@ const App: React.FC = () => {
   };
 
   const handleUpdateChallenge = async (studentId: string, challenge: ChallengeType) => {
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, challenge } : s)); // Optimistic
-      await api.updateStudentChallenge(studentId, challenge);
-      handleAddLog('تحديث حالة', 'قام الموجه بتحديث حالة طالب');
+      try {
+          setStudents(prev => prev.map(s => s.id === studentId ? { ...s, challenge } : s)); // Optimistic
+          await api.updateStudentChallenge(studentId, challenge);
+          handleAddLog('تحديث حالة', 'قام الموجه بتحديث حالة طالب');
+          alert({ message: 'تم تحديث حالة الطالب بنجاح', type: 'success' });
+      } catch (error) {
+          console.error('Error updating student challenge:', error);
+          // Revert optimistic update
+          setStudents(prev => prev.map(s => s.id === studentId ? { ...s, challenge: s.challenge } : s));
+          alert({ 
+              message: 'فشل في تحديث حالة الطالب. يرجى المحاولة مرة أخرى.', 
+              type: 'error' 
+          });
+      }
   };
 
   const handleSendMessage = async (text: string) => {

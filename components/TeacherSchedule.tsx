@@ -9,6 +9,8 @@ interface TeacherScheduleProps {
   onAssignSubstitute?: (scheduleId: string, teacher: string) => void;
   role?: Role;
   availableTeachers?: string[]; // Dynamic list of teachers
+  subjects?: Subject[]; // List of subjects for filtering
+  onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
 }
 
 export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule }) => {
@@ -158,30 +160,45 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                     <span>تصفية العرض حسب:</span>
                 </div>
                 
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex flex-wrap gap-2 w-full md:w-auto">
                     <button 
                         onClick={() => { setFilterType('all'); setFilterValue(''); }}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'all' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
                     >
                         الكل
                     </button>
                     <button 
-                        onClick={() => { setFilterType('teacher'); setFilterValue(uniqueTeachers[0] || ''); }}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        onClick={() => { 
+                            setFilterType('teacher'); 
+                            setFilterValue(uniqueTeachers[0] || ''); 
+                        }}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'teacher' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
                     >
                         المعلم
                     </button>
                     <button 
-                        onClick={() => { setFilterType('class'); setFilterValue(uniqueClasses[0] || ''); }}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                        onClick={() => { 
+                            setFilterType('class'); 
+                            setFilterValue(uniqueClasses[0] || ''); 
+                        }}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
                     >
                         الصف
+                    </button>
+                    <button 
+                        onClick={() => { 
+                            setFilterType('subject'); 
+                            setFilterValue(uniqueSubjects[0] || ''); 
+                        }}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-colors ${filterType === 'subject' ? 'bg-teal-600 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
+                    >
+                        المادة
                     </button>
                 </div>
 
                 {filterType !== 'all' && (
-                    <div className="relative flex-1 w-full">
-                        <ChevronDown className="absolute top-3 right-3 text-gray-400 pointer-events-none" size={16} />
+                    <div className="relative flex-1 w-full min-w-[150px]">
+                        <ChevronDown className="absolute top-3 right-3 text-gray-400 pointer-events-none z-10" size={16} />
                         <select
                             value={filterValue}
                             onChange={(e) => setFilterValue(e.target.value)}
@@ -189,9 +206,59 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                         >
                             {filterType === 'teacher' 
                                 ? uniqueTeachers.map(t => <option key={t} value={t}>{t}</option>)
-                                : uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)
+                                : filterType === 'class'
+                                ? uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)
+                                : uniqueSubjects.map(s => <option key={s} value={s}>{s}</option>)
                             }
                         </select>
+                    </div>
+                )}
+                
+                {/* Quick Navigation Buttons */}
+                {filterType !== 'all' && filterValue && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => {
+                                if (filterType === 'teacher') {
+                                    const currentIndex = uniqueTeachers.indexOf(filterValue);
+                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueTeachers.length - 1;
+                                    setFilterValue(uniqueTeachers[prevIndex]);
+                                } else if (filterType === 'class') {
+                                    const currentIndex = uniqueClasses.indexOf(filterValue);
+                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueClasses.length - 1;
+                                    setFilterValue(uniqueClasses[prevIndex]);
+                                } else if (filterType === 'subject') {
+                                    const currentIndex = uniqueSubjects.indexOf(filterValue);
+                                    const prevIndex = currentIndex > 0 ? currentIndex - 1 : uniqueSubjects.length - 1;
+                                    setFilterValue(uniqueSubjects[prevIndex]);
+                                }
+                            }}
+                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                            title="السابق"
+                        >
+                            ←
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (filterType === 'teacher') {
+                                    const currentIndex = uniqueTeachers.indexOf(filterValue);
+                                    const nextIndex = currentIndex < uniqueTeachers.length - 1 ? currentIndex + 1 : 0;
+                                    setFilterValue(uniqueTeachers[nextIndex]);
+                                } else if (filterType === 'class') {
+                                    const currentIndex = uniqueClasses.indexOf(filterValue);
+                                    const nextIndex = currentIndex < uniqueClasses.length - 1 ? currentIndex + 1 : 0;
+                                    setFilterValue(uniqueClasses[nextIndex]);
+                                } else if (filterType === 'subject') {
+                                    const currentIndex = uniqueSubjects.indexOf(filterValue);
+                                    const nextIndex = currentIndex < uniqueSubjects.length - 1 ? currentIndex + 1 : 0;
+                                    setFilterValue(uniqueSubjects[nextIndex]);
+                                }
+                            }}
+                            className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                            title="التالي"
+                        >
+                            →
+                        </button>
                     </div>
                 )}
             </div>

@@ -49,7 +49,8 @@ export const uploadFile = async (
     // Upload to Supabase Storage
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `${CONFIG.FILES.STORAGE_BUCKET}/${fileName}`;
+    // File path should be just the fileName, not including bucket name
+    const filePath = fileName;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from(CONFIG.FILES.STORAGE_BUCKET)
@@ -60,6 +61,10 @@ export const uploadFile = async (
 
     if (uploadError) {
       console.error('File upload error:', uploadError);
+      // If bucket doesn't exist, provide a helpful error message
+      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+        throw new Error(`Bucket "${CONFIG.FILES.STORAGE_BUCKET}" غير موجود. يرجى إنشاء الـ bucket في Supabase Storage أولاً.`);
+      }
       throw uploadError;
     }
 

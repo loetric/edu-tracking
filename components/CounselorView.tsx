@@ -54,9 +54,14 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       window.print();
   };
 
-  // Filter Logic
+  // Filter Logic - Only show students when a class is selected (not 'all')
   const filteredStudents = students.filter(student => {
-      const matchClass = selectedClass === 'all' || student.classGrade === selectedClass;
+      // Require a specific class to be selected (not 'all')
+      if (selectedClass === 'all') {
+          return false; // Don't show any students until a class is selected
+      }
+      
+      const matchClass = student.classGrade === selectedClass;
       const matchChallenge = selectedChallengeFilter === 'all' 
           ? true 
           : selectedChallengeFilter === 'active_issues' // Special filter for any issue
@@ -140,68 +145,95 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       )}
 
       {/* Filters & Actions Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto flex-1">
-              {/* Search by Name */}
-              <div className="relative flex-1 md:flex-initial min-w-[200px]">
-                  <Search className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
-                  <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="بحث بالاسم..."
-                      className="w-full border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-teal-500 focus:border-teal-500"
-                  />
-                  {searchQuery && (
-                      <button
-                          onClick={() => setSearchQuery('')}
-                          className="absolute top-2.5 left-2 text-gray-400 hover:text-gray-600 p-1"
-                      >
-                          <X size={14} />
-                      </button>
-                  )}
+      <div className="bg-gradient-to-r from-teal-50 to-blue-50 p-4 md:p-6 rounded-xl shadow-sm border border-teal-200 print:hidden">
+          <div className="flex flex-col gap-4">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                      <Filter size={20} className="text-teal-600" />
+                      فلترة الطلاب
+                  </h3>
+                  <button 
+                    onClick={handlePrintList}
+                    className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-bold shadow-md text-sm md:text-base"
+                  >
+                      <Printer size={18} />
+                      <span className="hidden sm:inline">طباعة الكشف</span>
+                      <span className="sm:hidden">طباعة</span>
+                  </button>
               </div>
 
-              {/* Class Filter */}
-              <div className="relative">
-                  <Filter className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
-                  <CustomSelect
-                    value={selectedClass}
-                    onChange={(value) => setSelectedClass(value)}
-                    options={[
-                      { value: 'all', label: 'جميع الفصول' },
-                      ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
-                    ]}
-                    placeholder="جميع الفصول"
-                    className="w-full md:w-48 pl-10"
-                  />
-              </div>
+              {/* Filters Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Class Filter - Required */}
+                  <div className="relative">
+                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                          <Filter size={14} className="text-teal-600" />
+                          الفصل <span className="text-red-500">*</span>
+                      </label>
+                      <CustomSelect
+                        value={selectedClass}
+                        onChange={(value) => setSelectedClass(value)}
+                        options={[
+                          { value: 'all', label: 'اختر الفصل' },
+                          ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
+                        ]}
+                        placeholder="اختر الفصل"
+                        className="w-full"
+                      />
+                      {selectedClass === 'all' && (
+                          <p className="text-xs text-red-500 mt-1">يجب اختيار فصل لعرض الطلاب</p>
+                      )}
+                  </div>
 
-              {/* Challenge Filter */}
-              <div className="relative">
-                  <ShieldAlert className="absolute top-3 right-3 text-gray-400" size={16} />
-                  <CustomSelect
-                    value={selectedChallengeFilter}
-                    onChange={(value) => setSelectedChallengeFilter(value)}
-                    options={[
-                      { value: 'all', label: 'كافة الطلاب' },
-                      { value: 'active_issues', label: 'جميع الحالات (لديهم تحديات)' },
-                      ...challengeTypes.filter(c => c.type !== 'none').map(c => ({ value: c.type, label: c.label }))
-                    ]}
-                    placeholder="كافة الطلاب"
-                    className="w-full md:w-56"
-                  />
+                  {/* Search by Name */}
+                  <div className="relative">
+                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                          <Search size={14} className="text-teal-600" />
+                          البحث بالاسم
+                      </label>
+                      <div className="relative">
+                          <Search className="absolute top-3 right-3 text-gray-400 z-10 pointer-events-none" size={16} />
+                          <input
+                              type="text"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              placeholder="ابحث عن طالب..."
+                              className="w-full border-gray-300 rounded-lg py-2.5 pl-4 pr-10 text-sm focus:ring-teal-500 focus:border-teal-500"
+                              disabled={selectedClass === 'all'}
+                          />
+                          {searchQuery && (
+                              <button
+                                  onClick={() => setSearchQuery('')}
+                                  className="absolute top-2.5 left-2 text-gray-400 hover:text-gray-600 p-1"
+                              >
+                                  <X size={14} />
+                              </button>
+                          )}
+                      </div>
+                  </div>
+
+                  {/* Challenge Filter */}
+                  <div className="relative">
+                      <label className="block text-xs md:text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                          <ShieldAlert size={14} className="text-teal-600" />
+                          حالة التحدي
+                      </label>
+                      <CustomSelect
+                        value={selectedChallengeFilter}
+                        onChange={(value) => setSelectedChallengeFilter(value)}
+                        options={[
+                          { value: 'all', label: 'كافة الطلاب' },
+                          { value: 'active_issues', label: 'جميع الحالات (لديهم تحديات)' },
+                          ...challengeTypes.filter(c => c.type !== 'none').map(c => ({ value: c.type, label: c.label }))
+                        ]}
+                        placeholder="كافة الطلاب"
+                        className="w-full"
+                        disabled={selectedClass === 'all'}
+                      />
+                  </div>
               </div>
           </div>
-
-          <button 
-            onClick={handlePrintList}
-            className="flex items-center gap-2 px-6 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-bold shadow-md flex-shrink-0"
-          >
-              <Printer size={18} />
-              <span className="hidden sm:inline">طباعة الكشف</span>
-              <span className="sm:hidden">طباعة</span>
-          </button>
       </div>
 
       {/* Main List View - Grouped by Class */}
@@ -345,6 +377,12 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                 })}
             </div>
             </>
+          ) : selectedClass === 'all' ? (
+             <div className="p-12 text-center text-gray-400 flex flex-col items-center">
+                 <Filter size={48} className="mb-4 opacity-20" />
+                 <p className="font-bold text-gray-600 mb-2">الرجاء اختيار فصل لعرض الطلاب</p>
+                 <p className="text-sm text-gray-400">اختر الفصل من القائمة أعلاه لعرض قائمة الطلاب</p>
+             </div>
           ) : (
              <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                  <Search size={48} className="mb-4 opacity-20" />
@@ -360,7 +398,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       {/* Edit Challenge Modal */}
       {selectedStudentForEdit && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:hidden">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-hidden">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-visible">
                   <div className="bg-teal-600 p-6 text-white flex justify-between items-start">
                       <div className="flex items-center gap-4">
                           <div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">

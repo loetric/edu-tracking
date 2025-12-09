@@ -375,7 +375,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       {/* Edit Student Modal */}
       {editingStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4">
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-y-auto">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-y-auto overflow-x-hidden">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-3 md:p-6 flex justify-between items-center z-10">
               <h3 className="text-base md:text-2xl font-bold text-gray-800">تعديل بيانات الطالب</h3>
               <button
@@ -493,7 +493,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       {/* Import Modal */}
       {showImportForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center z-10">
               <h3 className="text-xl md:text-2xl font-bold text-gray-800">استيراد الطلاب من Excel</h3>
               <button
