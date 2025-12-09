@@ -699,6 +699,9 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                    </td>
                                    <td className="p-3 md:p-4 font-mono text-gray-600 text-xs md:text-sm">{user.username}</td>
                                    <td className="p-3 md:p-4">
+                                       <span className="text-gray-600 text-xs md:text-sm break-all">{user.email || 'غير متوفر'}</span>
+                                   </td>
+                                   <td className="p-3 md:p-4">
                                        <span className={`px-2 py-1 rounded-full text-[10px] md:text-xs font-bold ${
                                            user.role === 'admin' ? 'bg-red-100 text-red-700' :
                                            user.role === 'counselor' ? 'bg-purple-100 text-purple-700' :
@@ -741,6 +744,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                    <div>
                                        <p className="font-bold text-gray-800">{user.name}</p>
                                        <p className="text-xs text-gray-500 font-mono">{user.username}</p>
+                                       <p className="text-xs text-gray-400 break-all">{user.email || 'غير متوفر'}</p>
                                    </div>
                                </div>
                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${

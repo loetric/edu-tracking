@@ -26,6 +26,7 @@ export const api = {
   getUsers: users.getUsers,
   updateUserProfile: users.updateUserProfile,
   updateUsers: users.updateUsers,
+  deleteUser: users.deleteUser,
   checkEmailExists: users.checkEmailExists,
   checkUsernameExists: users.checkUsernameExists,
 
