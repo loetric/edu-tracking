@@ -141,6 +141,17 @@ CREATE TABLE IF NOT EXISTS public.substitutions (
 );
 
 -- ============================================
+-- STEP 10.5: Create Subjects Table
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.subjects (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL UNIQUE,
+    code text,
+    description text,
+    created_at timestamptz DEFAULT now() NOT NULL
+);
+
+-- ============================================
 -- STEP 11: Create Indexes for Performance
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_students_classGrade ON public.students("classGrade");
@@ -149,6 +160,7 @@ CREATE INDEX IF NOT EXISTS idx_daily_records_date ON public.daily_records(date);
 CREATE INDEX IF NOT EXISTS idx_schedule_day ON public.schedule(day);
 CREATE INDEX IF NOT EXISTS idx_substitutions_date ON public.substitutions(date);
 CREATE INDEX IF NOT EXISTS idx_substitutions_scheduleItemId ON public.substitutions(scheduleItemId);
+CREATE INDEX IF NOT EXISTS idx_subjects_name ON public.subjects(name);
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
 
@@ -164,6 +176,7 @@ ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.completed_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.substitutions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- Success Message
