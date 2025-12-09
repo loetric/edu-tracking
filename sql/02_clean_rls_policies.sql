@@ -13,6 +13,7 @@ DROP POLICY IF EXISTS "Users can select own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Allow insert for authenticated" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Admin can read all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admin can delete profiles" ON public.profiles;
 
 -- Allow public read for login (username lookup)
 CREATE POLICY "Public can select profiles for login" ON public.profiles
