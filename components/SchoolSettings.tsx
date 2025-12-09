@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { supabase } from '../services/supabase';
-import { SchoolSettings, User, Role, ScheduleItem, Subject } from '../types';
+import { SchoolSettings, User, Role, ScheduleItem, Subject, Student } from '../types';
 import { PasswordReset } from './PasswordReset';
 import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2 } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
@@ -16,13 +16,14 @@ interface SchoolSettingsProps {
   users: User[];
   schedule?: ScheduleItem[];
   currentUser: User | null;
+  students?: Student[]; // Add students prop to extract class grades
   onSave: (settings: SchoolSettings) => void;
   onUpdateUsers: (users: User[]) => void;
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
   onReset?: () => void;
 }
 
-export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
+export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects'>('general');
@@ -37,6 +38,40 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       setClassGrades(settings.classGrades);
     }
   }, [settings?.classGrades]);
+
+  // Auto-add class grades from students when classes tab is opened
+  useEffect(() => {
+    if (activeTab === 'classes' && students.length > 0) {
+      // Extract unique class grades from students
+      const studentClassGrades = Array.from(
+        new Set(
+          students
+            .map(s => s.classGrade?.trim())
+            .filter(grade => grade && grade.length > 0)
+        )
+      ).sort();
+
+      // Merge with existing classGrades from settings (avoid duplicates)
+      if (studentClassGrades.length > 0) {
+        const currentClassGrades = settings?.classGrades || [];
+        const newClassGrades = studentClassGrades.filter(
+          grade => !currentClassGrades.includes(grade)
+        );
+
+        if (newClassGrades.length > 0) {
+          // Auto-add new class grades from students
+          const mergedClassGrades = [...currentClassGrades, ...newClassGrades].sort();
+          setClassGrades(mergedClassGrades);
+        } else if (currentClassGrades.length > 0 && classGrades.length === 0) {
+          // If no new grades but settings has grades, sync them
+          setClassGrades(currentClassGrades);
+        }
+      } else if (settings?.classGrades && settings.classGrades.length > 0 && classGrades.length === 0) {
+        // If no student grades but settings has grades, sync them
+        setClassGrades(settings.classGrades);
+      }
+    }
+  }, [activeTab, students, settings?.classGrades]); // Only run when tab changes to 'classes' or students/settings change
   
   // Subjects Management State
   const [subjects, setSubjects] = useState<Subject[]>([]);

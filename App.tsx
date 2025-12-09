@@ -1361,6 +1361,7 @@ const App: React.FC = () => {
                 users={users}
                 schedule={schedule}
                 currentUser={currentUser}
+                students={students}
                 onSave={async (s) => { 
                    await api.updateSettings(s); 
                    // Always refresh from database to ensure consistency
