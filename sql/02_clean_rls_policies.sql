@@ -154,6 +154,8 @@ CREATE POLICY "Delete daily records for authenticated" ON public.daily_records
 -- ============================================
 DROP POLICY IF EXISTS "Insert chat by authenticated" ON public.chat_messages;
 DROP POLICY IF EXISTS "Select chat for authenticated" ON public.chat_messages;
+DROP POLICY IF EXISTS "Delete chat for authenticated" ON public.chat_messages;
+DROP POLICY IF EXISTS "Admin can delete all chat messages" ON public.chat_messages;
 
 -- Authenticated users can send messages
 CREATE POLICY "Insert chat by authenticated" ON public.chat_messages
@@ -164,6 +166,21 @@ CREATE POLICY "Insert chat by authenticated" ON public.chat_messages
 CREATE POLICY "Select chat for authenticated" ON public.chat_messages
     FOR SELECT
     USING (auth.role() = 'authenticated');
+
+-- Authenticated users can delete their own messages
+CREATE POLICY "Delete chat for authenticated" ON public.chat_messages
+    FOR DELETE
+    USING (auth.role() = 'authenticated');
+
+-- Admins can delete all chat messages
+CREATE POLICY "Admin can delete all chat messages" ON public.chat_messages
+    FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.profiles p 
+            WHERE p.id = auth.uid() AND p.role = 'admin'
+        )
+    );
 
 -- ============================================
 -- LOGS POLICIES
