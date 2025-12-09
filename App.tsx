@@ -132,56 +132,19 @@ const App: React.FC = () => {
           }
         }
         
-        // Try to get user directly using getUser() - this is more reliable than getSession()
-        // Use a longer timeout for Chrome compatibility
-        console.log('=== checkAndLoadSession: Trying getUser() ===');
-        try {
-          // Increase timeout for Chrome - it may be slower to access localStorage
-          const getUserPromise = supabase.auth.getUser();
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('getUser timeout')), 5000) // Increased to 5 seconds for Chrome
-          );
-          
-          const result = await Promise.race([getUserPromise, timeoutPromise]) as any;
-          
-          if (!isMounted) return;
-          
-          const { data: { user: authUser }, error: getUserError } = result || { data: { user: null }, error: null };
-          
-          if (getUserError) {
-            console.warn('=== checkAndLoadSession: getUser() error ===', getUserError);
-            // In Chrome, sometimes getUser() fails even with valid session
-            // Don't immediately log out - let onAuthStateChange handle it
-            sessionChecked = true;
-            if (isMounted) {
-              // Don't set currentUser to null here - let INITIAL_SESSION handle it
-              setIsAppLoading(false);
-            }
-            return;
-          }
-          
-          if (authUser) {
-            console.log('=== checkAndLoadSession: Auth user found, loading profile ===', authUser.id);
-            try {
-              const user = await fetchUserProfile(authUser.id);
-              if (user && isMounted) {
-                console.log('=== checkAndLoadSession: User loaded ===', user.name);
-                setCurrentUser(user);
-                setIsAppLoading(false);
-                setIsDataLoading(true);
-                sessionChecked = true;
-                return;
-              }
-            } catch (profileError) {
-              console.warn('=== checkAndLoadSession: Failed to load profile ===', profileError);
-              // Don't log out on profile error - session might still be valid
-            }
-          }
-        } catch (timeoutError) {
-          console.warn('=== checkAndLoadSession: getUser() timeout ===', timeoutError);
-          // In Chrome, timeout might occur even with valid session
-          // Don't log out - let onAuthStateChange handle it
+        // Chrome-specific: getUser() often times out even with valid session
+        // Instead of using getUser() with timeout, rely on onAuthStateChange
+        // which is more reliable in Chrome
+        console.log('=== checkAndLoadSession: Skipping getUser() - relying on onAuthStateChange for Chrome ===');
+        
+        // Just clear loading state and let onAuthStateChange handle session
+        // This prevents hanging on getUser() timeout
+        sessionChecked = true;
+        if (isMounted) {
+          setIsAppLoading(false);
+          // Don't set currentUser to null - let INITIAL_SESSION or SIGNED_IN handle it
         }
+        return;
         
         // If we get here, no valid session was found
         sessionChecked = true;
@@ -200,13 +163,14 @@ const App: React.FC = () => {
     
     checkAndLoadSession();
     
-    // Fallback timeout
+    // Fallback timeout (increased for Chrome)
     const fallbackTimeout = setTimeout(() => {
       if (isMounted && !sessionChecked) {
-        console.warn('=== checkAndLoadSession: Timeout ===');
+        console.warn('=== checkAndLoadSession: Fallback timeout (10s) ===');
+        sessionChecked = true;
         setIsAppLoading(false);
       }
-    }, 5000);
+    }, 10000); // Increased from 5s to 10s for Chrome
     
     return () => {
       isMounted = false;
