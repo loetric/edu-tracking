@@ -34,7 +34,21 @@ const App: React.FC = () => {
   const [isDataLoading, setIsDataLoading] = useState(false);
   
   // Application State
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Persist activeTab in localStorage to restore on refresh
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedTab = localStorage.getItem('edu-tracking-activeTab');
+      return savedTab || 'dashboard';
+    }
+    return 'dashboard';
+  });
+  
+  // Update localStorage when activeTab changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('edu-tracking-activeTab', activeTab);
+    }
+  }, [activeTab]);
   const [students, setStudents] = useState<Student[]>([]);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [settings, setSettings] = useState<SchoolSettings | null>(null); // Null until loaded

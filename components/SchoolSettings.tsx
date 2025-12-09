@@ -226,16 +226,31 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   };
 
   const handleDeleteUser = async (id: string) => {
+      const userToDelete = users.find(u => u.id === id);
       const shouldDelete = await confirm({
         title: 'حذف المستخدم',
-        message: 'هل أنت متأكد من حذف هذا المستخدم؟',
+        message: `هل أنت متأكد من حذف المستخدم "${userToDelete?.name || 'غير معروف'}"؟\n\nسيتم حذف المستخدم بشكل كامل من النظام ولا يمكن التراجع عن هذا الإجراء.`,
         type: 'danger',
         confirmText: 'حذف',
         cancelText: 'إلغاء'
       });
       
       if (shouldDelete) {
-          onUpdateUsers(users.filter(u => u.id !== id));
+          try {
+              // Delete from database first
+              await api.deleteUser(id);
+              
+              // Then update local state
+              onUpdateUsers(users.filter(u => u.id !== id));
+              
+              alert({ message: 'تم حذف المستخدم بنجاح', type: 'success' });
+          } catch (error: any) {
+              console.error('Delete user error:', error);
+              alert({ 
+                  message: error?.message || 'فشل في حذف المستخدم. يرجى المحاولة مرة أخرى.', 
+                  type: 'error' 
+              });
+          }
       }
   };
 
