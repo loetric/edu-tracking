@@ -178,9 +178,18 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                   result.error.toLowerCase().includes('invalid email');
               
               if (isEmailError) {
-                  setEmailError(result.error);
+                  // Extract the main error message (first line) for the input field
+                  const firstLine = result.error.split('\n')[0];
+                  setEmailError(firstLine);
+                  // Show full error message in alert
+                  alert({ 
+                      message: result.error, 
+                      type: 'error',
+                      title: 'خطأ في البريد الإلكتروني'
+                  });
+              } else {
+                  alert({ message: result.error, type: 'error' });
               }
-              alert({ message: result.error, type: 'error' });
               setIsAddingUser(true); // Re-open form on error
               return;
           }

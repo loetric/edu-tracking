@@ -72,9 +72,22 @@ export const handleSupabaseError = (error: any): ApiError => {
     console.log('=== handleSupabaseError: Detected email validation error ===');
     // Provide more specific error message if Supabase rejects the email
     let errorMsg = CONFIG.ERRORS.INVALID_EMAIL;
-    if (errorCode === 'email_address_invalid' || errorMessage.includes('email address') && errorMessage.includes('invalid')) {
-      // Supabase has stricter validation - might reject common test emails
-      errorMsg = 'البريد الإلكتروني غير مقبول من قبل النظام. يرجى استخدام بريد إلكتروني صحيح وصالح.';
+    if (errorCode === 'email_address_invalid' || (errorMessage.includes('email address') && errorMessage.includes('invalid'))) {
+      // Supabase has stricter validation - rejects common test emails and disposable emails
+      // Check if it's a common test email
+      const testEmails = ['test@gmail.com', 'test@test.com', 'admin@test.com', 'user@example.com'];
+      const isTestEmail = testEmails.some(testEmail => errorMessage.toLowerCase().includes(testEmail.toLowerCase()));
+      
+      if (isTestEmail) {
+        errorMsg = 'البريد الإلكتروني "test@gmail.com" أو الإيميلات التجريبية الأخرى غير مسموحة لأسباب أمنية.\n' +
+                   'يرجى استخدام بريد إلكتروني حقيقي وصالح (مثل: yourname@gmail.com أو yourname@company.com)';
+      } else {
+        errorMsg = 'البريد الإلكتروني غير مقبول من قبل النظام.\n' +
+                   'قد يكون السبب:\n' +
+                   '• استخدام بريد إلكتروني تجريبي أو مؤقت\n' +
+                   '• البريد الإلكتروني محظور من قبل النظام\n' +
+                   '• يرجى استخدام بريد إلكتروني حقيقي وصالح';
+      }
     }
     return new ApiError(
       'INVALID_EMAIL',
