@@ -62,15 +62,23 @@ export const handleSupabaseError = (error: any): ApiError => {
     errorMessage.includes('email is invalid') ||
     errorMessage.includes('email must be') ||
     errorMessage.includes('invalid email address') ||
+    errorMessage.includes('email address') && errorMessage.includes('invalid') ||
     errorCode === 'invalid_email' ||
+    errorCode === 'email_address_invalid' ||
     errorCode === 'validation_failed' ||
     errorCode === 'invalid_request' ||
-    error.status === 400
+    (error.status === 400 && errorMessage.includes('email'))
   ) {
     console.log('=== handleSupabaseError: Detected email validation error ===');
+    // Provide more specific error message if Supabase rejects the email
+    let errorMsg = CONFIG.ERRORS.INVALID_EMAIL;
+    if (errorCode === 'email_address_invalid' || errorMessage.includes('email address') && errorMessage.includes('invalid')) {
+      // Supabase has stricter validation - might reject common test emails
+      errorMsg = 'البريد الإلكتروني غير مقبول من قبل النظام. يرجى استخدام بريد إلكتروني صحيح وصالح.';
+    }
     return new ApiError(
       'INVALID_EMAIL',
-      CONFIG.ERRORS.INVALID_EMAIL,
+      errorMsg,
       400,
       error
     );
