@@ -35,16 +35,22 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
     // Add fetch options to prevent hanging
     fetch: (url, options = {}) => {
+      // Create AbortController for timeout (more compatible than AbortSignal.timeout)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+      
       return fetch(url, {
         ...options,
-        // Add timeout to prevent hanging
-        signal: AbortSignal.timeout(8000) // 8 second timeout
+        signal: controller.signal
       }).catch((error) => {
+        clearTimeout(timeoutId);
         // If timeout, throw a more descriptive error
         if (error.name === 'AbortError' || error.name === 'TimeoutError') {
           throw new Error('Request timeout - connection to database is slow or unavailable');
         }
         throw error;
+      }).finally(() => {
+        clearTimeout(timeoutId);
       });
     }
   },
