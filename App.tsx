@@ -171,64 +171,57 @@ const App: React.FC = () => {
           
           // We have authUser, now fetch the profile
           sessionChecked = true;
-            
-            // Now fetch the profile
-            let retries = 5;
-            while (retries > 0 && !user) {
-              try {
-                console.log(`=== checkSession: Attempting to get profile (${retries} retries left) ===`);
-                user = await api.getCurrentUser();
-                if (user) {
-                  console.log('=== checkSession: User profile loaded successfully:', user.name);
-                  userLoaded = true;
-                  break;
-                }
-                console.warn(`getCurrentUser returned null (${retries} retries left)`);
-              } catch (userError) {
-                console.warn(`Error getting user in checkSession (${retries} retries left):`, userError);
+          console.log('=== checkSession: Auth user found, fetching profile, userId:', authUser.id);
+          
+          // Use fetchUserProfile directly with authUser.id instead of getCurrentUser
+          // to avoid another getSession() call
+          let retries = 5;
+          while (retries > 0 && !user) {
+            try {
+              console.log(`=== checkSession: Attempting to get profile (${retries} retries left) ===`);
+              user = await fetchUserProfile(authUser.id);
+              if (user) {
+                console.log('=== checkSession: User profile loaded successfully:', user.name);
+                userLoaded = true;
+                break;
               }
-              retries--;
-              if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-              }
+              console.warn(`fetchUserProfile returned null (${retries} retries left)`);
+            } catch (userError) {
+              console.warn(`Error getting user in checkSession (${retries} retries left):`, userError);
             }
+            retries--;
+            if (retries > 0) {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          }
+          
+          if (user && isMounted) {
+            console.log('=== checkSession: Setting current user:', user.name);
+            setCurrentUser(user);
+            setIsAppLoading(false);
+            setIsDataLoading(true);
+          } else if (isMounted) {
+            // Session exists but no profile - CRITICAL: Don't log out!
+            console.warn("=== checkSession: Session exists but profile not found after retries ===");
+            console.warn("=== checkSession: NOT clearing currentUser - session is still valid ===");
+            setIsAppLoading(false);
             
-            if (user && isMounted) {
-              console.log('=== checkSession: Setting current user:', user.name);
-              setCurrentUser(user);
-              setIsAppLoading(false);
-              setIsDataLoading(true);
-            } else if (isMounted) {
-              // Session exists but no profile - CRITICAL: Don't log out!
-              console.warn("=== checkSession: Session exists but profile not found after retries ===");
-              console.warn("=== checkSession: NOT clearing currentUser - session is still valid ===");
-              setIsAppLoading(false);
-              
-              // Retry after delay
-              setTimeout(async () => {
-                if (isMounted) {
-                  try {
-                    console.log('=== checkSession: Retrying profile fetch after delay ===');
-                    const delayedUser = await api.getCurrentUser();
-                    if (delayedUser) {
-                      console.log('=== checkSession: User profile loaded after delay:', delayedUser.name);
-                      setCurrentUser(delayedUser);
-                      setIsDataLoading(true);
-                    }
-                  } catch (err) {
-                    console.warn('=== checkSession: Delayed user fetch failed ===', err);
+            // Retry after delay
+            setTimeout(async () => {
+              if (isMounted) {
+                try {
+                  console.log('=== checkSession: Retrying profile fetch after delay ===');
+                  const delayedUser = await fetchUserProfile(authUser.id);
+                  if (delayedUser) {
+                    console.log('=== checkSession: User profile loaded after delay:', delayedUser.name);
+                    setCurrentUser(delayedUser);
+                    setIsDataLoading(true);
                   }
+                } catch (err) {
+                  console.warn('=== checkSession: Delayed user fetch failed ===', err);
                 }
-              }, 3000);
-            }
-          } else {
-            // No auth user - user is logged out
-            console.log('=== checkSession: No auth user found - user is logged out ===');
-            sessionChecked = true;
-            if (isMounted) {
-              setCurrentUser(null);
-              setIsAppLoading(false);
-            }
+              }
+            }, 3000);
           }
         } catch (error) {
           console.error("=== checkSession: Exception in getUser() ===", error);
