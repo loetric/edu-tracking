@@ -200,7 +200,21 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               return;
           }
           
+          // Add user to local state without calling updateUsers
+          // The profile was already created by trigger, so we just add it to the list
+          // Calling updateUsers would try to upsert all profiles, which may fail for new users
           onUpdateUsers([...users, result.user]);
+          
+          // Refresh users list from database to ensure consistency
+          // This is safer than trying to update all profiles at once
+          try {
+              const allUsers = await api.getUsers();
+              onUpdateUsers(allUsers);
+          } catch (refreshError) {
+              console.warn('Failed to refresh users list, using local state:', refreshError);
+              // If refresh fails, still use the local state
+          }
+          
           setNewUser({ role: 'teacher', name: '', username: '', password: '', email: '' });
           setEmailError('');
           alert({ message: 'تم إضافة المستخدم بنجاح', type: 'success' });
