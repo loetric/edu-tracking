@@ -32,6 +32,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0'
+    },
+    // Add fetch options to prevent hanging
+    fetch: (url, options = {}) => {
+      return fetch(url, {
+        ...options,
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(8000) // 8 second timeout
+      }).catch((error) => {
+        // If timeout, throw a more descriptive error
+        if (error.name === 'AbortError' || error.name === 'TimeoutError') {
+          throw new Error('Request timeout - connection to database is slow or unavailable');
+        }
+        throw error;
+      });
     }
   },
   // Real-time configuration

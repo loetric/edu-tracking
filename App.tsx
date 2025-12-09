@@ -55,14 +55,17 @@ const App: React.FC = () => {
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
 
   // --- Check for existing session on mount ---
-  // SIMPLIFIED: Rely on onAuthStateChange to handle session - just clear expired sessions
+  // CRITICAL: Check session immediately and load user if exists
+  // Don't rely only on onAuthStateChange as INITIAL_SESSION may not fire reliably
   useEffect(() => {
     let isMounted = true;
+    let sessionChecked = false;
     
-    // Only check and clear expired sessions from localStorage
-    // Let onAuthStateChange handle the actual session loading
-    const cleanupExpiredSession = () => {
+    const checkAndLoadSession = async () => {
       try {
+        console.log('=== checkAndLoadSession: Starting ===');
+        
+        // First, check localStorage for expired sessions
         const storedSession = typeof window !== 'undefined' 
           ? localStorage.getItem('supabase.auth.token') 
           : null;
@@ -74,7 +77,7 @@ const App: React.FC = () => {
               const expiresAt = parsed.expires_at * 1000;
               const now = Date.now();
               if (expiresAt < now) {
-                console.warn('=== cleanupExpiredSession: Stored session is expired, clearing ===');
+                console.warn('=== checkAndLoadSession: Stored session is expired, clearing ===');
                 if (typeof window !== 'undefined') {
                   const allStorageKeys = Object.keys(localStorage).filter(
                     key => key.includes('supabase') || key.includes('auth')
@@ -82,31 +85,89 @@ const App: React.FC = () => {
                   allStorageKeys.forEach(key => localStorage.removeItem(key));
                   localStorage.removeItem('supabase.auth.token');
                 }
+                sessionChecked = true;
+                if (isMounted) {
+                  setCurrentUser(null);
+                  setIsAppLoading(false);
+                }
+                return;
               }
             }
           } catch (parseError) {
-            console.warn('=== cleanupExpiredSession: Failed to parse stored session ===', parseError);
+            console.warn('=== checkAndLoadSession: Failed to parse stored session ===', parseError);
           }
         }
+        
+        // Try to get user directly using getUser() - this is more reliable than getSession()
+        console.log('=== checkAndLoadSession: Trying getUser() ===');
+        try {
+          const { data: { user: authUser }, error: getUserError } = await Promise.race([
+            supabase.auth.getUser(),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('getUser timeout')), 3000)
+            )
+          ]) as any;
+          
+          if (!isMounted) return;
+          
+          if (getUserError) {
+            console.warn('=== checkAndLoadSession: getUser() error ===', getUserError);
+            sessionChecked = true;
+            if (isMounted) {
+              setCurrentUser(null);
+              setIsAppLoading(false);
+            }
+            return;
+          }
+          
+          if (authUser) {
+            console.log('=== checkAndLoadSession: Auth user found, loading profile ===', authUser.id);
+            try {
+              const user = await fetchUserProfile(authUser.id);
+              if (user && isMounted) {
+                console.log('=== checkAndLoadSession: User loaded ===', user.name);
+                setCurrentUser(user);
+                setIsAppLoading(false);
+                setIsDataLoading(true);
+                sessionChecked = true;
+                return;
+              }
+            } catch (profileError) {
+              console.warn('=== checkAndLoadSession: Failed to load profile ===', profileError);
+            }
+          }
+        } catch (timeoutError) {
+          console.warn('=== checkAndLoadSession: getUser() timeout ===', timeoutError);
+        }
+        
+        // If we get here, no valid session was found
+        sessionChecked = true;
+        if (isMounted) {
+          setCurrentUser(null);
+          setIsAppLoading(false);
+        }
       } catch (error) {
-        console.error('=== cleanupExpiredSession: Error ===', error);
+        console.error('=== checkAndLoadSession: Exception ===', error);
+        sessionChecked = true;
+        if (isMounted) {
+          setIsAppLoading(false);
+        }
       }
     };
     
-    cleanupExpiredSession();
+    checkAndLoadSession();
     
-    // Clear loading after a short delay - onAuthStateChange will handle the rest
-    const clearLoadingTimeout = setTimeout(() => {
-      if (isMounted) {
-        // If no user is set after 3 seconds, clear loading
-        // onAuthStateChange will set the user if session exists
+    // Fallback timeout
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && !sessionChecked) {
+        console.warn('=== checkAndLoadSession: Timeout ===');
         setIsAppLoading(false);
       }
-    }, 3000);
+    }, 5000);
     
     return () => {
       isMounted = false;
-      clearTimeout(clearLoadingTimeout);
+      clearTimeout(fallbackTimeout);
     };
   }, []);
 
