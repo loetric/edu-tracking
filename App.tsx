@@ -131,52 +131,34 @@ const App: React.FC = () => {
         if (session?.user) {
           console.log('=== INITIAL_SESSION: Session found, userId:', session.user.id);
           try {
-            // Retry logic for getting user with more attempts
-            let user: User | null = null;
-            let retries = 5; // Increased retries
-            
-            while (retries > 0 && !user) {
-              try {
-                console.log(`=== INITIAL_SESSION: Attempting to get user (${retries} retries left) ===`);
-                user = await api.getCurrentUser();
-                if (user) {
-                  console.log('=== INITIAL_SESSION: User loaded:', user.name);
-                  break;
-                }
-                console.warn(`getCurrentUser returned null (${retries} retries left)`);
-              } catch (error) {
-                console.warn(`Error getting user in INITIAL_SESSION (${retries} retries left):`, error);
-              }
-              retries--;
-              if (retries > 0) {
-                await new Promise(resolve => setTimeout(resolve, 2000));
-              }
-            }
+            // CRITICAL: Use fetchUserProfile directly with session.user.id
+            // DO NOT use api.getCurrentUser() as it calls getSession() which hangs
+            console.log('=== INITIAL_SESSION: Loading user profile directly ===');
+            const user = await fetchUserProfile(session.user.id);
             
             if (user && isMounted) {
-              console.log('=== INITIAL_SESSION: Setting current user:', user.name);
+              console.log('=== INITIAL_SESSION: User loaded:', user.name);
               setCurrentUser(user);
               setIsAppLoading(false);
-              // Trigger data loading
               setIsDataLoading(true);
             } else if (isMounted) {
               // Session exists but no profile - CRITICAL: Don't log out!
               console.warn('=== INITIAL_SESSION: Session exists but no profile found ===');
               console.warn('=== INITIAL_SESSION: NOT clearing currentUser - session is still valid ===');
-              // Only clear loading, don't log out
               setIsAppLoading(false);
-              // Try one more time after a longer delay
+              // Retry after delay
               setTimeout(async () => {
                 if (isMounted) {
                   try {
-                    const delayedUser = await api.getCurrentUser();
+                    console.log('=== INITIAL_SESSION: Retrying profile fetch after delay ===');
+                    const delayedUser = await fetchUserProfile(session.user.id);
                     if (delayedUser) {
                       console.log('=== INITIAL_SESSION: User profile loaded after delay:', delayedUser.name);
                       setCurrentUser(delayedUser);
                       setIsDataLoading(true);
                     }
                   } catch (err) {
-                    console.warn('INITIAL_SESSION: Delayed user fetch failed:', err);
+                    console.warn('=== INITIAL_SESSION: Delayed user fetch failed ===', err);
                   }
                 }
               }, 3000);
@@ -186,6 +168,21 @@ const App: React.FC = () => {
             if (isMounted) {
               // Don't log out on error - session might still be valid
               setIsAppLoading(false);
+              // Retry after delay
+              setTimeout(async () => {
+                if (isMounted && session?.user) {
+                  try {
+                    const retryUser = await fetchUserProfile(session.user.id);
+                    if (retryUser) {
+                      console.log('=== INITIAL_SESSION: User profile loaded on retry:', retryUser.name);
+                      setCurrentUser(retryUser);
+                      setIsDataLoading(true);
+                    }
+                  } catch (retryErr) {
+                    console.warn('=== INITIAL_SESSION: Retry failed ===', retryErr);
+                  }
+                }
+              }, 3000);
             }
           }
         } else if (isMounted) {

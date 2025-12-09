@@ -12,20 +12,22 @@ import { validateEmail, validatePassword } from './validation';
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
     console.log('getCurrentUser: Checking session...');
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // CRITICAL: Use getUser() instead of getSession() to avoid hanging
+    // getUser() validates the session server-side and is more reliable
+    const { data: { user: authUser }, error: getUserError } = await supabase.auth.getUser();
     
-    if (sessionError) {
-      console.warn('getCurrentUser: Session error:', sessionError);
+    if (getUserError) {
+      console.warn('getCurrentUser: getUser() error:', getUserError);
       return null;
     }
     
-    if (!session?.user) {
-      console.log('getCurrentUser: No session or user');
+    if (!authUser) {
+      console.log('getCurrentUser: No auth user');
       return null;
     }
     
-    console.log('getCurrentUser: Session found, userId:', session.user.id);
-    const user = await fetchUserProfile(session.user.id);
+    console.log('getCurrentUser: Auth user found, userId:', authUser.id);
+    const user = await fetchUserProfile(authUser.id);
     
     if (user) {
       console.log('getCurrentUser: User profile loaded:', user.name);
