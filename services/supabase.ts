@@ -21,11 +21,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'supabase.auth.token',
     flowType: 'pkce',
     // Ensure session persists across refreshes
-    debug: false,
-    // Additional session persistence options
-    storageWindow: typeof window !== 'undefined' ? window : undefined,
-    // Ensure we don't use stale sessions
-    refreshTokenRotationEnabled: true
+    debug: false
   },
   // Disable caching for database queries
   db: {
