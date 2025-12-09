@@ -97,6 +97,13 @@ const App: React.FC = () => {
                   // Clear all Supabase-related keys
                   allStorageKeys.forEach(key => localStorage.removeItem(key));
                 }
+                // Continue without session
+                sessionChecked = true;
+                if (isMounted) {
+                  setCurrentUser(null);
+                  setIsAppLoading(false);
+                }
+                return;
               } else {
                 console.log('=== checkSession: Stored session is valid, expires at:', new Date(expiresAt).toISOString());
               }
@@ -107,6 +114,13 @@ const App: React.FC = () => {
               localStorage.removeItem('supabase.auth.token');
               allStorageKeys.forEach(key => localStorage.removeItem(key));
             }
+            // Continue without session
+            sessionChecked = true;
+            if (isMounted) {
+              setCurrentUser(null);
+              setIsAppLoading(false);
+            }
+            return;
           }
         }
         
@@ -800,13 +814,39 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
       try {
+          console.log('=== handleLogout: Starting logout ===');
+          // Sign out from Supabase
           await supabase.auth.signOut();
+          
+          // CRITICAL: Clear all Supabase-related localStorage items
+          if (typeof window !== 'undefined') {
+            const allStorageKeys = Object.keys(localStorage).filter(
+              key => key.includes('supabase') || key.includes('auth')
+            );
+            console.log('=== handleLogout: Clearing storage keys ===', allStorageKeys);
+            allStorageKeys.forEach(key => {
+              localStorage.removeItem(key);
+            });
+            // Also clear the main session key explicitly
+            localStorage.removeItem('supabase.auth.token');
+          }
+          
+          console.log('=== handleLogout: Logout complete ===');
       } catch (error) {
-          console.error('Logout error:', error);
+          console.error('=== handleLogout: Logout error ===', error);
+          // Even if signOut fails, clear local state and storage
+          if (typeof window !== 'undefined') {
+            const allStorageKeys = Object.keys(localStorage).filter(
+              key => key.includes('supabase') || key.includes('auth')
+            );
+            allStorageKeys.forEach(key => localStorage.removeItem(key));
+            localStorage.removeItem('supabase.auth.token');
+          }
       } finally {
           setCurrentUser(null);
           setStudents([]); // Clear sensitive data from state
           setLogs([]);
+          setIsAppLoading(false);
       }
   };
 
