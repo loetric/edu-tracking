@@ -79,8 +79,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
                   ...options,
                   signal: controller.signal,
                   // Chrome-specific: Add cache control
-                  cache: 'no-store',
-                  credentials: 'include' // Ensure cookies are sent
+                  cache: 'no-store'
+                  // Note: Don't use credentials: 'include' as it causes CORS issues
+                  // Supabase handles authentication via headers, not cookies
                 });
                 
                 clearTimeout(timeoutId);
