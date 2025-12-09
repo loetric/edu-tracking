@@ -175,21 +175,70 @@ export const signUp = async (
     // Wait a moment for trigger to potentially create profile
     await new Promise(resolve => setTimeout(resolve, CONFIG.TIMEOUTS.PROFILE_UPDATE_WAIT));
 
-    // Upsert to handle case where trigger already created it
+    // Check if profile already exists (created by trigger)
+    const existingProfile = await fetchUserProfile(userId);
+    
+    if (existingProfile) {
+      console.log('=== signUp: Profile already exists (created by trigger), updating if needed ===');
+      // Profile exists, check if we need to update it
+      const needsUpdate = 
+        existingProfile.username !== payload.username ||
+        existingProfile.name !== payload.name ||
+        existingProfile.role !== payload.role ||
+        existingProfile.avatar !== payload.avatar;
+      
+      if (needsUpdate) {
+        console.log('=== signUp: Profile needs update, attempting update ===');
+        // Try to update the profile
+        const { error: updateErr } = await supabase
+          .from('profiles')
+          .update({
+            username: payload.username,
+            name: payload.name,
+            role: payload.role,
+            avatar: payload.avatar
+          })
+          .eq('id', userId);
+        
+        if (updateErr) {
+          console.error('=== signUp: Error updating profile ===', updateErr);
+          // If update fails, return existing profile anyway
+          // The user can update it later
+          return { user: existingProfile, error: null };
+        }
+        
+        // Return updated profile
+        return { user: { ...existingProfile, ...payload }, error: null };
+      }
+      
+      // Profile exists and doesn't need update
+      return { user: existingProfile, error: null };
+    }
+    
+    // Profile doesn't exist, try to create it
+    console.log('=== signUp: Profile does not exist, attempting to create ===');
     const { error: pErr } = await supabase
       .from('profiles')
-      .upsert([payload], { onConflict: 'id' });
+      .insert([payload]);
 
     if (pErr) {
-      console.error('Error creating/updating profile:', pErr);
-
-      // Check if profile exists anyway (maybe trigger created it)
-      const existingProfile = await fetchUserProfile(userId);
-
-      if (existingProfile) {
-        return { user: existingProfile, error: null };
+      console.error('=== signUp: Error creating profile ===', pErr);
+      console.error('=== signUp: Error details ===', {
+        code: pErr.code,
+        message: pErr.message,
+        details: pErr.details,
+        hint: pErr.hint
+      });
+      
+      // Check if profile was created by trigger in the meantime
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const profileCheck = await fetchUserProfile(userId);
+      
+      if (profileCheck) {
+        console.log('=== signUp: Profile found after error (created by trigger) ===');
+        return { user: profileCheck, error: null };
       }
-
+      
       return { user: null, error: CONFIG.ERRORS.PROFILE_CREATE_FAILED };
     }
 
