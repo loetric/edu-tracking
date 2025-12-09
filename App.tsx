@@ -123,6 +123,21 @@ const App: React.FC = () => {
               if (authUserData) {
                 authUser = authUserData;
                 console.log('=== checkSession: Got user from getUser() fallback ===', authUser.id);
+              } else {
+                // No user from getUser fallback
+                if (!storedSession) {
+                  sessionChecked = true;
+                  if (isMounted) {
+                    setCurrentUser(null);
+                    setIsAppLoading(false);
+                  }
+                  return;
+                }
+                // Stored session exists but getUser returned no user - wait for auth state change
+                console.log('=== checkSession: Stored session exists but getUser returned no user, will wait for auth state change ===');
+                sessionChecked = true;
+                setIsAppLoading(false);
+                return;
               }
             } catch (getUserErr) {
               console.warn("=== checkSession: getUser() exception ===", getUserErr);
@@ -154,10 +169,8 @@ const App: React.FC = () => {
             return;
           }
           
-          if (authUserData) {
-            authUser = authUserData;
-            console.log('=== checkSession: Auth user found via getUser(), userId:', authUser.id);
-            sessionChecked = true;
+          // We have authUser, now fetch the profile
+          sessionChecked = true;
             
             // Now fetch the profile
             let retries = 5;
