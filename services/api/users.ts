@@ -145,7 +145,28 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
   try {
     console.log('deleteUser: Deleting user:', userId);
     
-    // First, delete from profiles table
+    // First, check if profile exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('id, name, email')
+      .eq('id', userId)
+      .single();
+    
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('deleteUser: Error checking profile:', checkError);
+      throw new Error(`فشل في التحقق من وجود المستخدم: ${checkError.message}`);
+    }
+    
+    if (!existingProfile) {
+      console.warn('deleteUser: No profile found for userId:', userId);
+      // Profile doesn't exist - might already be deleted
+      // Return true to allow the UI to update
+      return true;
+    }
+    
+    console.log('deleteUser: Found profile to delete:', existingProfile.name);
+    
+    // Delete from profiles table
     const { error: profileError, data: deleteData } = await supabase
       .from('profiles')
       .delete()
@@ -154,15 +175,26 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
 
     if (profileError) {
       console.error('deleteUser: Error deleting profile:', profileError);
+      console.error('deleteUser: Error code:', profileError.code, 'Error message:', profileError.message);
       throw new Error(`فشل في حذف المستخدم: ${profileError.message}`);
     }
 
     // Verify deletion was successful
-    if (deleteData && deleteData.length === 0) {
-      console.warn('deleteUser: No profile found to delete for userId:', userId);
-      // Don't throw error - might already be deleted
+    if (!deleteData || deleteData.length === 0) {
+      console.warn('deleteUser: Delete operation returned no data - profile might not exist');
+      // Check again to verify
+      const { data: verifyProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (verifyProfile) {
+        throw new Error('فشل في حذف المستخدم: المستخدم لا يزال موجوداً في قاعدة البيانات');
+      }
+      console.log('deleteUser: Profile verified as deleted');
     } else {
-      console.log('deleteUser: Profile deleted successfully:', deleteData);
+      console.log('deleteUser: Profile deleted successfully:', deleteData[0]?.name || deleteData[0]?.id);
     }
 
     // Note: Deleting from auth.users requires admin API with service_role key

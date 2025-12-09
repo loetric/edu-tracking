@@ -261,7 +261,17 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               // Update local state by calling onUpdateUsers with filtered list
               // This will trigger api.updateUsers which will sync the database
               const updatedUsers = users.filter(u => u.id !== id);
-              await onUpdateUsers(updatedUsers);
+              
+              // Refresh users list from database to ensure consistency
+              try {
+                  const allUsers = await api.getUsers();
+                  console.log('handleDeleteUser: Refreshed users from database:', allUsers.length);
+                  await onUpdateUsers(allUsers);
+              } catch (refreshError) {
+                  console.warn('handleDeleteUser: Failed to refresh users, using local state:', refreshError);
+                  // If refresh fails, still update local state
+                  await onUpdateUsers(updatedUsers);
+              }
               
               console.log('handleDeleteUser: User deleted successfully');
               alert({ message: 'تم حذف المستخدم بنجاح', type: 'success' });
