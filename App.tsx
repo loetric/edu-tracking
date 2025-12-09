@@ -363,7 +363,8 @@ const App: React.FC = () => {
           
           try {
             console.log(`=== ${event}: Loading user profile ===`);
-            const user = await api.getCurrentUser();
+            // Use fetchUserProfile directly to avoid another getSession() call
+            const user = await fetchUserProfile(session.user.id);
             if (user && isMounted) {
               console.log('=== User loaded in auth state change:', user.name, '===');
               setCurrentUser(user);
