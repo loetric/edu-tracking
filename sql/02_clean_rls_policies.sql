@@ -30,6 +30,17 @@ CREATE POLICY "Users can update own profile" ON public.profiles
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
+-- Allow admins to delete any profile
+-- Authenticated users can delete profiles if they are admins
+CREATE POLICY "Admin can delete profiles" ON public.profiles
+    FOR DELETE
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.profiles p 
+            WHERE p.id = auth.uid() AND p.role = 'admin'
+        )
+    );
+
 -- Note: Admin read policy removed to prevent infinite recursion
 -- Public read policy above allows all reads, which is sufficient for login
 -- Admins can read all profiles through the public policy
