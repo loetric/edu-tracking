@@ -27,8 +27,10 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStudentForEdit, setSelectedStudentForEdit] = useState<Student | null>(null);
 
-  // Extract unique classes
-  const classes = ['all', ...Array.from(new Set(students.map(s => s.classGrade)))];
+  // Get classes from settings only (not from student data)
+  const classes = settings?.classGrades && settings.classGrades.length > 0
+    ? ['all', ...settings.classGrades.sort()]
+    : ['all'];
 
   const challengeTypes: { type: ChallengeType; label: string; icon: any; color: string }[] = [
     { type: 'none', label: 'طبيعي / لا يوجد', icon: User, color: 'bg-gray-100 text-gray-600 border-gray-200' },

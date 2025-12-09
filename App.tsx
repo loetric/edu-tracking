@@ -1399,6 +1399,7 @@ const App: React.FC = () => {
                 subjects={subjects || []}
                 onUpdateSchedule={currentUser.role === 'admin' ? handleUpdateSchedule : undefined}
                 availableTeachers={allTeachers}
+                settings={effectiveSettings}
             />
         );
       case 'reports':

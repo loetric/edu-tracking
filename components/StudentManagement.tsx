@@ -36,10 +36,10 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     status: 'regular' // حالة الطالب: منتظم، منقطع، مفصول
   });
 
-  // Get available class grades from settings or from students, sorted nicely
+  // Get available class grades from settings only (not from student data)
   const availableClassGrades = settings?.classGrades && settings.classGrades.length > 0
     ? [...settings.classGrades].sort()
-    : Array.from(new Set(students.map(s => s.classGrade))).sort();
+    : [];
 
   // Get unique class grades for filter (only from settings, not from student data)
   const uniqueClassGrades = settings?.classGrades && settings.classGrades.length > 0

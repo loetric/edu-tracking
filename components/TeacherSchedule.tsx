@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ScheduleItem, Role, Subject } from '../types';
+import { ScheduleItem, Role, Subject, SchoolSettings } from '../types';
 import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
@@ -12,9 +12,10 @@ interface TeacherScheduleProps {
   availableTeachers?: string[]; // Dynamic list of teachers
   subjects?: Subject[]; // List of subjects for filtering
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
+  settings?: SchoolSettings; // Settings to get classGrades from
 }
 
-export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule }) => {
+export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
@@ -25,7 +26,10 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
   // Extract unique values for filters
   const uniqueTeachers = Array.from(new Set(schedule.map(s => s.teacher || s.originalTeacher || ''))).filter(Boolean).sort();
-  const uniqueClasses = Array.from(new Set(schedule.map(s => s.classRoom))).sort();
+  // Use classGrades from settings only (not from schedule data)
+  const uniqueClasses = settings?.classGrades && settings.classGrades.length > 0
+    ? [...settings.classGrades].sort()
+    : [];
   const uniqueSubjects = Array.from(new Set(schedule.map(s => s.subject))).sort();
 
   // Get sessions based on filters
@@ -36,7 +40,11 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         if (filterType === 'teacher') {
             sessions = sessions.filter(s => s.teacher === filterValue || s.originalTeacher === filterValue);
         } else if (filterType === 'class') {
-            sessions = sessions.filter(s => s.classRoom === filterValue);
+            // Filter by classGrade from settings - match if classRoom starts with or equals the selected classGrade
+            sessions = sessions.filter(s => {
+                const classRoom = s.classRoom || '';
+                return classRoom === filterValue || classRoom.startsWith(filterValue + '/') || classRoom.startsWith(filterValue + '_');
+            });
         } else if (filterType === 'subject') {
             sessions = sessions.filter(s => s.subject === filterValue);
         }
