@@ -146,25 +146,32 @@ export const deleteUser = async (userId: string): Promise<boolean> => {
     console.log('deleteUser: Deleting user:', userId);
     
     // First, delete from profiles table
-    const { error: profileError } = await supabase
+    const { error: profileError, data: deleteData } = await supabase
       .from('profiles')
       .delete()
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
 
     if (profileError) {
       console.error('deleteUser: Error deleting profile:', profileError);
-      // Continue anyway - might not have a profile
+      throw new Error(`فشل في حذف المستخدم: ${profileError.message}`);
     }
 
-    // Then, delete from auth.users using admin API
-    // Note: This requires service_role key or admin API call
-    // For now, we'll use the Supabase Admin API if available
-    // If not available, the profile deletion is enough for the app
-    // The auth user will remain but won't be accessible from the app
+    // Verify deletion was successful
+    if (deleteData && deleteData.length === 0) {
+      console.warn('deleteUser: No profile found to delete for userId:', userId);
+      // Don't throw error - might already be deleted
+    } else {
+      console.log('deleteUser: Profile deleted successfully:', deleteData);
+    }
+
+    // Note: Deleting from auth.users requires admin API with service_role key
+    // For now, deleting from profiles is sufficient - the user won't be accessible from the app
+    // The auth user entry will remain but won't cause issues
     
     console.log('deleteUser: User deleted successfully');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('deleteUser exception:', error);
     throw error;
   }

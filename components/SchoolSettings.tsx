@@ -21,7 +21,7 @@ interface SchoolSettingsProps {
   onReset?: () => void;
 }
 
-export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
+export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes'>('general');
@@ -227,6 +227,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
   const handleDeleteUser = async (id: string) => {
       const userToDelete = users.find(u => u.id === id);
+      
+      // Prevent deleting the current logged-in user
+      if (userToDelete?.id === currentUser?.id) {
+          alert({ 
+              message: 'لا يمكنك حذف حسابك الخاص. يرجى استخدام حساب آخر لحذف هذا المستخدم.', 
+              type: 'warning' 
+          });
+          return;
+      }
+      
       const shouldDelete = await confirm({
         title: 'حذف المستخدم',
         message: `هل أنت متأكد من حذف المستخدم "${userToDelete?.name || 'غير معروف'}"؟\n\nسيتم حذف المستخدم بشكل كامل من النظام ولا يمكن التراجع عن هذا الإجراء.`,
@@ -237,15 +247,26 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       
       if (shouldDelete) {
           try {
+              console.log('handleDeleteUser: Deleting user:', id);
+              
               // Delete from database first
-              await api.deleteUser(id);
+              const deleted = await api.deleteUser(id);
               
-              // Then update local state
-              onUpdateUsers(users.filter(u => u.id !== id));
+              if (!deleted) {
+                  throw new Error('فشل في حذف المستخدم من قاعدة البيانات');
+              }
               
+              console.log('handleDeleteUser: User deleted from database, updating local state');
+              
+              // Update local state by calling onUpdateUsers with filtered list
+              // This will trigger api.updateUsers which will sync the database
+              const updatedUsers = users.filter(u => u.id !== id);
+              await onUpdateUsers(updatedUsers);
+              
+              console.log('handleDeleteUser: User deleted successfully');
               alert({ message: 'تم حذف المستخدم بنجاح', type: 'success' });
           } catch (error: any) {
-              console.error('Delete user error:', error);
+              console.error('handleDeleteUser: Delete user error:', error);
               alert({ 
                   message: error?.message || 'فشل في حذف المستخدم. يرجى المحاولة مرة أخرى.', 
                   type: 'error' 
