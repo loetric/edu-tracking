@@ -99,13 +99,22 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             className={`
               absolute z-[9999] w-full bg-white border border-gray-200 rounded-lg shadow-xl
               max-h-48 md:max-h-60 overflow-y-auto overflow-x-hidden
+              scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
               ${dropdownPosition === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'}
             `}
             style={{
               // Ensure dropdown stays within viewport
               maxHeight: dropdownPosition === 'top' 
                 ? `${Math.min(240, selectRef.current?.getBoundingClientRect().top || 240)}px`
-                : `${Math.min(240, window.innerHeight - (selectRef.current?.getBoundingClientRect().bottom || 0) - 8)}px`
+                : `${Math.min(240, window.innerHeight - (selectRef.current?.getBoundingClientRect().bottom || 0) - 8)}px`,
+              // Smooth scrolling
+              scrollBehavior: 'smooth',
+              // Better scrollbar for webkit browsers
+              WebkitOverflowScrolling: 'touch'
+            }}
+            onWheel={(e) => {
+              // Prevent closing on scroll
+              e.stopPropagation();
             }}
           >
             {options.length > 0 ? (

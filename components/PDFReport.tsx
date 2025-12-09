@@ -91,10 +91,10 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-hidden print:bg-white print:p-0">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto print:bg-white print:p-0 p-2 md:p-4">
       
       {/* Controls - Hidden in Print */}
-      <div className="fixed top-4 left-2 right-2 md:left-4 md:w-72 flex flex-col gap-3 print:hidden bg-white p-4 md:p-5 rounded-xl shadow-2xl z-50 border border-gray-100 animate-in fade-in slide-in-from-left-4">
+      <div className="fixed top-2 left-2 right-2 md:top-4 md:left-4 md:w-72 flex flex-col gap-2 md:gap-3 print:hidden bg-white p-3 md:p-5 rounded-xl shadow-2xl z-50 border border-gray-100 animate-in fade-in slide-in-from-left-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
             <h3 className="font-bold text-gray-800 flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
                 <Printer size={16} className="text-teal-600 md:w-[18px] md:h-[18px]"/>
@@ -119,8 +119,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
         </div>
       </div>
 
-      {/* A4 Paper Styling */}
-      <div className="bg-white w-[210mm] h-[297mm] mx-auto relative shadow-2xl print:shadow-none print:w-full print:h-screen overflow-hidden flex flex-col text-black">
+      {/* A4 Paper Styling - Responsive */}
+      <div className="bg-white w-full max-w-[210mm] min-h-[297mm] mx-auto my-4 md:my-8 relative shadow-2xl print:shadow-none print:w-full print:h-screen print:my-0 overflow-y-auto overflow-x-hidden flex flex-col text-black print:overflow-visible">
         
         {/* Official Frame Border */}
         <div className="absolute inset-0 border-[3px] border-double border-gray-300 m-2 pointer-events-none rounded-sm"></div>
@@ -162,31 +162,37 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </header>
 
             {/* 2. Student Information Table */}
-            <section className="mb-6">
-                <div className="bg-white border border-gray-300 rounded-lg overflow-hidden flex shadow-sm">
+            <section className="mb-4 md:mb-6">
+                <div className="bg-white border border-gray-300 rounded-lg overflow-hidden flex flex-col md:flex-row shadow-sm">
                      {/* Avatar & Name */}
-                     <div className="bg-gray-50 p-4 border-l border-gray-300 flex flex-col items-center justify-center w-32 text-center">
-                         {student.avatar ? (
-                             <img src={student.avatar} className="w-16 h-16 rounded-full border-2 border-white shadow-sm object-cover mb-2" />
-                         ) : (
-                             <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mb-2"><User size={24} className="text-gray-400"/></div>
-                         )}
-                         <span className="text-xs font-bold text-gray-500">رقم الملف: {student.id}</span>
+                     <div className="bg-gray-50 p-3 md:p-4 border-b md:border-b-0 md:border-l border-gray-300 flex flex-row md:flex-col items-center md:justify-center justify-between md:w-32 w-full md:text-center">
+                         <div className="flex items-center gap-3 md:flex-col">
+                             {student.avatar ? (
+                                 <img src={student.avatar} className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-white shadow-sm object-cover md:mb-2" />
+                             ) : (
+                                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-200 flex items-center justify-center md:mb-2"><User size={20} className="md:w-6 md:h-6 text-gray-400"/></div>
+                             )}
+                             <div className="md:hidden">
+                                 <p className="text-xs font-bold text-gray-900">{student.name}</p>
+                                 <p className="text-[10px] text-gray-500">الصف: {student.classGrade}</p>
+                             </div>
+                         </div>
+                         <span className="text-[10px] md:text-xs font-bold text-gray-500">رقم الملف: {student.id}</span>
                      </div>
                      
                      {/* Details Grid */}
-                     <div className="flex-1 grid grid-cols-2">
-                         <div className="border-b border-l border-gray-200 p-3 flex flex-col justify-center">
+                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
+                         <div className="hidden md:flex border-b border-l border-gray-200 p-3 flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">الاسم الرباعي</span>
                              <span className="text-sm font-bold text-gray-900">{student.name}</span>
                          </div>
-                         <div className="border-b border-gray-200 p-3 flex flex-col justify-center">
+                         <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">الصف / الفصل</span>
                              <span className="text-sm font-bold text-gray-900">{student.classGrade}</span>
                          </div>
-                         <div className="border-l border-gray-200 p-3 flex flex-col justify-center">
+                         <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">جوال ولي الأمر</span>
-                             <span className="text-sm font-bold text-gray-900 font-mono" dir="ltr">{student.parentPhone}</span>
+                             <span className="text-sm font-bold text-gray-900 font-mono break-all" dir="ltr">{student.parentPhone}</span>
                          </div>
                          <div className="p-3 flex flex-col justify-center bg-gray-50/50">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">حالة التقرير</span>
@@ -197,48 +203,48 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </section>
 
             {/* 3. Daily Status Summary & Chart */}
-            <section className="mb-6">
-                <div className="flex items-center gap-2 mb-3 text-teal-700 font-bold text-sm border-b border-gray-100 pb-1 w-fit">
-                    <Star size={16} />
+            <section className="mb-4 md:mb-6">
+                <div className="flex items-center gap-2 mb-3 text-teal-700 font-bold text-xs md:text-sm border-b border-gray-100 pb-1 w-fit">
+                    <Star size={14} className="md:w-4 md:h-4" />
                     ملخص الأداء والمستوى اليومي
                 </div>
                 
-                <div className="flex gap-4">
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4">
                     {/* Left Side: Stats Cards */}
-                    <div className="w-2/3 grid grid-cols-2 gap-3 content-start">
+                    <div className="w-full md:w-2/3 grid grid-cols-2 gap-2 md:gap-3 content-start">
                         {/* Attendance */}
-                        <div className={`border rounded-lg p-3 text-center flex flex-col items-center justify-center gap-1 ${attendanceInfo.bg} ${attendanceInfo.border}`}>
-                            <span className="text-xs font-bold text-gray-500">الحضور</span>
-                            <div className={`font-black text-sm ${attendanceInfo.textCol} flex items-center gap-1`}>
+                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${attendanceInfo.bg} ${attendanceInfo.border}`}>
+                            <span className="text-[10px] md:text-xs font-bold text-gray-500">الحضور</span>
+                            <div className={`font-black text-xs md:text-sm ${attendanceInfo.textCol} flex items-center gap-1`}>
                                 {attendanceInfo.icon}
                                 {attendanceInfo.text}
                             </div>
                         </div>
                         {/* Participation */}
-                        <div className={`border rounded-lg p-3 text-center flex flex-col items-center justify-center gap-1 ${participationInfo.bg} ${participationInfo.border}`}>
-                            <span className="text-xs font-bold text-gray-500">المشاركة</span>
-                            <div className={`font-black text-sm ${participationInfo.textCol}`}>{participationInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${participationInfo.bg} ${participationInfo.border}`}>
+                            <span className="text-[10px] md:text-xs font-bold text-gray-500">المشاركة</span>
+                            <div className={`font-black text-xs md:text-sm ${participationInfo.textCol}`}>{participationInfo.text}</div>
                         </div>
                         {/* Homework */}
-                        <div className={`border rounded-lg p-3 text-center flex flex-col items-center justify-center gap-1 ${homeworkInfo.bg} ${homeworkInfo.border}`}>
-                            <span className="text-xs font-bold text-gray-500">الواجبات</span>
-                            <div className={`font-black text-sm ${homeworkInfo.textCol}`}>{homeworkInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${homeworkInfo.bg} ${homeworkInfo.border}`}>
+                            <span className="text-[10px] md:text-xs font-bold text-gray-500">الواجبات</span>
+                            <div className={`font-black text-xs md:text-sm ${homeworkInfo.textCol}`}>{homeworkInfo.text}</div>
                         </div>
                         {/* Behavior */}
-                        <div className={`border rounded-lg p-3 text-center flex flex-col items-center justify-center gap-1 ${behaviorInfo.bg} ${behaviorInfo.border}`}>
-                            <span className="text-xs font-bold text-gray-500">السلوك</span>
-                            <div className={`font-black text-sm ${behaviorInfo.textCol}`}>{behaviorInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${behaviorInfo.bg} ${behaviorInfo.border}`}>
+                            <span className="text-[10px] md:text-xs font-bold text-gray-500">السلوك</span>
+                            <div className={`font-black text-xs md:text-sm ${behaviorInfo.textCol}`}>{behaviorInfo.text}</div>
                         </div>
                     </div>
 
                     {/* Right Side: Performance Chart */}
-                    <div className="w-1/3 border border-gray-200 rounded-lg p-2 bg-white relative flex flex-col items-center justify-center">
+                    <div className="w-full md:w-1/3 border border-gray-200 rounded-lg p-2 bg-white relative flex flex-col items-center justify-center min-h-[150px] md:min-h-[120px]">
                         <div className="absolute top-2 right-2 text-[10px] text-gray-400 font-bold flex items-center gap-1">
-                            <BarChart3 size={12} />
+                            <BarChart3 size={10} className="md:w-3 md:h-3" />
                             مؤشر الأداء
                         </div>
                         {record.attendance === 'present' ? (
-                            <div className="w-full h-[120px]">
+                            <div className="w-full h-[150px] md:h-[120px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
                                         <PolarGrid stroke="#e5e7eb" />
@@ -269,92 +275,94 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </section>
 
             {/* 4. Detailed Schedule Table */}
-            <section className="mb-6 flex-1">
-                 <div className="flex items-center gap-2 mb-2 text-teal-700 font-bold text-sm border-b border-gray-100 pb-1 w-fit">
-                    <CalendarCheck size={16} />
+            <section className="mb-4 md:mb-6 flex-1">
+                 <div className="flex items-center gap-2 mb-2 text-teal-700 font-bold text-xs md:text-sm border-b border-gray-100 pb-1 w-fit">
+                    <CalendarCheck size={14} className="md:w-4 md:h-4" />
                     كشف المتابعة والحصص الدراسية
                 </div>
                 
-                <table className="w-full border-collapse text-xs text-center border border-gray-300 rounded-lg overflow-hidden">
-                    <thead className="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th className="border border-gray-300 p-2 w-8 font-bold">م</th>
-                            <th className="border border-gray-300 p-2 font-bold text-right">المادة</th>
-                            <th className="border border-gray-300 p-2 font-bold text-right w-1/4">المعلم</th>
-                            <th className="border border-gray-300 p-2 font-bold w-16">الحضور</th>
-                            <th className="border border-gray-300 p-2 font-bold w-16">المشاركة</th>
-                            <th className="border border-gray-300 p-2 font-bold w-16">الواجبات</th>
-                            <th className="border border-gray-300 p-2 font-bold w-16">السلوك</th>
-                            <th className="border border-gray-300 p-2 font-bold w-1/5">ملاحظات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {dailySchedule.length > 0 ? dailySchedule.map((session, idx) => (
-                            <tr key={idx} className="bg-white hover:bg-gray-50">
-                                <td className="border border-gray-300 p-2 font-bold bg-gray-50">{session.period}</td>
-                                <td className="border border-gray-300 p-2 font-bold text-gray-800 text-right">{session.subject}</td>
-                                <td className="border border-gray-300 p-2 text-gray-600 font-medium text-right text-[10px]">{session.teacher}</td>
-                                
-                                {/* Status Columns - Populated with Daily Record for Visual Representation */}
-                                <td className="border border-gray-300 p-1">
-                                    <div className={`text-[10px] font-bold py-1 px-1 rounded-sm ${attendanceInfo.bg} ${attendanceInfo.textCol}`}>
-                                        {attendanceInfo.text}
-                                    </div>
-                                </td>
-                                <td className="border border-gray-300 p-1">
-                                     {record.attendance === 'present' ? (
-                                        <div className={`text-[10px] font-bold py-1 rounded-sm ${participationInfo.bg} ${participationInfo.textCol}`}>
-                                            {participationInfo.text}
-                                        </div>
-                                     ) : <span className="text-gray-300">-</span>}
-                                </td>
-                                <td className="border border-gray-300 p-1">
-                                    {record.attendance === 'present' ? (
-                                        <div className={`text-[10px] font-bold py-1 rounded-sm ${homeworkInfo.bg} ${homeworkInfo.textCol}`}>
-                                            {homeworkInfo.text}
-                                        </div>
-                                    ) : <span className="text-gray-300">-</span>}
-                                </td>
-                                <td className="border border-gray-300 p-1">
-                                    {record.attendance === 'present' ? (
-                                        <div className={`text-[10px] font-bold py-1 rounded-sm ${behaviorInfo.bg} ${behaviorInfo.textCol}`}>
-                                            {behaviorInfo.text}
-                                        </div>
-                                    ) : <span className="text-gray-300">-</span>}
-                                </td>
-                                <td className="border border-gray-300 p-1 text-[9px] text-gray-600 leading-relaxed break-words">
-                                   {record.notes || '-'}
-                                </td>
+                <div className="overflow-x-auto -mx-2 md:mx-0 print:overflow-visible">
+                    <table className="w-full border-collapse text-[10px] md:text-xs text-center border border-gray-300 rounded-lg overflow-hidden min-w-full">
+                        <thead className="bg-gray-100 text-gray-700">
+                            <tr>
+                                <th className="border border-gray-300 p-1.5 md:p-2 w-8 font-bold text-[10px] md:text-xs">م</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold text-right text-[10px] md:text-xs">المادة</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold text-right w-1/4 text-[10px] md:text-xs">المعلم</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">الحضور</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">المشاركة</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">الواجبات</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">السلوك</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-1/5 text-[10px] md:text-xs">ملاحظات</th>
                             </tr>
-                        )) : (
-                            <tr><td colSpan={8} className="p-6 text-center text-gray-400 italic">لا توجد حصص مسجلة في الجدول لهذا اليوم</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {dailySchedule.length > 0 ? dailySchedule.map((session, idx) => (
+                                <tr key={idx} className="bg-white hover:bg-gray-50">
+                                    <td className="border border-gray-300 p-1.5 md:p-2 font-bold bg-gray-50 text-[10px] md:text-xs">{session.period}</td>
+                                    <td className="border border-gray-300 p-1.5 md:p-2 font-bold text-gray-800 text-right text-[10px] md:text-xs">{session.subject}</td>
+                                    <td className="border border-gray-300 p-1.5 md:p-2 text-gray-600 font-medium text-right text-[9px] md:text-[10px]">{session.teacher}</td>
+                                    
+                                    {/* Status Columns - Populated with Daily Record for Visual Representation */}
+                                    <td className="border border-gray-300 p-1">
+                                        <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 px-1 rounded-sm ${attendanceInfo.bg} ${attendanceInfo.textCol}`}>
+                                            {attendanceInfo.text}
+                                        </div>
+                                    </td>
+                                    <td className="border border-gray-300 p-1">
+                                         {record.attendance === 'present' ? (
+                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${participationInfo.bg} ${participationInfo.textCol}`}>
+                                                {participationInfo.text}
+                                            </div>
+                                         ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                    </td>
+                                    <td className="border border-gray-300 p-1">
+                                        {record.attendance === 'present' ? (
+                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${homeworkInfo.bg} ${homeworkInfo.textCol}`}>
+                                                {homeworkInfo.text}
+                                            </div>
+                                        ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                    </td>
+                                    <td className="border border-gray-300 p-1">
+                                        {record.attendance === 'present' ? (
+                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${behaviorInfo.bg} ${behaviorInfo.textCol}`}>
+                                                {behaviorInfo.text}
+                                            </div>
+                                        ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                    </td>
+                                    <td className="border border-gray-300 p-1 text-[8px] md:text-[9px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap max-w-[120px] md:max-w-none">
+                                       {record.notes || '-'}
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr><td colSpan={8} className="p-4 md:p-6 text-center text-gray-400 italic text-xs md:text-sm">لا توجد حصص مسجلة في الجدول لهذا اليوم</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             {/* 5. Notes & Messages Section */}
-            <section className="mt-auto space-y-4">
+            <section className="mt-auto space-y-3 md:space-y-4">
                 
                 {/* General Daily Notes */}
                 {record.notes && (
-                    <div className="border border-gray-300 rounded-lg p-3 bg-white relative">
-                        <div className="absolute -top-3 right-3 bg-white px-2 text-xs font-bold text-teal-700 flex items-center gap-1">
-                            <FileText size={14} />
+                    <div className="border border-gray-300 rounded-lg p-2 md:p-3 bg-white relative">
+                        <div className="absolute -top-2.5 md:-top-3 right-2 md:right-3 bg-white px-2 text-[10px] md:text-xs font-bold text-teal-700 flex items-center gap-1">
+                            <FileText size={12} className="md:w-3.5 md:h-3.5" />
                             الملاحظات العامة على اليوم الدراسي
                         </div>
-                        <p className="text-sm font-medium leading-relaxed text-gray-800 mt-1 p-1 break-words whitespace-pre-wrap">{record.notes}</p>
+                        <p className="text-xs md:text-sm font-medium leading-relaxed text-gray-800 mt-2 md:mt-1 p-1 break-words whitespace-pre-wrap">{record.notes}</p>
                     </div>
                 )}
 
                  {/* Counselor/Admin Message */}
                  {settings.reportGeneralMessage && (
-                     <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-3 relative">
-                        <div className="absolute -top-3 right-3 bg-white px-2 text-xs font-bold text-blue-700 flex items-center gap-1 border border-blue-100 rounded-full">
-                            <BookOpen size={14} />
+                     <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-2 md:p-3 relative">
+                        <div className="absolute -top-2.5 md:-top-3 right-2 md:right-3 bg-white px-2 text-[10px] md:text-xs font-bold text-blue-700 flex items-center gap-1 border border-blue-100 rounded-full">
+                            <BookOpen size={12} className="md:w-3.5 md:h-3.5" />
                             رسالة الموجه الطلابي / الإدارة
                         </div>
-                        <p className="text-xs text-blue-900 mt-1 leading-relaxed text-center font-medium">
+                        <p className="text-[10px] md:text-xs text-blue-900 mt-2 md:mt-1 leading-relaxed text-center font-medium">
                             "{settings.reportGeneralMessage}"
                         </p>
                      </div>

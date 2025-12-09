@@ -527,6 +527,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         <button onClick={() => setActiveTab('users')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
         <button onClick={() => setActiveTab('password')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
         <button onClick={() => setActiveTab('classes')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
+        <button onClick={() => setActiveTab('subjects')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
         <button onClick={() => setActiveTab('setup')} className={`flex-1 py-3 font-bold text-sm transition-colors ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
       </div>
 

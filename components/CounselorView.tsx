@@ -239,14 +239,22 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       {/* Main List View - Grouped by Class */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none">
           {/* Header for Print */}
-          <div className="hidden print:block p-4 md:p-6 border-b-2 border-gray-300 text-center">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-2">كشف الطلاب - توجيه وإرشاد</h1>
-              <p className="text-sm md:text-base text-gray-600">
-                  {selectedClass === 'all' ? 'جميع الفصول' : `الفصل: ${selectedClass}`} | 
-                  {selectedChallengeFilter === 'all' ? ' كافة الطلاب' : ` ${challengeTypes.find(c => c.type === selectedChallengeFilter)?.label}`}
-                  {searchQuery && ` | البحث: ${searchQuery}`}
-              </p>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">
+          <div className="hidden print:block p-4 md:p-6 border-b-2 border-gray-400 text-center bg-gray-100 mb-4">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">كشف الطلاب - توجيه وإرشاد</h1>
+              <div className="flex flex-wrap justify-center gap-3 text-sm md:text-base text-gray-700 mb-3">
+                  <span className="bg-white px-4 py-2 rounded-lg border-2 border-gray-400 font-bold">
+                      {selectedClass === 'all' ? 'جميع الفصول' : `الفصل: ${selectedClass}`}
+                  </span>
+                  <span className="bg-white px-4 py-2 rounded-lg border-2 border-gray-400 font-bold">
+                      {selectedChallengeFilter === 'all' ? 'كافة الطلاب' : challengeTypes.find(c => c.type === selectedChallengeFilter)?.label}
+                  </span>
+                  {searchQuery && (
+                      <span className="bg-white px-4 py-2 rounded-lg border-2 border-gray-400 font-bold">
+                          البحث: {searchQuery}
+                      </span>
+                  )}
+              </div>
+              <p className="text-xs md:text-sm text-gray-600 font-medium">
                   تاريخ الطباعة: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
           </div>
@@ -258,36 +266,43 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                 {sortedClasses.map(classGrade => {
                     const classStudents = studentsByClass[classGrade];
                     return (
-                        <div key={classGrade} className="border-b border-gray-200 last:border-b-0 print:break-inside-avoid">
+                        <div key={classGrade} className="border-b border-gray-200 last:border-b-0 print:break-inside-avoid print:page-break-inside-avoid">
                             {/* Class Header */}
-                            <div className="bg-teal-50 print:bg-gray-100 border-b border-teal-200 print:border-gray-300 px-6 py-3 print:py-2">
-                                <h2 className="text-lg font-bold text-teal-800 print:text-gray-800 flex items-center justify-between">
-                                    <span>الصف: {classGrade}</span>
-                                    <span className="text-sm font-normal text-teal-600 print:text-gray-600">
-                                        ({classStudents.length} طالب)
+                            <div className="bg-gradient-to-r from-teal-50 to-teal-100 print:bg-gray-100 border-b-2 border-teal-300 print:border-gray-400 px-6 py-4 print:py-3">
+                                <h2 className="text-lg md:text-xl font-bold text-teal-900 print:text-gray-900 flex items-center justify-between">
+                                    <span className="flex items-center gap-2">
+                                        <span className="bg-teal-600 text-white px-3 py-1 rounded-lg text-sm print:bg-gray-600">الصف</span>
+                                        <span>{classGrade}</span>
+                                    </span>
+                                    <span className="text-sm font-normal text-teal-700 print:text-gray-700 bg-white px-3 py-1 rounded-full border border-teal-300 print:border-gray-400">
+                                        {classStudents.length} طالب
                                     </span>
                                 </h2>
                             </div>
                             
                             {/* Students Table for this Class */}
                             <div className="overflow-x-auto">
-                                <table className="w-full text-right">
-                                    <thead className="bg-gray-50 print:bg-gray-100 border-b border-gray-200 print:border-gray-300">
+                                <table className="w-full text-right border-collapse">
+                                    <thead className="bg-gray-100 print:bg-gray-200 border-b-2 border-gray-300 print:border-gray-400">
                                         <tr>
-                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">الطالب</th>
-                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">رقم ولي الأمر</th>
-                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-700 print:text-gray-800 w-1/3">حالة التحدي</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-800 print:text-gray-900 border-l border-gray-300 print:border-gray-400">م</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-800 print:text-gray-900 border-l border-gray-300 print:border-gray-400">اسم الطالب</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-800 print:text-gray-900 border-l border-gray-300 print:border-gray-400">رقم ولي الأمر</th>
+                                            <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-gray-800 print:text-gray-900">حالة التحدي</th>
                                             <th className="px-4 md:px-6 py-3 print:py-2 text-xs md:text-sm font-bold text-left print:hidden">إجراءات</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 print:divide-gray-200">
-                                        {classStudents.map(student => {
+                                    <tbody className="divide-y divide-gray-200 print:divide-gray-300">
+                                        {classStudents.map((student, index) => {
                                             const challengeInfo = challengeTypes.find(c => c.type === student.challenge) || challengeTypes[0];
                                             return (
-                                                <tr key={student.id} className="hover:bg-gray-50 print:hover:bg-transparent transition-colors group print:break-inside-avoid">
-                                                    <td className="px-4 md:px-6 py-3 print:py-2">
+                                                <tr key={student.id} className="hover:bg-gray-50 print:hover:bg-transparent transition-colors group print:break-inside-avoid print:page-break-inside-avoid border-b border-gray-100 print:border-gray-200">
+                                                    <td className="px-4 md:px-6 py-3 print:py-2 text-center text-sm font-medium text-gray-600 print:text-gray-700 bg-gray-50 print:bg-gray-100 border-l border-gray-200 print:border-gray-300">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="px-4 md:px-6 py-3 print:py-2 border-l border-gray-200 print:border-gray-300">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 print:hidden flex-shrink-0">
+                                                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gray-100 overflow-hidden border-2 border-gray-200 print:hidden flex-shrink-0">
                                                                 <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
                                                             </div>
                                                             <div className="min-w-0">
@@ -295,12 +310,12 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 md:px-6 py-3 print:py-2 text-sm font-mono text-gray-600 print:text-gray-700">
-                                                        {student.parentPhone}
+                                                    <td className="px-4 md:px-6 py-3 print:py-2 text-sm font-mono text-gray-700 print:text-gray-800 border-l border-gray-200 print:border-gray-300">
+                                                        {student.parentPhone || '-'}
                                                     </td>
                                                     <td className="px-4 md:px-6 py-3 print:py-2">
-                                                        <span className={`inline-flex items-center gap-1.5 px-2 md:px-3 py-1 rounded-full text-xs font-bold border print:border-gray-300 ${challengeInfo.color} print:bg-white print:text-gray-800`}>
-                                                            <challengeInfo.icon size={12} className="print:hidden" />
+                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border-2 print:border-gray-400 ${challengeInfo.color} print:bg-white print:text-gray-800`}>
+                                                            <challengeInfo.icon size={14} className="print:hidden" />
                                                             {challengeInfo.label}
                                                         </span>
                                                     </td>

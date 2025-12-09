@@ -15,7 +15,7 @@ import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { UserProfile } from './components/UserProfile';
 import { FileSharing } from './components/FileSharing';
-import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User } from './types';
+import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User, Subject } from './types';
 import { AVAILABLE_TEACHERS } from './constants';
 import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
@@ -55,6 +55,7 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [settings, setSettings] = useState<SchoolSettings | null>(null); // Null until loaded
   const [users, setUsers] = useState<User[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]); // Subjects for schedule and forms
   
   // Dynamic Schedule State
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -501,7 +502,8 @@ const App: React.FC = () => {
             fetchedLogs, 
             fetchedMessages,
             fetchedCompleted,
-            fetchedSubs
+            fetchedSubs,
+            fetchedSubjects
           ] = await Promise.all([
             api.getStudents(),
             api.getSchedule(),
@@ -509,7 +511,8 @@ const App: React.FC = () => {
             api.getLogs(),
             api.getMessages(),
             api.getCompletedSessions(),
-            api.getSubstitutions()
+            api.getSubstitutions(),
+            api.getSubjects()
           ]);
 
           setStudents(fetchedStudents);
@@ -519,6 +522,7 @@ const App: React.FC = () => {
           setChatMessages(fetchedMessages);
           setCompletedSessions(fetchedCompleted);
           setSubstitutions(fetchedSubs);
+          setSubjects(fetchedSubjects);
         } catch (error) {
           console.error("Error loading dashboard data", error);
           // Set empty arrays on error to allow app to continue
@@ -529,6 +533,7 @@ const App: React.FC = () => {
           setChatMessages([]);
           setCompletedSessions([]);
           setSubstitutions([]);
+          setSubjects([]);
         } finally {
           setIsDataLoading(false);
         }
@@ -1363,7 +1368,7 @@ const App: React.FC = () => {
                 completedSessions={completedSessions} 
                 onAssignSubstitute={currentUser.role === 'admin' ? handleAssignSubstitute : undefined}
                 role={currentUser.role}
-                subjects={subjects}
+                subjects={subjects || []}
                 onUpdateSchedule={currentUser.role === 'admin' ? handleUpdateSchedule : undefined}
                 availableTeachers={allTeachers}
             />
