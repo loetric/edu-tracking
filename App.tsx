@@ -57,11 +57,23 @@ const App: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     let sessionChecked = false;
+    let userLoaded = false;
     
     const checkSession = async () => {
       try {
         console.log('=== checkSession: Starting session check ===');
-        // First check if there's a session in storage (faster)
+        
+        // CRITICAL: First check localStorage directly to see if session exists
+        // This is faster and more reliable than getSession()
+        const storedSession = typeof window !== 'undefined' 
+          ? localStorage.getItem('supabase.auth.token') 
+          : null;
+        
+        console.log('=== checkSession: localStorage check ===', {
+          hasStoredSession: !!storedSession,
+          storedSessionLength: storedSession?.length
+        });
+        
         // Use getSession which reads from localStorage first
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -73,10 +85,26 @@ const App: React.FC = () => {
         
         // If there's a session error, it might be a storage issue - don't log out
         if (sessionError) {
-          console.warn("Session check error (non-fatal):", sessionError);
-          // Don't clear user - might be temporary storage issue
-          // If we have a current user, keep them logged in
-          if (isMounted) {
+          console.warn("=== checkSession: Session check error (non-fatal) ===", sessionError);
+          // If we have a stored session but getSession failed, try getUser() as fallback
+          if (storedSession) {
+            console.log('=== checkSession: Stored session exists, trying getUser() as fallback ===');
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user && isMounted) {
+                console.log('=== checkSession: Got user from getUser() fallback ===', user.id);
+                const profileUser = await api.getCurrentUser();
+                if (profileUser) {
+                  setCurrentUser(profileUser);
+                  userLoaded = true;
+                }
+              }
+            } catch (getUserError) {
+              console.warn('=== checkSession: getUser() fallback also failed ===', getUserError);
+            }
+          }
+          
+          if (!userLoaded && isMounted) {
             setIsAppLoading(false);
           }
           return;
@@ -84,6 +112,8 @@ const App: React.FC = () => {
         
         if (session?.user) {
           console.log('=== checkSession: Session found, userId:', session.user.id);
+          console.log('=== checkSession: Session expires at:', new Date(session.expires_at! * 1000).toISOString());
+          
           // Retry logic for getting user with more attempts and longer delays
           let user: User | null = null;
           let retries = 5; // Increased retries
@@ -94,6 +124,7 @@ const App: React.FC = () => {
               user = await api.getCurrentUser();
               if (user) {
                 console.log('=== checkSession: User profile loaded successfully:', user.name);
+                userLoaded = true;
                 break;
               }
               // If getCurrentUser returns null but no error, it might be a timing issue
@@ -117,23 +148,31 @@ const App: React.FC = () => {
           } else if (isMounted) {
             // Session exists but no profile after retries
             // CRITICAL: Don't set currentUser to null if session exists!
-            // This is the main bug - we should keep the user logged in if session exists
+            // Keep the session alive even if profile fetch fails temporarily
             console.warn("=== checkSession: Session exists but profile not found after retries ===");
             console.warn("=== checkSession: NOT clearing currentUser - session is still valid ===");
+            console.warn("=== checkSession: Session will remain active, profile will be retried ===");
+            
             // Only clear loading, don't log out
             setIsAppLoading(false);
+            
             // Try one more time after a longer delay - profile might be created by trigger
             setTimeout(async () => {
               if (isMounted) {
                 try {
+                  console.log('=== checkSession: Retrying profile fetch after delay ===');
                   const delayedUser = await api.getCurrentUser();
                   if (delayedUser) {
                     console.log('=== checkSession: User profile loaded after delay:', delayedUser.name);
                     setCurrentUser(delayedUser);
                     setIsDataLoading(true);
+                  } else {
+                    console.warn('=== checkSession: Profile still not found after delay ===');
+                    // Even if profile not found, if session exists, don't log out
+                    // The user might be able to use the system with limited functionality
                   }
                 } catch (err) {
-                  console.warn('Delayed user fetch failed:', err);
+                  console.warn('=== checkSession: Delayed user fetch failed ===', err);
                 }
               }
             }, 3000);
