@@ -47,14 +47,27 @@ export const handleSupabaseError = (error: any): ApiError => {
   }
 
   // Invalid email - check multiple variations
+  const errorMessage = error.message?.toLowerCase() || '';
+  const errorCode = error.code?.toLowerCase() || '';
+  
+  console.log('=== handleSupabaseError: Checking for email error ===', {
+    errorMessage,
+    errorCode,
+    fullError: error
+  });
+
   if (
-    error.message?.includes('Invalid email') ||
-    error.message?.includes('invalid email') ||
-    error.message?.includes('Email format') ||
-    error.message?.includes('email format') ||
-    error.code === 'invalid_email' ||
-    error.code === 'validation_failed'
+    errorMessage.includes('invalid email') ||
+    errorMessage.includes('email format') ||
+    errorMessage.includes('email is invalid') ||
+    errorMessage.includes('email must be') ||
+    errorMessage.includes('invalid email address') ||
+    errorCode === 'invalid_email' ||
+    errorCode === 'validation_failed' ||
+    errorCode === 'invalid_request' ||
+    error.status === 400
   ) {
+    console.log('=== handleSupabaseError: Detected email validation error ===');
     return new ApiError(
       'INVALID_EMAIL',
       CONFIG.ERRORS.INVALID_EMAIL,

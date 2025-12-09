@@ -60,17 +60,22 @@ const App: React.FC = () => {
     
     const checkSession = async () => {
       try {
+        console.log('=== checkSession: Starting session check ===');
         // First check if there's a session in storage (faster)
         // Use getSession which reads from localStorage first
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (!isMounted) return;
+        if (!isMounted) {
+          console.log('=== checkSession: Component unmounted, aborting ===');
+          return;
+        }
         sessionChecked = true;
         
         // If there's a session error, it might be a storage issue - don't log out
         if (sessionError) {
           console.warn("Session check error (non-fatal):", sessionError);
           // Don't clear user - might be temporary storage issue
+          // If we have a current user, keep them logged in
           if (isMounted) {
             setIsAppLoading(false);
           }
@@ -78,50 +83,73 @@ const App: React.FC = () => {
         }
         
         if (session?.user) {
-          console.log('Session found in checkSession, fetching user profile...');
-          // Retry logic for getting user
+          console.log('=== checkSession: Session found, userId:', session.user.id);
+          // Retry logic for getting user with more attempts and longer delays
           let user: User | null = null;
-          let retries = 3;
+          let retries = 5; // Increased retries
           
           while (retries > 0 && !user) {
             try {
+              console.log(`=== checkSession: Attempting to get user (${retries} retries left) ===`);
               user = await api.getCurrentUser();
-              if (user) break;
+              if (user) {
+                console.log('=== checkSession: User profile loaded successfully:', user.name);
+                break;
+              }
+              // If getCurrentUser returns null but no error, it might be a timing issue
+              console.warn(`getCurrentUser returned null (${retries} retries left)`);
             } catch (userError) {
               console.warn(`Error getting user in checkSession (${retries} retries left):`, userError);
-              retries--;
-              if (retries > 0) {
-                // Wait before retry
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
+            }
+            retries--;
+            if (retries > 0) {
+              // Wait longer between retries
+              await new Promise(resolve => setTimeout(resolve, 2000));
             }
           }
           
           if (user && isMounted) {
-            console.log('User profile loaded in checkSession:', user.name);
+            console.log('=== checkSession: Setting current user:', user.name);
             setCurrentUser(user);
             setIsAppLoading(false);
             // Trigger data loading
             setIsDataLoading(true);
           } else if (isMounted) {
-            // Session exists but no profile after retries - might be new user or profile not created yet
-            console.warn("Session exists but no profile found after retries in checkSession");
-            // Don't sign out - profile might be created by trigger
-            setCurrentUser(null);
+            // Session exists but no profile after retries
+            // CRITICAL: Don't set currentUser to null if session exists!
+            // This is the main bug - we should keep the user logged in if session exists
+            console.warn("=== checkSession: Session exists but profile not found after retries ===");
+            console.warn("=== checkSession: NOT clearing currentUser - session is still valid ===");
+            // Only clear loading, don't log out
             setIsAppLoading(false);
+            // Try one more time after a longer delay - profile might be created by trigger
+            setTimeout(async () => {
+              if (isMounted) {
+                try {
+                  const delayedUser = await api.getCurrentUser();
+                  if (delayedUser) {
+                    console.log('=== checkSession: User profile loaded after delay:', delayedUser.name);
+                    setCurrentUser(delayedUser);
+                    setIsDataLoading(true);
+                  }
+                } catch (err) {
+                  console.warn('Delayed user fetch failed:', err);
+                }
+              }
+            }, 3000);
           }
         } else {
-          // No session - clear loading immediately
-          console.log('No session found in checkSession');
+          // No session - only then clear user
+          console.log('=== checkSession: No session found - user is logged out ===');
           if (isMounted) {
             setCurrentUser(null);
             setIsAppLoading(false);
           }
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("=== checkSession: Exception ===", error);
         // Don't block - allow app to continue
-        // Don't clear user on error - might be temporary
+        // Don't clear user on error - might be temporary network issue
         if (isMounted) {
           setIsAppLoading(false);
         }
@@ -133,10 +161,10 @@ const App: React.FC = () => {
     // Fallback timeout - ensure loading is cleared even if something goes wrong
     const fallbackTimeout = setTimeout(() => {
       if (isMounted && !sessionChecked) {
-        console.warn("Session check timeout - clearing loading state");
+        console.warn("=== checkSession: Timeout - clearing loading state ===");
         setIsAppLoading(false);
       }
-    }, 5000); // Increased timeout
+    }, 10000); // Increased timeout to 10 seconds
     
     return () => {
       isMounted = false;
@@ -157,13 +185,84 @@ const App: React.FC = () => {
       // Handle INITIAL_SESSION only once - don't clear user on refresh
       if (event === 'INITIAL_SESSION') {
         if (hasInitialSession) {
-          console.log('INITIAL_SESSION already handled, skipping');
+          console.log('=== INITIAL_SESSION: Already handled, skipping ===');
           return; // Already handled
         }
         hasInitialSession = true;
         
         if (session?.user) {
-          console.log('INITIAL_SESSION: Session found, loading user...');
+          console.log('=== INITIAL_SESSION: Session found, userId:', session.user.id);
+          try {
+            // Retry logic for getting user with more attempts
+            let user: User | null = null;
+            let retries = 5; // Increased retries
+            
+            while (retries > 0 && !user) {
+              try {
+                console.log(`=== INITIAL_SESSION: Attempting to get user (${retries} retries left) ===`);
+                user = await api.getCurrentUser();
+                if (user) {
+                  console.log('=== INITIAL_SESSION: User loaded:', user.name);
+                  break;
+                }
+                console.warn(`getCurrentUser returned null (${retries} retries left)`);
+              } catch (error) {
+                console.warn(`Error getting user in INITIAL_SESSION (${retries} retries left):`, error);
+              }
+              retries--;
+              if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+              }
+            }
+            
+            if (user && isMounted) {
+              console.log('=== INITIAL_SESSION: Setting current user:', user.name);
+              setCurrentUser(user);
+              setIsAppLoading(false);
+              // Trigger data loading
+              setIsDataLoading(true);
+            } else if (isMounted) {
+              // Session exists but no profile - CRITICAL: Don't log out!
+              console.warn('=== INITIAL_SESSION: Session exists but no profile found ===');
+              console.warn('=== INITIAL_SESSION: NOT clearing currentUser - session is still valid ===');
+              // Only clear loading, don't log out
+              setIsAppLoading(false);
+              // Try one more time after a longer delay
+              setTimeout(async () => {
+                if (isMounted) {
+                  try {
+                    const delayedUser = await api.getCurrentUser();
+                    if (delayedUser) {
+                      console.log('=== INITIAL_SESSION: User profile loaded after delay:', delayedUser.name);
+                      setCurrentUser(delayedUser);
+                      setIsDataLoading(true);
+                    }
+                  } catch (err) {
+                    console.warn('INITIAL_SESSION: Delayed user fetch failed:', err);
+                  }
+                }
+              }, 3000);
+            }
+          } catch (error) {
+            console.error("=== INITIAL_SESSION: Exception ===", error);
+            if (isMounted) {
+              // Don't log out on error - session might still be valid
+              setIsAppLoading(false);
+            }
+          }
+        } else if (isMounted) {
+          // No session in INITIAL_SESSION - user is logged out
+          console.log('=== INITIAL_SESSION: No session found - user is logged out ===');
+          setCurrentUser(null);
+          setIsAppLoading(false);
+        }
+        return; // Don't process INITIAL_SESSION further
+      }
+      
+      // Handle other events
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        console.log('=== Auth event:', event, 'Session:', session?.user?.id, '===');
+        if (session?.user) {
           try {
             // Retry logic for getting user
             let user: User | null = null;
@@ -174,7 +273,7 @@ const App: React.FC = () => {
                 user = await api.getCurrentUser();
                 if (user) break;
               } catch (error) {
-                console.warn(`Error getting user in INITIAL_SESSION (${retries} retries left):`, error);
+                console.warn(`Error getting user in ${event} (${retries} retries left):`, error);
                 retries--;
                 if (retries > 0) {
                   await new Promise(resolve => setTimeout(resolve, 1000));
@@ -183,59 +282,32 @@ const App: React.FC = () => {
             }
             
             if (user && isMounted) {
-              console.log('INITIAL_SESSION: User loaded:', user.name);
+              console.log('=== User loaded in auth state change:', user.name, '===');
               setCurrentUser(user);
               setIsAppLoading(false);
               // Trigger data loading
               setIsDataLoading(true);
             } else if (isMounted) {
-              // Session exists but no profile - don't log out, just clear loading
-              console.warn('INITIAL_SESSION: Session exists but no profile found');
+              // Session exists but no user - don't clear currentUser if it exists
+              console.warn(`=== ${event}: Session exists but no user profile ===`);
+              console.warn('=== NOT clearing currentUser - session is still valid ===');
               setIsAppLoading(false);
             }
           } catch (error) {
-            console.error("Error getting user in initial session:", error);
+            console.error(`=== Error getting user in ${event} ===`, error);
             if (isMounted) {
-              // Don't log out on error - session might still be valid
+              // Don't clear user on error
               setIsAppLoading(false);
             }
           }
         } else if (isMounted) {
-          // No session in INITIAL_SESSION - user is logged out
-          console.log('INITIAL_SESSION: No session found');
-          setCurrentUser(null);
-          setIsAppLoading(false);
-        }
-        return; // Don't process INITIAL_SESSION further
-      }
-      
-      // Handle other events
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('Auth event:', event, 'Session:', session?.user?.id);
-        if (session?.user) {
-          try {
-            const user = await api.getCurrentUser();
-            if (user && isMounted) {
-              console.log('User loaded in auth state change:', user.name);
-              setCurrentUser(user);
-              setIsAppLoading(false);
-              // Trigger data loading
-              setIsDataLoading(true);
-            } else if (isMounted) {
-              setIsAppLoading(false);
-            }
-          } catch (error) {
-            console.error("Error getting user in auth state change:", error);
-            if (isMounted) {
-              setIsAppLoading(false);
-            }
-          }
-        } else if (isMounted) {
+          // No session in event - don't clear user for SIGNED_IN or TOKEN_REFRESHED
+          console.warn(`=== ${event}: No session in event - keeping current user ===`);
           setIsAppLoading(false);
         }
       } else if (event === 'SIGNED_OUT') {
         // User explicitly signed out - clear state
-        console.log('User signed out');
+        console.log('=== User signed out explicitly ===');
         if (isMounted) {
           setCurrentUser(null);
           setStudents([]);

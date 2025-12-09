@@ -82,14 +82,31 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   };
 
   const handleAddUser = async () => {
+      console.log('=== handleAddUser: Starting ===');
+      console.log('=== handleAddUser: newUser data ===', {
+          username: newUser.username,
+          name: newUser.name,
+          role: newUser.role,
+          email: newUser.email,
+          passwordLength: newUser.password?.length
+      });
+
       if (!newUser.username || !newUser.password || !newUser.name || !newUser.role || !newUser.email) {
+          console.warn('=== handleAddUser: Missing fields ===');
           alert({ message: 'الرجاء تعبئة جميع الحقول', type: 'warning' });
           return;
       }
 
-      // Validate email before submission
+      // Validate email before submission - use the same validation function as API
       const emailToValidate = (newUser.email || '').trim();
+      console.log('=== handleAddUser: Email to validate ===', {
+          original: newUser.email,
+          trimmed: emailToValidate,
+          length: emailToValidate.length
+      });
+
       if (!emailToValidate) {
+          console.warn('=== handleAddUser: Email is empty ===');
           setEmailError('البريد الإلكتروني مطلوب');
           alert({ message: 'الرجاء إدخال بريد إلكتروني صحيح', type: 'warning' });
           return;
@@ -97,7 +114,15 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
       // Use the same regex as validation.ts for consistency
       const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(emailToValidate)) {
+      const regexTest = emailRegex.test(emailToValidate);
+      console.log('=== handleAddUser: Regex test ===', {
+          email: emailToValidate,
+          regexTest: regexTest,
+          match: emailToValidate.match(emailRegex)
+      });
+
+      if (!regexTest) {
+          console.warn('=== handleAddUser: Email regex failed ===', emailToValidate);
           setEmailError('صيغة البريد الإلكتروني غير صحيحة');
           alert({ message: 'صيغة البريد الإلكتروني غير صحيحة. يرجى التحقق من الإدخال', type: 'warning' });
           return;
@@ -105,28 +130,56 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
       // Additional validation checks
       if (emailToValidate.length > 254) {
+          console.warn('=== handleAddUser: Email too long ===', emailToValidate.length);
           setEmailError('البريد الإلكتروني طويل جداً');
           alert({ message: 'البريد الإلكتروني طويل جداً (الحد الأقصى 254 حرف)', type: 'warning' });
           return;
       }
 
       if (emailToValidate.startsWith('.') || emailToValidate.startsWith('@') || emailToValidate.endsWith('.')) {
+          console.warn('=== handleAddUser: Email starts/ends with invalid char ===');
           setEmailError('صيغة البريد الإلكتروني غير صحيحة');
           alert({ message: 'صيغة البريد الإلكتروني غير صحيحة', type: 'warning' });
           return;
       }
 
+      console.log('=== handleAddUser: All validations passed, calling api.signUp ===');
       setIsAddingUser(false);
       setEmailError('');
       try {
-          console.log('Attempting to sign up user with email:', emailToValidate);
-          const result = await api.signUp(emailToValidate, newUser.password || '', { username: newUser.username!, name: newUser.name!, role: newUser.role as Role, avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` });
+          console.log('=== handleAddUser: Calling api.signUp with ===', {
+              email: emailToValidate,
+              passwordLength: newUser.password?.length,
+              username: newUser.username,
+              name: newUser.name,
+              role: newUser.role
+          });
           
-          console.log('Sign up result:', result);
+          const result = await api.signUp(
+              emailToValidate, 
+              newUser.password || '', 
+              { 
+                  username: newUser.username!, 
+                  name: newUser.name!, 
+                  role: newUser.role as Role, 
+                  avatar: `https://ui-avatars.com/api/?name=${newUser.name}&background=random` 
+              }
+          );
+          
+          console.log('=== handleAddUser: Sign up result ===', result);
           
           if (result.error) {
-              console.error('Sign up error:', result.error);
-              setEmailError(result.error.includes('البريد') || result.error.includes('email') ? result.error : '');
+              console.error('=== handleAddUser: Sign up error ===', result.error);
+              // Check if error is about email
+              const isEmailError = result.error.includes('البريد') || 
+                                  result.error.includes('email') || 
+                                  result.error.includes('Email') ||
+                                  result.error.includes('إلكتروني') ||
+                                  result.error.toLowerCase().includes('invalid email');
+              
+              if (isEmailError) {
+                  setEmailError(result.error);
+              }
               alert({ message: result.error, type: 'error' });
               setIsAddingUser(true); // Re-open form on error
               return;

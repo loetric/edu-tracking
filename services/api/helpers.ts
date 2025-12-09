@@ -20,21 +20,37 @@ export const mapProfileToUser = (profile: any): User => {
  */
 export const fetchUserProfile = async (userId: string): Promise<User | null> => {
   try {
+    console.log('fetchUserProfile: Fetching profile for userId:', userId);
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
     
-    if (error || !profile) {
-      console.warn('No profile found for user id', userId, error);
+    if (error) {
+      console.warn('fetchUserProfile: Error fetching profile:', error);
+      console.warn('fetchUserProfile: Error code:', error.code, 'Error message:', error.message);
+      // Don't return null immediately - might be RLS or network issue
+      // Return null only if it's a clear "not found" error
+      if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+        console.warn('fetchUserProfile: Profile not found (PGRST116)');
+        return null;
+      }
+      // For other errors, throw to allow retry logic
+      throw error;
+    }
+    
+    if (!profile) {
+      console.warn('fetchUserProfile: No profile data returned for userId:', userId);
       return null;
     }
     
+    console.log('fetchUserProfile: Profile found:', profile.name);
     return mapProfileToUser(profile);
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return null;
+    console.error('fetchUserProfile: Exception:', error);
+    // Re-throw to allow retry logic in calling code
+    throw error;
   }
 };
 

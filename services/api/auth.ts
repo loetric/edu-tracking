@@ -11,15 +11,33 @@ import { validateEmail, validatePassword } from './validation';
  */
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
+    console.log('getCurrentUser: Checking session...');
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    
+    if (sessionError) {
+      console.warn('getCurrentUser: Session error:', sessionError);
       return null;
     }
     
-    return await fetchUserProfile(session.user.id);
+    if (!session?.user) {
+      console.log('getCurrentUser: No session or user');
+      return null;
+    }
+    
+    console.log('getCurrentUser: Session found, userId:', session.user.id);
+    const user = await fetchUserProfile(session.user.id);
+    
+    if (user) {
+      console.log('getCurrentUser: User profile loaded:', user.name);
+    } else {
+      console.warn('getCurrentUser: fetchUserProfile returned null');
+    }
+    
+    return user;
   } catch (error) {
     console.error('getCurrentUser exception:', error);
-    return null;
+    // Re-throw to allow retry logic in calling code
+    throw error;
   }
 };
 
@@ -53,16 +71,35 @@ export const signUp = async (
   profile: { username: string; name: string; role: Role; avatar?: string }
 ): Promise<{ user: User | null; error: string | null }> => {
   try {
+    console.log('=== signUp: Starting ===');
+    console.log('=== signUp: Input email ===', {
+      email: email,
+      type: typeof email,
+      length: email?.length,
+      charCodes: email?.split('').map(c => c.charCodeAt(0))
+    });
+
     // Trim and validate email
     const trimmedEmail = (email || '').trim();
+    console.log('=== signUp: Trimmed email ===', {
+      trimmed: trimmedEmail,
+      length: trimmedEmail.length,
+      originalLength: email?.length
+    });
+
     if (!trimmedEmail) {
+      console.warn('=== signUp: Email is empty after trim ===');
       return { user: null, error: 'البريد الإلكتروني مطلوب' };
     }
 
     // Validate inputs
+    console.log('=== signUp: Calling validateEmail ===');
     const emailValidation = validateEmail(trimmedEmail);
+    console.log('=== signUp: Email validation result ===', emailValidation);
+    
     if (!emailValidation.valid) {
-      return { user: null, error: emailValidation.error };
+      console.error('=== signUp: Email validation failed ===', emailValidation.error);
+      return { user: null, error: emailValidation.error || 'البريد الإلكتروني غير صحيح' };
     }
 
     const passwordValidation = validatePassword(password);
