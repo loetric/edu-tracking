@@ -591,6 +591,12 @@ const App: React.FC = () => {
         async (payload) => {
           if (!isMounted) return;
           
+          // Don't process real-time events if we're clearing chat
+          if (isClearingChat) {
+            console.log('Real-time subscription: Skipping event while clearing chat');
+            return;
+          }
+          
           try {
             const newMessage = {
               ...payload.new,
