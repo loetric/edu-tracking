@@ -567,6 +567,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 />
               </div>
             </div>
+          </div>
 
           {/* Clear Filters */}
           {hasActiveFilters && (
