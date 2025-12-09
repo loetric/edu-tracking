@@ -159,7 +159,7 @@ CREATE INDEX IF NOT EXISTS idx_daily_records_studentId ON public.daily_records("
 CREATE INDEX IF NOT EXISTS idx_daily_records_date ON public.daily_records(date);
 CREATE INDEX IF NOT EXISTS idx_schedule_day ON public.schedule(day);
 CREATE INDEX IF NOT EXISTS idx_substitutions_date ON public.substitutions(date);
-CREATE INDEX IF NOT EXISTS idx_substitutions_scheduleItemId ON public.substitutions(scheduleItemId);
+CREATE INDEX IF NOT EXISTS idx_substitutions_scheduleItemId ON public.substitutions("scheduleItemId");
 CREATE INDEX IF NOT EXISTS idx_subjects_name ON public.subjects(name);
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 CREATE INDEX IF NOT EXISTS idx_profiles_username ON public.profiles(username);
