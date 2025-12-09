@@ -83,11 +83,9 @@ const App: React.FC = () => {
         
         try {
           // First try getSession() - it reads from localStorage directly
+          // Remove timeout - getSession() should be fast if session exists in localStorage
           console.log('=== checkSession: Trying getSession() first ===');
-          const sessionResult = await Promise.race([
-            supabase.auth.getSession(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('getSession timeout')), 3000))
-          ]) as any;
+          const sessionResult = await supabase.auth.getSession();
           
           if (!isMounted) {
             console.log('=== checkSession: Component unmounted, aborting ===');
