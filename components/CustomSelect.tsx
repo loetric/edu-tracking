@@ -47,19 +47,31 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       }
     };
 
-    const handleScroll = () => {
+    const handleScroll = (event: Event) => {
+      // Only close if scrolling is outside the dropdown
+      // Check if the scroll event target is within the dropdown or select container
       if (isOpen) {
-        setIsOpen(false);
+        const target = event.target as Node;
+        const isInsideDropdown = dropdownRef.current?.contains(target);
+        const isInsideSelect = selectRef.current?.contains(target);
+        
+        // Only close if scrolling happened outside both dropdown and select
+        if (!isInsideDropdown && !isInsideSelect) {
+          setIsOpen(false);
+        }
       }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Use capture phase to catch scroll events, but check if they're from outside dropdown
+      document.addEventListener('scroll', handleScroll, true);
       window.addEventListener('scroll', handleScroll, true);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, [isOpen]);
@@ -110,14 +122,22 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               // Smooth scrolling
               scrollBehavior: 'smooth',
               // Better scrollbar for webkit browsers
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
+              // Ensure scrolling works properly
+              overscrollBehavior: 'contain'
             }}
             onWheel={(e) => {
-              // Prevent closing on scroll
+              // Prevent closing on scroll inside dropdown
               e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
             }}
             onTouchMove={(e) => {
-              // Prevent closing on touch scroll
+              // Prevent closing on touch scroll inside dropdown
+              e.stopPropagation();
+              e.nativeEvent.stopImmediatePropagation();
+            }}
+            onScroll={(e) => {
+              // Prevent scroll event from bubbling up and closing dropdown
               e.stopPropagation();
             }}
           >
