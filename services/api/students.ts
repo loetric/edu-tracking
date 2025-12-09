@@ -220,13 +220,22 @@ export const updateStudent = async (
 
     if (error) {
       console.error('Update student error:', error);
-      return null;
+      // Throw error with message for better error handling
+      throw new Error(error.message || 'فشل في تحديث بيانات الطالب');
+    }
+
+    if (!data) {
+      throw new Error('لم يتم العثور على الطالب بعد التحديث');
     }
 
     return data as Student;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update student exception:', error);
-    return null;
+    // Re-throw with proper error message
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.');
   }
 };
 

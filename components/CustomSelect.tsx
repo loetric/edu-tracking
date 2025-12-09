@@ -116,6 +116,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               // Prevent closing on scroll
               e.stopPropagation();
             }}
+            onTouchMove={(e) => {
+              // Prevent closing on touch scroll
+              e.stopPropagation();
+            }}
           >
             {options.length > 0 ? (
               options.map((option) => (

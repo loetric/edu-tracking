@@ -752,9 +752,26 @@ const App: React.FC = () => {
       } else {
         alert({ message: 'فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating student:', error);
-      alert({ message: 'فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.', type: 'error' });
+      const errorMessage = error?.message || 'فشل في تحديث بيانات الطالب. يرجى المحاولة مرة أخرى.';
+      alert({ message: errorMessage, type: 'error' });
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
+
+  const handleUpdateSchedule = async (newSchedule: ScheduleItem[]) => {
+    setIsDataLoading(true);
+    try {
+      await api.updateSchedule(newSchedule);
+      setSchedule(newSchedule);
+      handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام');
+      alert({ message: 'تم تحديث الجدول الدراسي بنجاح!', type: 'success' });
+    } catch (error: any) {
+      console.error('Error updating schedule:', error);
+      const errorMessage = error?.message || 'فشل في تحديث الجدول الدراسي. يرجى المحاولة مرة أخرى.';
+      alert({ message: errorMessage, type: 'error' });
     } finally {
       setIsDataLoading(false);
     }

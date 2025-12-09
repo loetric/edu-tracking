@@ -87,7 +87,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
   const sortedClasses = Object.keys(studentsByClass).sort();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden">
       
       {/* Settings Section (Collapsible or Top) */}
       {settings && onUpdateSettings && (
