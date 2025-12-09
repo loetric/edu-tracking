@@ -114,6 +114,9 @@ const App: React.FC = () => {
           console.log('=== checkSession: Session found, userId:', session.user.id);
           console.log('=== checkSession: Session expires at:', new Date(session.expires_at! * 1000).toISOString());
           
+          // Mark that we found a session to prevent timeout
+          sessionChecked = true;
+          
           // Retry logic for getting user with more attempts and longer delays
           let user: User | null = null;
           let retries = 5; // Increased retries
@@ -178,8 +181,9 @@ const App: React.FC = () => {
             }, 3000);
           }
         } else {
-          // No session - only then clear user
+          // No session - mark as checked and clear user
           console.log('=== checkSession: No session found - user is logged out ===');
+          sessionChecked = true;
           if (isMounted) {
             setCurrentUser(null);
             setIsAppLoading(false);
