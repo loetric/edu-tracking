@@ -132,17 +132,78 @@ const App: React.FC = () => {
         
         try {
           // First try getSession() - it reads from localStorage directly
-          // Remove timeout - getSession() should be fast if session exists in localStorage
+          // Add timeout to prevent hanging
           console.log('=== checkSession: Trying getSession() first ===');
-          const sessionResult = await supabase.auth.getSession();
+          let sessionResult: any = null;
+          try {
+            sessionResult = await Promise.race([
+              supabase.auth.getSession(),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('getSession timeout after 5 seconds')), 5000)
+              )
+            ]);
+          } catch (timeoutError) {
+            console.warn('=== checkSession: getSession() timeout ===', timeoutError);
+            // If getSession times out, try getUser() as fallback
+            console.log('=== checkSession: getSession() timed out, trying getUser() as fallback ===');
+            try {
+              const { data: { user: authUserData }, error: getUserError } = await supabase.auth.getUser();
+              if (getUserError) {
+                console.warn("=== checkSession: getUser() also failed ===", getUserError);
+                // No valid session
+                sessionChecked = true;
+                if (isMounted) {
+                  setCurrentUser(null);
+                  setIsAppLoading(false);
+                }
+                return;
+              }
+              if (authUserData) {
+                authUser = authUserData;
+                console.log('=== checkSession: Got user from getUser() after timeout ===', authUser.id);
+                // Skip to profile fetch
+                sessionChecked = true;
+                // Continue to profile fetch below
+              } else {
+                sessionChecked = true;
+                if (isMounted) {
+                  setCurrentUser(null);
+                  setIsAppLoading(false);
+                }
+                return;
+              }
+            } catch (getUserErr) {
+              console.warn("=== checkSession: getUser() exception after timeout ===", getUserErr);
+              sessionChecked = true;
+              if (isMounted) {
+                setCurrentUser(null);
+                setIsAppLoading(false);
+              }
+              return;
+            }
+          }
           
           if (!isMounted) {
             console.log('=== checkSession: Component unmounted, aborting ===');
             return;
           }
           
-          session = sessionResult?.data?.session;
-          const sessionError = sessionResult?.error;
+          // If we got here, sessionResult should be valid
+          if (sessionResult) {
+            session = sessionResult?.data?.session;
+            const sessionError = sessionResult?.error;
+          } else {
+            // sessionResult is null (timeout case handled above)
+            // If we have authUser from getUser(), continue
+            if (!authUser) {
+              sessionChecked = true;
+              if (isMounted) {
+                setCurrentUser(null);
+                setIsAppLoading(false);
+              }
+              return;
+            }
+          }
           
           if (sessionError && !session) {
             console.warn("=== checkSession: getSession() error ===", sessionError);
