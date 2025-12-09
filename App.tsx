@@ -1069,9 +1069,35 @@ const App: React.FC = () => {
       if (!shouldClear) return;
 
       setIsDataLoading(true);
+      setIsClearingChat(true); // Prevent real-time subscription from re-adding messages
+      
       try {
+          console.log('handleClearChat: Deleting all chat messages...');
+          
+          // Delete from database
           await api.deleteAllChatMessages();
+          
+          console.log('handleClearChat: Messages deleted from database, clearing local state');
+          
+          // Clear local state immediately
           setChatMessages([]);
+          
+          // Wait a bit for database to process the deletion and prevent real-time events
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Verify deletion by checking database
+          const remainingMessages = await api.getMessages();
+          if (remainingMessages.length > 0) {
+              console.warn('handleClearChat: Some messages still remain, clearing again');
+              // Try deleting again
+              await api.deleteAllChatMessages();
+              setChatMessages([]);
+              // Wait again
+              await new Promise(resolve => setTimeout(resolve, 500));
+          } else {
+              console.log('handleClearChat: All messages deleted successfully');
+          }
+          
           handleAddLog('مسح الدردشات', 'تم مسح جميع رسائل الدردشة');
           alert({ message: 'تم مسح جميع رسائل الدردشة بنجاح!', type: 'success' });
       } catch (error) {
@@ -1079,6 +1105,10 @@ const App: React.FC = () => {
           alert({ message: 'فشل في مسح رسائل الدردشة. يرجى المحاولة مرة أخرى.', type: 'error' });
       } finally {
           setIsDataLoading(false);
+          // Re-enable real-time subscription after a delay
+          setTimeout(() => {
+              setIsClearingChat(false);
+          }, 2000);
       }
   };
 

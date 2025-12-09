@@ -73,24 +73,67 @@ export const deleteAllDailyRecords = async (): Promise<void> => {
  */
 export const deleteAllChatMessages = async (): Promise<void> => {
   try {
+    console.log('deleteAllChatMessages: Starting deletion...');
+    
     // Get all message IDs first, then delete them
     const { data: messages, error: fetchError } = await supabase
       .from('chat_messages')
       .select('id');
     
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      console.error('deleteAllChatMessages: Error fetching messages:', fetchError);
+      throw fetchError;
+    }
     
     if (messages && messages.length > 0) {
+      console.log(`deleteAllChatMessages: Found ${messages.length} messages to delete`);
       const ids = messages.map(m => m.id);
-      const { error } = await supabase
-        .from('chat_messages')
-        .delete()
-        .in('id', ids);
       
-      if (error) throw error;
+      // Delete in batches if needed (Supabase has limits)
+      const batchSize = 100;
+      for (let i = 0; i < ids.length; i += batchSize) {
+        const batch = ids.slice(i, i + batchSize);
+        const { error, data: deletedData } = await supabase
+          .from('chat_messages')
+          .delete()
+          .in('id', batch)
+          .select();
+        
+        if (error) {
+          console.error(`deleteAllChatMessages: Error deleting batch ${i / batchSize + 1}:`, error);
+          throw error;
+        }
+        
+        console.log(`deleteAllChatMessages: Deleted batch ${i / batchSize + 1}, ${deletedData?.length || 0} messages deleted`);
+      }
+      
+      // Verify deletion
+      const { data: remaining, error: verifyError } = await supabase
+        .from('chat_messages')
+        .select('id')
+        .limit(1);
+      
+      if (verifyError) {
+        console.warn('deleteAllChatMessages: Error verifying deletion:', verifyError);
+      } else if (remaining && remaining.length > 0) {
+        console.warn('deleteAllChatMessages: Some messages still remain after deletion');
+        // Try one more time with a direct delete all
+        const { error: finalError } = await supabase
+          .from('chat_messages')
+          .delete()
+          .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all (using a condition that matches all)
+        
+        if (finalError) {
+          console.error('deleteAllChatMessages: Final deletion attempt failed:', finalError);
+        }
+      } else {
+        console.log('deleteAllChatMessages: All messages deleted successfully');
+      }
+    } else {
+      console.log('deleteAllChatMessages: No messages to delete');
     }
   } catch (error) {
-    console.error('Delete all chat messages error:', error);
+    console.error('deleteAllChatMessages: Exception:', error);
     throw error;
   }
 };
