@@ -1390,9 +1390,17 @@ const App: React.FC = () => {
                    handleAddLog('إدارة مستخدمين', 'تم تحديث قائمة المستخدمين'); 
                 }}
                 onUpdateSchedule={async (s) => { 
-                   await api.updateSchedule(s); 
-                   setSchedule(s); 
-                   handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام'); 
+                   try {
+                     console.log('App: Updating schedule with', s.length, 'items');
+                     await api.updateSchedule(s); 
+                     setSchedule(s); 
+                     handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام');
+                     alert({ message: 'تم تحديث الجدول الدراسي بنجاح!', type: 'success' });
+                   } catch (error: any) {
+                     console.error('App: Error updating schedule:', error);
+                     alert({ message: error?.message || 'فشل في تحديث الجدول الدراسي. يرجى المحاولة مرة أخرى.', type: 'error' });
+                     throw error; // Re-throw to prevent state update on error
+                   }
                 }}
                 onReset={handleResetData} 
             />
