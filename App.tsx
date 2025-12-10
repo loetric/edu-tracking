@@ -988,15 +988,12 @@ const App: React.FC = () => {
   };
 
   const handleSessionEnter = async (session: ScheduleItem) => {
-      if (!completedSessions.includes(session.id)) {
-          setCompletedSessions(prev => [...prev, session.id]); // Optimistic
-          await api.markSessionComplete(session.id);
-          
-          if(session.isSubstituted) {
-              handleAddLog('دخول حصة (احتياط)', `قام ${session.teacher} (بديل) بالدخول لحصة ${session.subject} - ${session.classRoom}`);
-          } else {
-              handleAddLog('دخول حصة', `قام ${session.teacher} بالدخول لبدء حصة ${session.subject} - ${session.classRoom}`);
-          }
+      // Only log the entry, don't mark as completed until records are saved
+      // Session completion is handled in handleSaveRecords after saving attendance
+      if(session.isSubstituted) {
+          handleAddLog('دخول حصة (احتياط)', `قام ${session.teacher} (بديل) بالدخول لحصة ${session.subject} - ${session.classRoom}`);
+      } else {
+          handleAddLog('دخول حصة', `قام ${session.teacher} بالدخول لبدء حصة ${session.subject} - ${session.classRoom}`);
       }
   };
 
