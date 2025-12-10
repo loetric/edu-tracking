@@ -17,6 +17,7 @@ interface SchoolSettingsProps {
   schedule?: ScheduleItem[];
   currentUser: User | null;
   students?: Student[]; // Add students prop to extract class grades
+  subjects?: Subject[]; // Subjects from database (passed from App.tsx)
   onSave: (settings: SchoolSettings) => void;
   onUpdateUsers: (users: User[]) => void;
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
@@ -24,7 +25,7 @@ interface SchoolSettingsProps {
   onReset?: () => void;
 }
 
-export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onUpdateSubjects, onReset }) => {
+export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], subjects: propSubjects = [], onSave, onUpdateUsers, onUpdateSchedule, onUpdateSubjects, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
@@ -61,6 +62,9 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       loadSubjects();
     }
   }, [activeTab]);
+
+  // Use propSubjects if available, otherwise use local subjects state
+  const availableSubjects = propSubjects.length > 0 ? propSubjects : subjects;
   
   const loadSubjects = async () => {
     setIsLoadingSubjects(true);
@@ -1400,25 +1404,22 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          </div>
                          <div>
                              <label className="block text-xs font-bold text-gray-500 mb-1">المادة</label>
-                             {subjects.length > 0 ? (
+                             {availableSubjects.length > 0 ? (
                                <CustomSelect
                                  value={newSession.subject || ''}
                                  onChange={(value) => setNewSession({...newSession, subject: value})}
                                  options={[
                                    { value: '', label: 'اختر المادة...' },
-                                   ...subjects.map(s => ({ value: s.name, label: s.name }))
+                                   ...availableSubjects.map(s => ({ value: s.name, label: s.name }))
                                  ]}
                                  placeholder="اختر المادة..."
                                  className="w-full"
                                />
                              ) : (
-                               <input 
-                                  type="text" 
-                                  value={newSession.subject} 
-                                  onChange={e => setNewSession({...newSession, subject: e.target.value})} 
-                                  className="w-full border rounded p-2 text-sm" 
-                                  placeholder="مثال: رياضيات" 
-                              />
+                               <div className="w-full border border-orange-300 rounded p-2.5 text-sm bg-orange-50 text-orange-700">
+                                 <p className="text-xs font-medium">لا توجد مواد دراسية محددة</p>
+                                 <p className="text-[10px] mt-1 text-orange-600">يرجى إضافة المواد الدراسية من تبويب "تعريف المواد الدراسية" أولاً</p>
+                               </div>
                              )}
                          </div>
                          <div>
