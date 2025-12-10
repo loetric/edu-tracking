@@ -110,7 +110,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             ref={dropdownRef}
             className={`
               absolute z-[9999] w-full bg-white border border-gray-200 rounded-md shadow-xl
-              max-h-40 md:max-h-48 overflow-y-auto overflow-x-visible
+              max-h-40 md:max-h-48 overflow-y-auto
               scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
               ${dropdownPosition === 'top' ? 'bottom-full mb-0.5' : 'top-full mt-0.5'}
             `}
@@ -124,7 +124,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               // Better scrollbar for webkit browsers
               WebkitOverflowScrolling: 'touch',
               // Ensure scrolling works properly
-              overscrollBehavior: 'contain'
+              overscrollBehavior: 'contain',
+              // Allow text to wrap and show fully
+              minWidth: 'max-content',
+              width: 'max-content',
+              maxWidth: '100vw'
             }}
             onWheel={(e) => {
               // Prevent closing on scroll inside dropdown
