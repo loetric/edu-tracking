@@ -355,7 +355,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       </div>
 
       {/* Email-like Layout: List on left, Content on right */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-250px)] min-h-[600px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-200px)] md:h-[calc(100vh-250px)] min-h-[400px] md:min-h-[600px]">
         {/* Left Side: Announcements List */}
         <div className="w-full md:w-1/3 border-l md:border-l-0 md:border-r border-gray-200 flex flex-col">
           {/* Search and Filters */}
