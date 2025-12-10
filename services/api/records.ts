@@ -30,29 +30,54 @@ export const getDailyRecords = async (): Promise<Record<string, DailyRecord>> =>
  */
 export const saveDailyRecords = async (records: Record<string, DailyRecord>): Promise<void> => {
   try {
+    // Ensure all records have an id
     const recordsArray = Object.values(records).map(r => ({
       ...r,
       id: r.id || `${r.studentId}_${r.date}`
     }));
 
-    const { data: existingRecords } = await supabase
+    // Get existing records to check which ones need update vs insert
+    const { data: existingRecords, error: fetchError } = await supabase
       .from('daily_records')
       .select('id');
+
+    if (fetchError) {
+      console.error('Error fetching existing records:', fetchError);
+      throw fetchError;
+    }
 
     const existingIds = new Set((existingRecords || []).map(r => r.id));
 
     const toInsert = recordsArray.filter(r => !existingIds.has(r.id));
     const toUpdate = recordsArray.filter(r => existingIds.has(r.id));
 
+    // Insert new records
     if (toInsert.length > 0) {
-      await supabase.from('daily_records').insert(toInsert);
+      const { error: insertError } = await supabase.from('daily_records').insert(toInsert);
+      if (insertError) {
+        console.error('Error inserting records:', insertError);
+        throw insertError;
+      }
     }
+
+    // Update existing records
     if (toUpdate.length > 0) {
       for (const record of toUpdate) {
-        await supabase
+        const { error: updateError } = await supabase
           .from('daily_records')
-          .update(record)
+          .update({
+            attendance: record.attendance,
+            participation: record.participation,
+            homework: record.homework,
+            behavior: record.behavior,
+            notes: record.notes
+          })
           .eq('id', record.id);
+        
+        if (updateError) {
+          console.error('Error updating record:', updateError, record);
+          throw updateError;
+        }
       }
     }
   } catch (error) {

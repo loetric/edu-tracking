@@ -62,7 +62,9 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
     setRecords(prev => {
       // 1. Get current record or create default "Present/Excellent" record
       const existingRecord = prev[studentId];
+      const recordId = existingRecord?.id || `${studentId}_${currentDate}`;
       const baseRecord: DailyRecord = existingRecord ? { ...existingRecord } : {
+        id: recordId,
         studentId,
         date: currentDate,
         attendance: 'present',
@@ -72,8 +74,8 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
         notes: ''
       };
 
-      // 2. Prepare the update
-      const updatedRecord = { ...baseRecord, [field]: value };
+      // 2. Prepare the update - ensure id is always present
+      const updatedRecord: DailyRecord = { ...baseRecord, id: recordId, [field]: value };
 
       // 3. Apply Automation Logic based on Attendance
       if (field === 'attendance') {
@@ -99,6 +101,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
   // Default record structure uses 'excellent' and 'present' as the default state for rendering
   const getRecord = (id: string): DailyRecord => records[id] || { 
+    id: `${id}_${currentDate}`,
     studentId: id, 
     date: currentDate,
     attendance: 'present', 
@@ -109,8 +112,19 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   };
 
   // Filter students based on selected session class
+  // Match if classGrade equals classRoom, or if classRoom starts with classGrade (e.g., "الرابع الابتدائي/أ" matches "الرابع الابتدائي")
   const displayedStudents = selectedSession 
-    ? students.filter(s => s.classGrade.trim() === selectedSession.classRoom.trim())
+    ? students.filter(s => {
+        const studentClass = s.classGrade?.trim() || '';
+        const sessionClass = selectedSession.classRoom?.trim() || '';
+        // Exact match
+        if (studentClass === sessionClass) return true;
+        // Match if session class starts with student class (e.g., "الرابع الابتدائي/أ" starts with "الرابع الابتدائي")
+        if (sessionClass.startsWith(studentClass + '/') || sessionClass.startsWith(studentClass + '_')) return true;
+        // Match if student class starts with session class
+        if (studentClass.startsWith(sessionClass + '/') || studentClass.startsWith(sessionClass + '_')) return true;
+        return false;
+      })
     : [];
 
   const handlePrintList = () => {
