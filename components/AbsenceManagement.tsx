@@ -191,8 +191,8 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
     { value: 'three-days', label: '3 أيام متتالية', icon: TrendingUp },
     { value: 'week', label: 'أسبوع', icon: Clock },
     { value: 'repeated', label: 'متكررون (3+ مرات)', icon: AlertTriangle },
-    { value: 'excused', label: 'معذورون', icon: CheckCircle },
-    { value: 'unexcused', label: 'غير معذورين', icon: XCircle },
+    { value: 'excused', label: 'مسأذنون', icon: CheckCircle },
+    { value: 'unexcused', label: 'غير مسأذنين', icon: XCircle },
     { value: 'all', label: 'الكل', icon: Users },
   ];
 
@@ -307,7 +307,7 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-3 md:p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-blue-600 font-medium">معذورون</p>
+              <p className="text-xs text-blue-600 font-medium">مسأذنون</p>
               <p className="text-2xl md:text-3xl font-bold text-blue-700 mt-1">
                 {absentStudents.filter(s => s.isExcused).length}
               </p>
@@ -388,12 +388,12 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
                       {info.isExcused ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           <CheckCircle size={12} />
-                          معذور
+                          مسأذن
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <XCircle size={12} />
-                          غير معذور
+                          غير مسأذن
                         </span>
                       )}
                     </td>

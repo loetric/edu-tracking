@@ -348,7 +348,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     <tr key={item.className} className={`transition-colors ${item.isReady ? 'bg-green-50/30' : 'hover:bg-gray-50'}`}>
                                         <td className="px-4 md:px-6 py-3 md:py-4 font-bold text-gray-800">
                                             <div className="flex flex-col">
-                                                <span className="text-sm md:text-base">{item.className}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm md:text-base">{item.className}</span>
+                                                    {item.isReady && (
+                                                        <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">تم الرصد</span>
+                                                    )}
+                                                </div>
                                                 <div className="text-[10px] md:text-xs text-gray-400 font-normal flex flex-wrap gap-x-2">
                                                     {item.teachers.map((teacherInfo, idx) => (
                                                         <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
@@ -611,7 +616,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                 ? 'bg-yellow-100 text-yellow-700' 
                                 : 'bg-red-100 text-red-700'
                             }`}>
-                              {record?.attendance === 'excused' ? 'معذور' : 'غائب'}
+                              {record?.attendance === 'excused' ? 'مسأذن' : 'غائب'}
                             </span>
                           </div>
                         </div>

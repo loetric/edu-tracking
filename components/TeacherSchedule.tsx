@@ -399,9 +399,14 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         onClick={() => handleSessionClick(session)}
                                         className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80`}
                                     >
-                                        <div className="flex justify-between items-start mb-0.5">
-                                            <span className="font-bold line-clamp-1 text-[9px] leading-tight">{session.subject}</span>
-                                            {isCompleted && <Check size={8} className="text-green-600 flex-shrink-0"/>}
+                                        <div className="flex justify-between items-start mb-0.5 gap-1">
+                                            <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1">{session.subject}</span>
+                                            {isCompleted && (
+                                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                                    <span className="text-[7px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded">تم الرصد</span>
+                                                    <Check size={8} className="text-green-600"/>
+                                                </div>
+                                            )}
                                         </div>
                                         
                                         <div className="space-y-0.5">
