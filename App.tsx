@@ -956,8 +956,8 @@ const App: React.FC = () => {
     // }
   };
 
-  const handleSaveRecords = async (records: Record<string, DailyRecord>) => {
-    console.log('handleSaveRecords called with:', records);
+  const handleSaveRecords = async (records: Record<string, DailyRecord>, sessionId?: string) => {
+    console.log('handleSaveRecords called with:', records, 'sessionId:', sessionId);
     setIsDataLoading(true);
     try {
       console.log('Saving records to database...');
@@ -968,6 +968,13 @@ const App: React.FC = () => {
         console.log('Updated currentRecords:', updated);
         return updated;
       });
+      
+      // Mark session as completed if sessionId is provided and not already completed
+      if (sessionId && !completedSessions.includes(sessionId)) {
+        setCompletedSessions(prev => [...prev, sessionId]);
+        await api.markSessionComplete(sessionId);
+      }
+      
       const count = Object.keys(records).length;
       handleAddLog('حفظ بيانات يومية', `تم حفظ تقييمات لـ ${count} طلاب`);
       alert({ message: CONFIG.SUCCESS.DATA_SAVED, type: 'success' });

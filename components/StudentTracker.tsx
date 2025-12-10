@@ -9,7 +9,7 @@ import { useModal } from '../hooks/useModal';
 interface StudentTrackerProps {
   students: Student[];
   records?: Record<string, DailyRecord>; // Current records from parent
-  onSave: (records: Record<string, DailyRecord>) => void;
+  onSave: (records: Record<string, DailyRecord>, sessionId?: string) => void;
   onSendReport: (student: Student, record: DailyRecord) => void;
   onBulkReport?: (records: Record<string, DailyRecord>) => void;
   isAdmin?: boolean;
@@ -243,7 +243,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                     if (Object.keys(records).length > 0) {
                         try {
                             console.log('Calling onSave with records:', records);
-                            await onSave(records);
+                            await onSave(records, selectedSession?.id);
                             console.log('onSave completed successfully');
                             // Don't clear records immediately - let propRecords update first
                             // The useEffect will handle merging when propRecords updates
@@ -259,7 +259,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                 className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-1.5 md:py-2 rounded-lg transition-shadow shadow-md font-bold text-xs md:text-sm flex-1 md:flex-initial justify-center ${!selectedSession || Object.keys(records).length === 0 ? 'bg-gray-300 text-gray-100 cursor-not-allowed' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
             >
                 <Save size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
-                <span>حفظ الكل</span>
+                <span>رصد الحضور</span>
             </button>
         </div>
       </div>
@@ -322,7 +322,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             المعلم: {selectedSession.teacher}
                         </span>
                       </span>
-                    : <span className="flex items-center gap-1 text-base">يتم الآن رصد الدرجات لـ: <strong>{selectedSession.subject}</strong> - الفصل <strong>{selectedSession.classRoom}</strong></span>
+                    : <span className="flex items-center gap-1 text-base">يتم الآن رصد الحضور لـ: <strong>{selectedSession.subject}</strong> - الفصل <strong>{selectedSession.classRoom}</strong></span>
                 }
               </div>
               
