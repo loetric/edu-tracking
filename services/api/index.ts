@@ -85,7 +85,9 @@ export const api = {
   getFiles: files.getFiles,
   uploadFile: files.uploadFile,
   updateFile: files.updateFile,
-  deleteFile: files.deleteFile
+  deleteFile: files.deleteFile,
+  markFileAsRead: files.markFileAsRead,
+  getFileReaders: files.getFileReaders
 };
 
 // Also export individual modules for direct imports if needed

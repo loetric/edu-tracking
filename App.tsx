@@ -12,6 +12,7 @@ import { StudentManagement } from './components/StudentManagement';
 import { PDFReport } from './components/PDFReport';
 import { CounselorView } from './components/CounselorView';
 import { BehaviorTracking } from './components/BehaviorTracking';
+import { DailyStudentView } from './components/DailyStudentView';
 import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { UserProfile } from './components/UserProfile';
@@ -1431,7 +1432,18 @@ const App: React.FC = () => {
                     setPdfData({student: s, record: r});
                 }}
             /> :
-            <StudentTracker 
+            currentUser.role === 'admin' ? (
+              <DailyStudentView
+                students={students}
+                records={currentRecords}
+                settings={effectiveSettings}
+                onSendReports={(records) => {
+                  // Handle bulk send
+                  setBulkModalOpen(true);
+                }}
+              />
+            ) : (
+              <StudentTracker 
                 students={students} 
                 role={currentUser.role} 
                 onSave={() => {}} 
@@ -1439,7 +1451,8 @@ const App: React.FC = () => {
                 schedule={currentSchedule}
                 onSessionEnter={handleSessionEnter}
                 completedSessions={completedSessions}
-            />;
+              />
+            );
       case 'behavior-tracking':
         return currentUser.role === 'counselor' ? (
           <BehaviorTracking 

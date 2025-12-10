@@ -8,16 +8,38 @@ import { CONFIG } from '../../config';
  */
 export const getFiles = async (): Promise<SharedFile[]> => {
   try {
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data: files, error: filesError } = await supabase
       .from('files')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Get files error:', error);
-      throw error;
+    if (filesError) {
+      console.error('Get files error:', filesError);
+      throw filesError;
     }
-    return (data || []).map(mapFileFromDB) as SharedFile[];
+
+    // Get read status for each file
+    const fileIds = (files || []).map(f => f.id);
+    const { data: reads } = await supabase
+      .from('file_reads')
+      .select('file_id, user_id')
+      .in('file_id', fileIds);
+
+    // Map reads to files
+    const filesWithReads = (files || []).map(file => {
+      const fileReads = reads?.filter(r => r.file_id === file.id) || [];
+      const readBy = fileReads.map(r => r.user_id);
+      return {
+        ...mapFileFromDB(file),
+        read_by: readBy,
+        read_count: fileReads.length
+      };
+    });
+
+    return filesWithReads as SharedFile[];
   } catch (error) {
     console.error('Get files exception:', error);
     return [];
@@ -222,7 +244,100 @@ function mapFileFromDB(data: any): SharedFile {
     access_level: data.access_level,
     uploaded_by: data.uploaded_by,
     created_at: new Date(data.created_at),
-    updated_at: new Date(data.updated_at)
+    updated_at: new Date(data.updated_at),
+    read_by: data.read_by || [],
+    read_count: data.read_count || 0
   };
 }
+
+/**
+ * Mark a file as read by the current user
+ */
+export const markFileAsRead = async (fileId: string): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('file_reads')
+      .insert({
+        file_id: fileId,
+        user_id: user.id
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // If it's a duplicate key error, that's fine - file already marked as read
+      if (error.code === '23505') {
+        return true;
+      }
+      console.error('Mark file as read error:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Mark file as read exception:', error);
+    return false;
+  }
+};
+
+/**
+ * Get users who read a specific file
+ */
+export const getFileReaders = async (fileId: string): Promise<Array<{ id: string; name: string; role: string }>> => {
+  try {
+    // Try with foreign key first
+    const { data, error } = await supabase
+      .from('file_reads')
+      .select(`
+        user_id,
+        profiles!file_reads_user_id_fkey (
+          id,
+          name,
+          role
+        )
+      `)
+      .eq('file_id', fileId)
+      .order('read_at', { ascending: false });
+
+    if (error) {
+      // Fallback: get reads and profiles separately
+      const { data: readsData, error: readsError } = await supabase
+        .from('file_reads')
+        .select('user_id')
+        .eq('file_id', fileId)
+        .order('read_at', { ascending: false });
+
+      if (readsError) {
+        console.error('Get file readers error:', readsError);
+        return [];
+      }
+
+      const userIds = (readsData || []).map(r => r.user_id);
+      if (userIds.length === 0) return [];
+
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, name, role')
+        .in('id', userIds);
+
+      return (profilesData || []).map(p => ({
+        id: p.id,
+        name: p.name || 'غير معروف',
+        role: p.role || 'unknown'
+      }));
+    }
+
+    return (data || []).map((item: any) => ({
+      id: item.profiles?.id || item.user_id,
+      name: item.profiles?.name || 'غير معروف',
+      role: item.profiles?.role || 'unknown'
+    }));
+  } catch (error) {
+    console.error('Get file readers exception:', error);
+    return [];
+  }
+};
 

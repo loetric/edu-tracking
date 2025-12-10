@@ -117,4 +117,6 @@ export interface SharedFile {
   uploaded_by?: string;
   created_at: Date;
   updated_at: Date;
+  read_by?: string[]; // Array of user IDs who read this file
+  read_count?: number; // Total number of readers
 }

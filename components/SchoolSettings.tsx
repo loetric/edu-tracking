@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { supabase } from '../services/supabase';
 import { SchoolSettings, User, Role, ScheduleItem, Subject, Student } from '../types';
 import { PasswordReset } from './PasswordReset';
-import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2, RotateCcw } from 'lucide-react';
+import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2, RotateCcw, FileText } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -26,7 +26,7 @@ interface SchoolSettingsProps {
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
   
   // Class Grades Management State
   const [classGrades, setClassGrades] = useState<string[]>(settings?.classGrades || []);
@@ -572,6 +572,8 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
           <button onClick={() => setActiveTab('classes')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
           <button onClick={() => setActiveTab('subjects')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
+          <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
+          <button onClick={() => setActiveTab('reports')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'reports' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعدادات التقارير</button>
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
           <button onClick={() => setActiveTab('setup')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
         </div>
@@ -1238,6 +1240,82 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               <p className="text-sm text-blue-800">
                 <strong>ملاحظة:</strong> المواد المعرفة هنا ستظهر في قوائم الاختيار عند إضافة أو تعديل الجداول الدراسية، مما يضمن اتساق البيانات في النظام.
               </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'reports' && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="bg-white border-2 border-teal-100 p-6 rounded-xl shadow-sm">
+              <h3 className="font-bold text-teal-800 mb-4 flex items-center gap-2">
+                <FileText size={20} />
+                إعدادات التقارير وتصميماتها
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                قم بتخصيص تصميمات التقارير وإعداداتها لتتناسب مع احتياجات المدرسة
+              </p>
+
+              <div className="space-y-6">
+                {/* Report General Message */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    رسالة عامة في التقارير
+                  </label>
+                  <textarea
+                    value={formData.reportGeneralMessage || ''}
+                    onChange={(e) => setFormData({...formData, reportGeneralMessage: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 min-h-[100px]"
+                    placeholder="اكتب رسالة عامة تظهر في جميع تقارير الطلاب..."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">هذه الرسالة ستظهر في جميع تقارير الطلاب</p>
+                </div>
+
+                {/* Report Link */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    رابط خارجي (يتحول لباركود)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.reportLink || ''}
+                    onChange={(e) => setFormData({...formData, reportLink: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    placeholder="https://example.com"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">سيتم تحويل هذا الرابط إلى باركود في التقرير</p>
+                </div>
+
+                {/* Report Design Settings */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h4 className="font-bold text-gray-800 mb-4">إعدادات التصميم</h4>
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-2">
+                        <strong>تنسيق التقرير:</strong> يتم عرض التقرير بتنسيق PDF احترافي يتضمن:
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 mr-4">
+                        <li>معلومات المدرسة والترويسة</li>
+                        <li>بيانات الطالب الأساسية</li>
+                        <li>سجل الحضور والغياب</li>
+                        <li>تقييمات المشاركة والواجبات والسلوك</li>
+                        <li>ملاحظات المعلم</li>
+                        <li>الرسالة العامة والرابط (إن وجد)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end pt-4 border-t border-gray-200">
+                  <button
+                    onClick={handleSave}
+                    className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 flex items-center gap-2 font-bold shadow-sm"
+                  >
+                    <Save size={18} />
+                    حفظ إعدادات التقارير
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

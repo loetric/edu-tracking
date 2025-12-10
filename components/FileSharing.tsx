@@ -3,7 +3,7 @@ import { SharedFile, FileType, FileAccessLevel, Role } from '../types';
 import { 
   FileText, Upload, Edit, Trash2, Download, Search, X, 
   FileSpreadsheet, File, Image, FileType as FileTypeIcon,
-  Filter, ChevronDown, AlertCircle, CheckCircle2, Eye, ExternalLink
+  Filter, ChevronDown, AlertCircle, CheckCircle2, Eye, ExternalLink, Users, CheckCircle
 } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
@@ -38,6 +38,8 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
   
   // Preview state
   const [previewFile, setPreviewFile] = useState<SharedFile | null>(null);
+  const [showReadersModal, setShowReadersModal] = useState<SharedFile | null>(null);
+  const [readers, setReaders] = useState<Array<{ id: string; name: string; role: string }>>([]);
 
   const isAdmin = role === 'admin';
 
@@ -404,6 +406,16 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
                             <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
                               {formatFileSize(file.file_size)}
                             </span>
+                            {file.read_count !== undefined && file.read_count > 0 && (
+                              <button
+                                onClick={() => handleShowReaders(file)}
+                                className="px-2 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors flex items-center gap-1"
+                                title="عرض القراء"
+                              >
+                                <CheckCircle size={12} />
+                                {file.read_count} قراءة
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
