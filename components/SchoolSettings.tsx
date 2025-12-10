@@ -232,7 +232,12 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       try {
         const deleted = await api.deleteSubject(subjectId);
         if (deleted) {
-          setSubjects(subjects.filter(s => s.id !== subjectId));
+          // Reload subjects from database to ensure consistency
+          await loadSubjects();
+          // Notify parent to reload subjects
+          if (onUpdateSubjects) {
+            await onUpdateSubjects();
+          }
           alert({ message: 'تم حذف المادة بنجاح', type: 'success' });
         }
       } catch (error: any) {
