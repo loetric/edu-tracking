@@ -73,8 +73,13 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
     return categorized;
   }, [students, records]);
 
-  // Filter students
+  // Filter students - require class filter
   const filteredStudents = useMemo(() => {
+    // Don't show any students if no class is selected
+    if (selectedClass === 'all') {
+      return [];
+    }
+
     let filtered: Student[] = [];
 
     if (selectedCategory === 'all') {
@@ -87,10 +92,8 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       filtered = categorizedStudents[selectedCategory];
     }
 
-    // Filter by class
-    if (selectedClass !== 'all') {
-      filtered = filtered.filter(s => s.classGrade === selectedClass);
-    }
+    // Filter by class (required)
+    filtered = filtered.filter(s => s.classGrade === selectedClass);
 
     // Filter by search query
     if (searchQuery) {
@@ -196,6 +199,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                   { value: 'needs_attention', label: 'يحتاج إلى متابعة' }
                 ]}
                 className="w-full text-xs"
+                disabled={selectedClass === 'all'}
               />
             </div>
 
@@ -248,7 +252,14 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
 
       {/* Students List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {filteredStudents.length > 0 ? (
+        {selectedClass === 'all' ? (
+          <div className="p-12 text-center">
+            <div className="flex flex-col items-center gap-2">
+              <Filter size={48} className="mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-500 font-bold">الرجاء اختيار صف لعرض الطلاب</p>
+            </div>
+          </div>
+        ) : filteredStudents.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-right">
               <thead className="bg-gray-50 print:bg-gray-200">

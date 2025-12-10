@@ -49,18 +49,18 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   // Get unique challenges for filter
   const uniqueChallenges = Array.from(new Set(students.map(s => s.challenge || 'none'))).sort();
 
-  // Filter students
-  const filteredStudents = students.filter(student => {
+  // Filter students - require class grade filter
+  const filteredStudents = filterClassGrade ? students.filter(student => {
     const matchesSearch = !searchTerm || 
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.parentPhone.includes(searchTerm);
     
-    const matchesClassGrade = !filterClassGrade || student.classGrade === filterClassGrade;
+    const matchesClassGrade = student.classGrade === filterClassGrade;
     const matchesChallenge = !filterChallenge || (student.challenge || 'none') === filterChallenge;
     
     return matchesSearch && matchesClassGrade && matchesChallenge;
-  });
+  }) : [];
 
   const handleAddStudentSubmit = () => {
     if (!newStudent.id || !newStudent.name || !newStudent.classGrade || !newStudent.parentPhone) {
@@ -607,7 +607,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredStudents.length > 0 ? (
+              {!filterClassGrade ? (
+                <tr>
+                  <td colSpan={role === 'counselor' ? 8 : 7} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <Filter size={32} className="text-gray-300" />
+                      <p className="text-sm font-bold text-gray-500">الرجاء اختيار صف لعرض الطلاب</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => {
                   // Get the index from the original students array (before filtering)
                   const originalIndex = students.findIndex(s => s.id === student.id);
@@ -680,7 +689,14 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-100">
-          {filteredStudents.length > 0 ? (
+          {!filterClassGrade ? (
+            <div className="p-8 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <Filter size={32} className="text-gray-300" />
+                <p className="text-sm font-bold text-gray-500">الرجاء اختيار صف لعرض الطلاب</p>
+              </div>
+            </div>
+          ) : filteredStudents.length > 0 ? (
             filteredStudents.map((student) => {
               // Get the index from the original students array (before filtering)
               const originalIndex = students.findIndex(s => s.id === student.id);

@@ -174,26 +174,26 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-6">
             <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">إجمالي الطلاب</p>
-                    <h4 className="text-xl md:text-3xl font-bold text-gray-800">{students.length}</h4>
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">إجمالي الطلاب</p>
+                    <h4 className="text-xl md:text-2xl font-bold text-gray-800">{students.length}</h4>
                 </div>
-                <div className="p-2 md:p-4 bg-teal-50 text-teal-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <Users size={16} className="md:w-6 md:h-6" />
+                <div className="p-2 md:p-3 bg-teal-50 text-teal-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <Users size={16} className="md:w-5 md:h-5" />
                 </div>
             </div>
             
             <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">نسبة الحضور اليوم</p>
-                    <h4 className="text-xl md:text-3xl font-bold text-gray-800">
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">نسبة الحضور اليوم</p>
+                    <h4 className="text-xl md:text-2xl font-bold text-gray-800">
                       {totalTodayRecords > 0 ? `${attendanceRate}%` : '0%'}
                     </h4>
                     {totalTodayRecords === 0 && (
                       <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-4 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <CalendarCheck size={16} className="md:w-6 md:h-6" />
+                <div className="p-2 md:p-3 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <CalendarCheck size={16} className="md:w-5 md:h-5" />
                 </div>
             </div>
             
@@ -202,8 +202,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
               className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
             >
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">نسبة الغياب اليوم</p>
-                    <h4 className="text-xl md:text-3xl font-bold text-red-600">
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">نسبة الغياب اليوم</p>
+                    <h4 className="text-xl md:text-2xl font-bold text-red-600">
                       {totalTodayRecords > 0 ? `${absenceRate}%` : '0%'}
                     </h4>
                     {totalTodayRecords > 0 && absentCount > 0 && (
@@ -213,15 +213,15 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                       <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-4 bg-red-50 text-red-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <UserX size={16} className="md:w-6 md:h-6" />
+                <div className="p-2 md:p-3 bg-red-50 text-red-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <UserX size={16} className="md:w-5 md:h-5" />
                 </div>
             </button>
 
             <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">الأداء العام</p>
-                    <h4 className={`text-lg md:text-3xl font-bold ${overallPerformanceColor} truncate`}>
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">الأداء العام</p>
+                    <h4 className={`text-lg md:text-2xl font-bold ${overallPerformanceColor} truncate`}>
                       {totalTodayRecords > 0 ? overallPerformanceLabel : 'لا توجد بيانات'}
                     </h4>
                     {totalTodayRecords > 0 && (
@@ -230,8 +230,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                       </p>
                     )}
                 </div>
-                <div className="p-2 md:p-4 bg-green-50 text-green-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <TrendingUp size={16} className="md:w-6 md:h-6" />
+                <div className="p-2 md:p-3 bg-green-50 text-green-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <TrendingUp size={16} className="md:w-5 md:h-5" />
                 </div>
             </div>
 
@@ -247,14 +247,14 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
               className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
             >
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">تنبيهات السلوك</p>
-                    <h4 className="text-xl md:text-3xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
+                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">تنبيهات السلوك</p>
+                    <h4 className="text-xl md:text-2xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
                     {behaviorAlertsCount === 0 && (
                       <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد تنبيهات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-4 bg-orange-50 text-orange-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <AlertTriangle size={16} className="md:w-6 md:h-6" />
+                <div className="p-2 md:p-3 bg-orange-50 text-orange-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <AlertTriangle size={16} className="md:w-5 md:h-5" />
                 </div>
             </button>
         </div>

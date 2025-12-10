@@ -110,7 +110,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
             ref={dropdownRef}
             className={`
               absolute z-[9999] w-full bg-white border border-gray-200 rounded-md shadow-xl
-              max-h-40 md:max-h-48 overflow-y-auto overflow-x-hidden
+              max-h-40 md:max-h-48 overflow-y-auto overflow-x-visible
               scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
               ${dropdownPosition === 'top' ? 'bottom-full mb-0.5' : 'top-full mt-0.5'}
             `}
@@ -152,11 +152,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   }}
                   className={`
                     w-full px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs text-right hover:bg-gray-50 transition-colors
-                    flex items-center justify-between border-b border-gray-100 last:border-b-0
+                    flex items-center justify-start border-b border-gray-100 last:border-b-0
                     ${value === option.value ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-800'}
                   `}
                 >
-                  <span className="truncate flex-1 text-right">{option.label}</span>
+                  <span className="flex-1 text-right break-words whitespace-normal min-w-0 pr-1">{option.label}</span>
                   {value === option.value && (
                     <Check size={10} className="md:w-3 md:h-3 text-teal-600 flex-shrink-0 mr-1" />
                   )}
