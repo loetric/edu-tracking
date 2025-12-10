@@ -359,17 +359,17 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       </div>
 
       {/* Desktop Schedule */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200">
+      <div className="hidden md:block overflow-x-auto rounded-lg border-2 border-gray-300 shadow-sm">
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr>
-              <th className="p-2 bg-gray-50 border-b border-gray-200 text-right min-w-[80px] font-bold text-gray-700 text-xs">اليوم</th>
+              <th className="p-3 bg-gray-100 border-2 border-gray-300 text-right min-w-[100px] font-bold text-gray-800 text-sm sticky right-0 z-20">اليوم</th>
               {periods.map(p => (
-                <th key={p} className="p-2 bg-gray-50 border-b border-gray-200 border-r border-gray-100 text-center font-bold text-gray-700 min-w-[120px]">
-                  <div className="flex flex-col items-center">
-                    <span className="text-xs">الحصة {p}</span>
-                    <span className="text-[9px] font-normal text-gray-400 mt-0.5 flex items-center gap-0.5 bg-white px-1.5 py-0.5 rounded-full border border-gray-200">
-                      <Clock size={8} /> 45 د
+                <th key={p} className="p-3 bg-gray-100 border-2 border-gray-300 text-center font-bold text-gray-800 min-w-[140px]">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-sm">الحصة {p}</span>
+                    <span className="text-[10px] font-normal text-gray-500 flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-gray-300">
+                      <Clock size={10} /> 45 د
                     </span>
                   </div>
                 </th>
@@ -378,55 +378,55 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </thead>
           <tbody>
             {days.map(day => (
-              <tr key={day} className="hover:bg-gray-50/30 transition-colors">
-                <td className="p-1.5 border-b border-gray-200 font-bold text-gray-800 bg-white sticky right-0 z-10 text-xs">{day}</td>
+              <tr key={day} className="hover:bg-gray-50/50 transition-colors">
+                <td className="p-3 border-2 border-gray-300 font-bold text-gray-900 bg-gray-50 sticky right-0 z-10 text-sm border-r-4 border-r-gray-400">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-1 border-b border-r border-gray-100 align-top h-20 w-28 bg-gray-50/10">
+                    <td key={`${day}-${period}`} className="p-2 border-2 border-gray-300 align-top min-h-[100px] bg-white">
                       {sessions.length > 0 ? (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1.5">
                             {sessions.map((session, idx) => {
                                 const isCompleted = completedSessions.includes(session.id);
                                 return (
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border-l-2 p-1 rounded-r transition-all relative group shadow-sm text-[10px] ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-500' : session.isSubstituted ? 'border-l-purple-500' : 'border-l-red-400'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer' : ''}`}
+                                        className={`border-l-4 p-2 rounded-r-md transition-all relative group shadow-md text-[11px] ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-600' : session.isSubstituted ? 'border-l-purple-600' : 'border-l-red-500'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer' : ''}`}
                                     >
-                                        <div className="flex justify-between items-start mb-0.5">
-                                            <span className="font-bold line-clamp-1 text-[10px]">{session.subject}</span>
-                                            {isCompleted && <Check size={8} className="text-green-600"/>}
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="font-bold line-clamp-1 text-[11px]">{session.subject}</span>
+                                            {isCompleted && <Check size={10} className="text-green-600 flex-shrink-0"/>}
                                         </div>
                                         
-                                        <div className="space-y-0.5">
+                                        <div className="space-y-1">
                                             {session.isSubstituted && session.originalTeacher ? (
-                                                <div className="space-y-0.5">
-                                                    <div className="flex items-center gap-0.5 opacity-90">
-                                                        <User size={8} />
-                                                        <span className="truncate max-w-[80px] text-[9px] font-bold">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1">
+                                                        <User size={10} className="flex-shrink-0" />
+                                                        <span className="truncate text-[10px] font-bold">
                                                             {session.originalTeacher}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-0.5 opacity-90">
-                                                        <RefreshCw size={7} className="text-purple-600" />
-                                                        <span className="truncate max-w-[80px] text-[8px] font-medium text-purple-700">
+                                                    <div className="flex items-center gap-1">
+                                                        <RefreshCw size={9} className="text-purple-600 flex-shrink-0" />
+                                                        <span className="truncate text-[9px] font-medium text-purple-700">
                                                             احتياط: {session.teacher}
                                                         </span>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-0.5 opacity-90">
-                                                    <User size={8} />
-                                                    <span className="truncate max-w-[80px] text-[9px]">
+                                                <div className="flex items-center gap-1">
+                                                    <User size={10} className="flex-shrink-0" />
+                                                    <span className="truncate text-[10px]">
                                                         {session.teacher}
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-0.5 opacity-75">
-                                                <BookOpen size={8} />
-                                                <span className="text-[9px]">{session.classRoom}</span>
+                                            <div className="flex items-center gap-1">
+                                                <BookOpen size={10} className="flex-shrink-0" />
+                                                <span className="text-[10px]">{session.classRoom}</span>
                                             </div>
                                         </div>
 
@@ -440,8 +440,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full border border-dashed border-gray-200 rounded-lg flex items-center justify-center opacity-30">
-                          <Lock size={14} />
+                        <div className="h-full min-h-[80px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center opacity-40">
+                          <Lock size={16} className="text-gray-400" />
                         </div>
                       )}
                     </td>
