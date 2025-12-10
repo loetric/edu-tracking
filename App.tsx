@@ -1554,6 +1554,7 @@ const App: React.FC = () => {
         settings={effectiveSettings} 
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        unreadFilesCount={unreadFilesCount}
       />
       
       {pdfData && (
