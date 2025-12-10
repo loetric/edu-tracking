@@ -28,7 +28,8 @@ interface SchoolSettingsProps {
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], subjects: propSubjects = [], onSave, onUpdateUsers, onUpdateSchedule, onUpdateSubjects, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'academic' | 'reports'>('general');
+  const [academicSubTab, setAcademicSubTab] = useState<'classes' | 'subjects' | 'setup'>('classes');
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   
   // Class Grades Management State
@@ -44,11 +45,11 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
 
   // Sync classGrades from settings when tab is opened (no auto-add from students)
   useEffect(() => {
-    if (activeTab === 'classes' && settings?.classGrades && settings.classGrades.length > 0 && classGrades.length === 0) {
+    if ((activeTab === 'academic' && academicSubTab === 'classes') && settings?.classGrades && settings.classGrades.length > 0 && classGrades.length === 0) {
       // Sync from settings only
       setClassGrades(settings.classGrades);
     }
-  }, [activeTab, settings?.classGrades]); // Only sync from settings, no auto-add from students
+  }, [activeTab, academicSubTab, settings?.classGrades]); // Only sync from settings, no auto-add from students
   
   // Subjects Management State
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -58,10 +59,10 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   
   // Load subjects on mount and when tab changes
   useEffect(() => {
-    if (activeTab === 'subjects') {
+    if (activeTab === 'academic' && academicSubTab === 'subjects') {
       loadSubjects();
     }
-  }, [activeTab]);
+  }, [activeTab, academicSubTab]);
 
   // Use propSubjects if available, otherwise use local subjects state
   const availableSubjects = propSubjects.length > 0 ? propSubjects : subjects;
@@ -646,14 +647,22 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           <button onClick={() => setActiveTab('general')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
           <button onClick={() => setActiveTab('users')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
-          <button onClick={() => setActiveTab('classes')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
-          <button onClick={() => setActiveTab('subjects')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
+          <button onClick={() => { setActiveTab('academic'); setAcademicSubTab('classes'); }} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'academic' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>التعريفات الأكاديمية</button>
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
           <button onClick={() => setActiveTab('reports')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'reports' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعدادات التقارير</button>
-          <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
-          <button onClick={() => setActiveTab('setup')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'setup' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجداول المدرسية</button>
         </div>
       </div>
+
+      {/* Academic Sub-Tabs */}
+      {activeTab === 'academic' && (
+        <div className="flex border-b border-gray-200 mb-4 bg-white rounded-t-xl overflow-hidden shadow-sm">
+          <div className="flex flex-wrap gap-2 md:gap-3 border-b border-gray-200 pb-2">
+            <button onClick={() => setAcademicSubTab('classes')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${academicSubTab === 'classes' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
+            <button onClick={() => setAcademicSubTab('subjects')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${academicSubTab === 'subjects' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
+            <button onClick={() => setAcademicSubTab('setup')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${academicSubTab === 'setup' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعداد الجدول الدراسي</button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
         
@@ -1066,7 +1075,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         )}
 
 
-        {activeTab === 'classes' && (
+        {activeTab === 'academic' && academicSubTab === 'classes' && (
           <div className="space-y-6 animate-in fade-in">
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div>
@@ -1165,7 +1174,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           </div>
         )}
 
-        {activeTab === 'subjects' && (
+        {activeTab === 'academic' && academicSubTab === 'subjects' && (
           <div className="space-y-6 animate-in fade-in">
             <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div>
@@ -1403,7 +1412,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           </div>
         )}
 
-        {activeTab === 'setup' && (
+        {activeTab === 'academic' && academicSubTab === 'setup' && (
           <div className="space-y-6 animate-in fade-in">
              <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
                  <div>
