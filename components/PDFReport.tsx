@@ -4,6 +4,7 @@ import { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
 import { getStatusLabel } from '../constants';
 import { X, Printer, User, Share2, Phone, CalendarCheck, BookOpen, UserCheck, Star, FileText, BarChart3 } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { useModal } from '../hooks/useModal';
 
 interface PDFReportProps {
   student: Student;
@@ -15,15 +16,25 @@ interface PDFReportProps {
 }
 
 export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings, isOpen, onClose, schedule }) => {
+  const { alert } = useModal();
+  
   if (!isOpen) return null;
 
   const handlePrint = () => {
     window.print();
   };
 
-  const handleWhatsAppOpen = () => {
-      const msg = encodeURIComponent(`السلام عليكم،\n\nمرفق لكم تقرير المتابعة اليومي للطالب: ${student.name}\n\nنأمل الاطلاع عليه وشكراً لتعاونكم.`);
+  const handleWhatsAppOpen = async () => {
+    // First, trigger print dialog to allow user to save as PDF
+    window.print();
+    
+    // Show instruction message
+    const msg = encodeURIComponent(`السلام عليكم،\n\nمرفق لكم تقرير المتابعة اليومي للطالب: ${student.name}\n\nيرجى حفظ التقرير كملف PDF من نافذة الطباعة (اختر "حفظ كـ PDF" كوجهة)، ثم أرسل الملف عبر واتساب.\n\nنأمل الاطلاع عليه وشكراً لتعاونكم.`);
+    
+    // Open WhatsApp after a short delay to allow print dialog to appear
+    setTimeout(() => {
       window.open(`https://wa.me/${student.parentPhone}?text=${msg}`, '_blank');
+    }, 500);
   };
 
   // Date Formatting
@@ -91,10 +102,10 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto print:bg-white print:p-0 p-2 md:p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/80 backdrop-blur-sm overflow-y-auto print:bg-white print:p-0 pt-16 md:pt-20 pb-4 px-2 md:px-4">
       
       {/* Controls - Hidden in Print */}
-      <div className="fixed top-2 left-2 right-2 md:top-4 md:left-4 md:w-72 flex flex-col gap-2 md:gap-3 print:hidden bg-white p-3 md:p-5 rounded-xl shadow-2xl z-50 border border-gray-100 animate-in fade-in slide-in-from-left-4 max-h-[90vh] overflow-y-auto">
+      <div className="fixed top-2 left-2 right-2 md:top-4 md:left-4 md:w-72 flex flex-col gap-2 md:gap-3 print:hidden bg-white p-3 md:p-5 rounded-xl shadow-2xl z-50 border border-gray-100 animate-in fade-in slide-in-from-left-4 max-h-[85vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
             <h3 className="font-bold text-gray-800 flex items-center gap-1.5 md:gap-2 text-sm md:text-base">
                 <Printer size={16} className="text-teal-600 md:w-[18px] md:h-[18px]"/>
@@ -120,42 +131,42 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
       </div>
 
       {/* A4 Paper Styling - Responsive */}
-      <div className="bg-white w-full max-w-[210mm] min-h-[297mm] mx-auto my-4 md:my-8 relative shadow-2xl print:shadow-none print:w-full print:h-screen print:my-0 overflow-y-auto overflow-x-hidden flex flex-col text-black print:overflow-visible">
+      <div className="bg-white w-full max-w-[210mm] min-h-[297mm] mx-auto my-2 md:my-4 relative shadow-2xl print:shadow-none print:w-full print:h-screen print:my-0 overflow-y-auto overflow-x-hidden flex flex-col text-black print:overflow-visible mt-0">
         
         {/* Official Frame Border */}
         <div className="absolute inset-0 border-[3px] border-double border-gray-300 m-2 pointer-events-none rounded-sm"></div>
         <div className="absolute inset-0 border border-gray-200 m-3 pointer-events-none rounded-sm"></div>
 
-        <div className="p-10 flex-1 flex flex-col h-full relative z-10">
+        <div className="p-6 md:p-10 flex-1 flex flex-col h-full relative z-10">
             
             {/* 1. Official Header */}
-            <header className="flex justify-between items-start mb-6 border-b-2 border-gray-100 pb-4">
-                <div className="text-right space-y-1.5 w-1/3">
-                    <p className="font-bold text-xs text-gray-500">المملكة العربية السعودية</p>
-                    <p className="font-bold text-sm text-gray-800">{settings.ministry}</p>
-                    <p className="font-bold text-sm text-gray-800">{settings.region}</p>
-                    <p className="font-bold text-base text-teal-800 mt-1">{settings.name}</p>
+            <header className="flex flex-col md:flex-row justify-between items-start gap-3 md:gap-0 mb-4 md:mb-6 border-b-2 border-gray-100 pb-3 md:pb-4">
+                <div className="text-right space-y-1 md:space-y-1.5 w-full md:w-1/3 order-1 md:order-1">
+                    <p className="font-bold text-[10px] md:text-xs text-gray-500">المملكة العربية السعودية</p>
+                    <p className="font-bold text-xs md:text-sm text-gray-800">{settings.ministry}</p>
+                    <p className="font-bold text-xs md:text-sm text-gray-800">{settings.region}</p>
+                    <p className="font-bold text-sm md:text-base text-teal-800 mt-1">{settings.name}</p>
                 </div>
                 
-                <div className="w-1/3 flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 mb-2">
+                <div className="w-full md:w-1/3 flex flex-col items-center justify-center order-3 md:order-2">
+                    <div className="w-16 h-16 md:w-20 md:h-20 mb-1 md:mb-2">
                         <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
                     </div>
-                    <h1 className="text-xl font-black text-gray-800 border-b-2 border-teal-600 pb-1 px-4">
+                    <h1 className="text-base md:text-xl font-black text-gray-800 border-b-2 border-teal-600 pb-1 px-2 md:px-4">
                         تقرير متابعة يومي
                     </h1>
                 </div>
 
-                <div className="text-left w-1/3 space-y-2 pt-2">
-                    <div className="flex flex-col items-end text-sm">
-                        <span className="text-gray-500 text-xs">تاريخ التقرير</span>
-                        <span className="font-bold text-gray-800">{dateStr}</span>
-                        <span className="text-gray-500 text-xs">{dayName}</span>
+                <div className="text-left w-full md:w-1/3 space-y-1 md:space-y-2 pt-0 md:pt-2 order-2 md:order-3">
+                    <div className="flex flex-col items-end text-xs md:text-sm">
+                        <span className="text-gray-500 text-[10px] md:text-xs">تاريخ التقرير</span>
+                        <span className="font-bold text-gray-800 text-xs md:text-sm">{dateStr}</span>
+                        <span className="text-gray-500 text-[10px] md:text-xs">{dayName}</span>
                     </div>
                     {settings.whatsappPhone && (
-                        <div className="flex items-center justify-end gap-1 text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block">
+                        <div className="flex items-center justify-end gap-1 text-[10px] md:text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block">
                              <span>{settings.whatsappPhone}</span>
-                             <Phone size={12} />
+                             <Phone size={10} className="md:w-3 md:h-3" />
                         </div>
                     )}
                 </div>
