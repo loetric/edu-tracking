@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Student, SchoolSettings } from '../types';
 import { UserPlus, Upload, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
 import { ExcelImporter } from './ExcelImporter';
@@ -23,7 +23,23 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   const [showImportForm, setShowImportForm] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  // Initialize filterClassRoom with first class if available
   const [filterClassRoom, setFilterClassRoom] = useState<string>('');
+  
+  // Update filterClassRoom when settings change - always select first class
+  useEffect(() => {
+    if (settings?.classGrades && settings.classGrades.length > 0) {
+      const classGradesArray = Array.isArray(settings.classGrades) 
+        ? settings.classGrades 
+        : (typeof settings.classGrades === 'string' ? JSON.parse(settings.classGrades) : []);
+      if (classGradesArray.length > 0) {
+        const firstClass = classGradesArray.sort()[0];
+        if (firstClass && filterClassRoom !== firstClass) {
+          setFilterClassRoom(firstClass);
+        }
+      }
+    }
+  }, [settings?.classGrades]);
   const [filterChallenge, setFilterChallenge] = useState<string>('');
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     id: '',
@@ -572,21 +588,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
             <span className="font-medium text-gray-600 text-[10px] md:text-xs">الفلاتر:</span>
           </div>
           
-          {/* Search */}
-          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
-            <div className="relative">
-              <Search size={12} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="بحث..."
-                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
-              />
-            </div>
-          </div>
-
-          {/* Class Room Filter (الفصول) */}
+          {/* Class Room Filter (الفصول) - First */}
           <div className="w-[120px] md:w-[150px] flex-shrink-0">
             <CustomSelect
               value={filterClassRoom}
@@ -604,6 +606,20 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               className="w-full text-[10px] md:text-xs"
               disabled={false}
             />
+          </div>
+
+          {/* Search */}
+          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
+            <div className="relative">
+              <Search size={12} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="بحث..."
+                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
+              />
+            </div>
           </div>
 
           {/* Challenge Filter */}
