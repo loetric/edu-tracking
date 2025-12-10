@@ -137,71 +137,71 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
         <div className="absolute inset-0 border-[3px] border-double border-gray-300 m-2 pointer-events-none rounded-sm"></div>
         <div className="absolute inset-0 border border-gray-200 m-3 pointer-events-none rounded-sm"></div>
 
-        <div className="p-6 md:p-10 flex-1 flex flex-col h-full relative z-10">
+        <div className="p-6 md:p-10 print:p-10 flex-1 flex flex-col h-full relative z-10">
             
             {/* 1. Official Header */}
-            <header className="flex flex-col md:flex-row justify-between items-start gap-3 md:gap-0 mb-4 md:mb-6 border-b-2 border-gray-100 pb-3 md:pb-4">
-                <div className="text-right space-y-1 md:space-y-1.5 w-full md:w-1/3 order-1 md:order-1">
-                    <p className="font-bold text-[10px] md:text-xs text-gray-500">المملكة العربية السعودية</p>
-                    <p className="font-bold text-xs md:text-sm text-gray-800">{settings.ministry}</p>
-                    <p className="font-bold text-xs md:text-sm text-gray-800">{settings.region}</p>
-                    <p className="font-bold text-sm md:text-base text-teal-800 mt-1">{settings.name}</p>
+            <header className="flex flex-col md:flex-row print:flex-row justify-between items-start gap-3 md:gap-0 print:gap-0 mb-4 md:mb-6 print:mb-6 border-b-2 border-gray-100 pb-3 md:pb-4 print:pb-4">
+                <div className="text-right space-y-1 md:space-y-1.5 print:space-y-1.5 w-full md:w-1/3 print:w-1/3 order-1 md:order-1 print:order-1">
+                    <p className="font-bold text-[10px] md:text-xs print:text-xs text-gray-500">المملكة العربية السعودية</p>
+                    <p className="font-bold text-xs md:text-sm print:text-sm text-gray-800">{settings.ministry}</p>
+                    <p className="font-bold text-xs md:text-sm print:text-sm text-gray-800">{settings.region}</p>
+                    <p className="font-bold text-sm md:text-base print:text-base text-teal-800 mt-1">{settings.name}</p>
                 </div>
                 
-                <div className="w-full md:w-1/3 flex flex-col items-center justify-center order-3 md:order-2">
-                    <div className="w-16 h-16 md:w-20 md:h-20 mb-1 md:mb-2">
+                <div className="w-full md:w-1/3 print:w-1/3 flex flex-col items-center justify-center order-3 md:order-2 print:order-2">
+                    <div className="w-16 h-16 md:w-20 md:h-20 print:w-20 print:h-20 mb-1 md:mb-2 print:mb-2">
                         <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
                     </div>
-                    <h1 className="text-base md:text-xl font-black text-gray-800 border-b-2 border-teal-600 pb-1 px-2 md:px-4">
+                    <h1 className="text-base md:text-xl print:text-xl font-black text-gray-800 border-b-2 border-teal-600 pb-1 px-2 md:px-4 print:px-4">
                         تقرير متابعة يومي
                     </h1>
                 </div>
 
-                <div className="text-left w-full md:w-1/3 space-y-1 md:space-y-2 pt-0 md:pt-2 order-2 md:order-3">
-                    <div className="flex flex-col items-end text-xs md:text-sm">
-                        <span className="text-gray-500 text-[10px] md:text-xs">تاريخ التقرير</span>
-                        <span className="font-bold text-gray-800 text-xs md:text-sm">{dateStr}</span>
-                        <span className="text-gray-500 text-[10px] md:text-xs">{dayName}</span>
+                <div className="text-left w-full md:w-1/3 print:w-1/3 space-y-1 md:space-y-2 print:space-y-2 pt-0 md:pt-2 print:pt-2 order-2 md:order-3 print:order-3">
+                    <div className="flex flex-col items-end text-xs md:text-sm print:text-sm">
+                        <span className="text-gray-500 text-[10px] md:text-xs print:text-xs">تاريخ التقرير</span>
+                        <span className="font-bold text-gray-800 text-xs md:text-sm print:text-sm">{dateStr}</span>
+                        <span className="text-gray-500 text-[10px] md:text-xs print:text-xs">{dayName}</span>
                     </div>
                     {settings.whatsappPhone && (
-                        <div className="flex items-center justify-end gap-1 text-[10px] md:text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block">
+                        <div className="flex items-center justify-end gap-1 text-[10px] md:text-xs print:text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded inline-block">
                              <span>{settings.whatsappPhone}</span>
-                             <Phone size={10} className="md:w-3 md:h-3" />
+                             <Phone size={10} className="md:w-3 md:h-3 print:w-3 print:h-3" />
                         </div>
                     )}
                 </div>
             </header>
 
             {/* 2. Student Information Table */}
-            <section className="mb-4 md:mb-6">
-                <div className="bg-white border border-gray-300 rounded-lg overflow-hidden flex flex-col md:flex-row shadow-sm">
+            <section className="mb-4 md:mb-6 print:mb-6">
+                <div className="bg-white border border-gray-300 rounded-lg overflow-hidden flex flex-col md:flex-row print:flex-row shadow-sm">
                      {/* Avatar & Name */}
-                     <div className="bg-gray-50 p-3 md:p-4 border-b md:border-b-0 md:border-l border-gray-300 flex flex-row md:flex-col items-center md:justify-center justify-between md:w-32 w-full md:text-center">
-                         <div className="flex items-center gap-3 md:flex-col">
+                     <div className="bg-gray-50 p-3 md:p-4 print:p-4 border-b md:border-b-0 print:border-b-0 md:border-l print:border-l border-gray-300 flex flex-row md:flex-col print:flex-col items-center md:justify-center print:justify-center justify-between md:w-32 print:w-32 w-full md:text-center print:text-center">
+                         <div className="flex items-center gap-3 md:flex-col print:flex-col">
                              {student.avatar ? (
-                                 <img src={student.avatar} className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-white shadow-sm object-cover md:mb-2" />
+                                 <img src={student.avatar} className="w-12 h-12 md:w-16 md:h-16 print:w-16 print:h-16 rounded-full border-2 border-white shadow-sm object-cover md:mb-2 print:mb-2" />
                              ) : (
-                                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gray-200 flex items-center justify-center md:mb-2"><User size={20} className="md:w-6 md:h-6 text-gray-400"/></div>
+                                 <div className="w-12 h-12 md:w-16 md:h-16 print:w-16 print:h-16 rounded-full bg-gray-200 flex items-center justify-center md:mb-2 print:mb-2"><User size={20} className="md:w-6 md:h-6 print:w-6 print:h-6 text-gray-400"/></div>
                              )}
-                             <div className="md:hidden">
+                             <div className="md:hidden print:hidden">
                                  <p className="text-xs font-bold text-gray-900">{student.name}</p>
                                  <p className="text-[10px] text-gray-500">الفصل: {student.classGrade}</p>
                              </div>
                          </div>
-                         <span className="text-[10px] md:text-xs font-bold text-gray-500">رقم الملف: {student.id}</span>
+                         <span className="text-[10px] md:text-xs print:text-xs font-bold text-gray-500">رقم الملف: {student.id}</span>
                      </div>
                      
                      {/* Details Grid */}
-                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2">
-                         <div className="hidden md:flex border-b border-l border-gray-200 p-3 flex-col justify-center">
+                     <div className="flex-1 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2">
+                         <div className="hidden md:flex print:flex border-b border-l border-gray-200 p-3 flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">الاسم الرباعي</span>
                              <span className="text-sm font-bold text-gray-900">{student.name}</span>
                          </div>
-                         <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">
+                         <div className="border-b md:border-b-0 print:border-b-0 md:border-l print:border-l border-gray-200 p-3 flex flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">الفصل</span>
                              <span className="text-sm font-bold text-gray-900">{student.classGrade}</span>
                          </div>
-                         <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">
+                         <div className="border-b md:border-b-0 print:border-b-0 md:border-l print:border-l border-gray-200 p-3 flex flex-col justify-center">
                              <span className="text-[10px] text-gray-500 font-bold mb-1">جوال ولي الأمر</span>
                              <span className="text-sm font-bold text-gray-900 font-mono break-all" dir="ltr">{student.parentPhone}</span>
                          </div>
@@ -214,48 +214,48 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </section>
 
             {/* 3. Daily Status Summary & Chart */}
-            <section className="mb-4 md:mb-6">
-                <div className="flex items-center gap-2 mb-3 text-teal-700 font-bold text-xs md:text-sm border-b border-gray-100 pb-1 w-fit">
-                    <Star size={14} className="md:w-4 md:h-4" />
+            <section className="mb-4 md:mb-6 print:mb-6">
+                <div className="flex items-center gap-2 mb-3 text-teal-700 font-bold text-xs md:text-sm print:text-sm border-b border-gray-100 pb-1 w-fit">
+                    <Star size={14} className="md:w-4 md:h-4 print:w-4 print:h-4" />
                     ملخص الأداء والمستوى اليومي
                 </div>
                 
-                <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+                <div className="flex flex-col md:flex-row print:flex-row gap-3 md:gap-4 print:gap-4">
                     {/* Left Side: Stats Cards */}
-                    <div className="w-full md:w-2/3 grid grid-cols-2 gap-2 md:gap-3 content-start">
+                    <div className="w-full md:w-2/3 print:w-2/3 grid grid-cols-2 gap-2 md:gap-3 print:gap-3 content-start">
                         {/* Attendance */}
-                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${attendanceInfo.bg} ${attendanceInfo.border}`}>
-                            <span className="text-[10px] md:text-xs font-bold text-gray-500">الحضور</span>
-                            <div className={`font-black text-xs md:text-sm ${attendanceInfo.textCol} flex items-center gap-1`}>
+                        <div className={`border rounded-lg p-2 md:p-3 print:p-3 text-center flex flex-col items-center justify-center gap-1 ${attendanceInfo.bg} ${attendanceInfo.border}`}>
+                            <span className="text-[10px] md:text-xs print:text-xs font-bold text-gray-500">الحضور</span>
+                            <div className={`font-black text-xs md:text-sm print:text-sm ${attendanceInfo.textCol} flex items-center gap-1`}>
                                 {attendanceInfo.icon}
                                 {attendanceInfo.text}
                             </div>
                         </div>
                         {/* Participation */}
-                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${participationInfo.bg} ${participationInfo.border}`}>
-                            <span className="text-[10px] md:text-xs font-bold text-gray-500">المشاركة</span>
-                            <div className={`font-black text-xs md:text-sm ${participationInfo.textCol}`}>{participationInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 print:p-3 text-center flex flex-col items-center justify-center gap-1 ${participationInfo.bg} ${participationInfo.border}`}>
+                            <span className="text-[10px] md:text-xs print:text-xs font-bold text-gray-500">المشاركة</span>
+                            <div className={`font-black text-xs md:text-sm print:text-sm ${participationInfo.textCol}`}>{participationInfo.text}</div>
                         </div>
                         {/* Homework */}
-                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${homeworkInfo.bg} ${homeworkInfo.border}`}>
-                            <span className="text-[10px] md:text-xs font-bold text-gray-500">الواجبات</span>
-                            <div className={`font-black text-xs md:text-sm ${homeworkInfo.textCol}`}>{homeworkInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 print:p-3 text-center flex flex-col items-center justify-center gap-1 ${homeworkInfo.bg} ${homeworkInfo.border}`}>
+                            <span className="text-[10px] md:text-xs print:text-xs font-bold text-gray-500">الواجبات</span>
+                            <div className={`font-black text-xs md:text-sm print:text-sm ${homeworkInfo.textCol}`}>{homeworkInfo.text}</div>
                         </div>
                         {/* Behavior */}
-                        <div className={`border rounded-lg p-2 md:p-3 text-center flex flex-col items-center justify-center gap-1 ${behaviorInfo.bg} ${behaviorInfo.border}`}>
-                            <span className="text-[10px] md:text-xs font-bold text-gray-500">السلوك</span>
-                            <div className={`font-black text-xs md:text-sm ${behaviorInfo.textCol}`}>{behaviorInfo.text}</div>
+                        <div className={`border rounded-lg p-2 md:p-3 print:p-3 text-center flex flex-col items-center justify-center gap-1 ${behaviorInfo.bg} ${behaviorInfo.border}`}>
+                            <span className="text-[10px] md:text-xs print:text-xs font-bold text-gray-500">السلوك</span>
+                            <div className={`font-black text-xs md:text-sm print:text-sm ${behaviorInfo.textCol}`}>{behaviorInfo.text}</div>
                         </div>
                     </div>
 
                     {/* Right Side: Performance Chart */}
-                    <div className="w-full md:w-1/3 border border-gray-200 rounded-lg p-2 bg-white relative flex flex-col items-center justify-center min-h-[150px] md:min-h-[120px]">
+                    <div className="w-full md:w-1/3 print:w-1/3 border border-gray-200 rounded-lg p-2 bg-white relative flex flex-col items-center justify-center min-h-[150px] md:min-h-[120px] print:min-h-[120px]">
                         <div className="absolute top-2 right-2 text-[10px] text-gray-400 font-bold flex items-center gap-1">
-                            <BarChart3 size={10} className="md:w-3 md:h-3" />
+                            <BarChart3 size={10} className="md:w-3 md:h-3 print:w-3 print:h-3" />
                             مؤشر الأداء
                         </div>
                         {record.attendance === 'present' ? (
-                            <div className="w-full h-[150px] md:h-[120px]">
+                            <div className="w-full h-[150px] md:h-[120px] print:h-[120px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
                                         <PolarGrid stroke="#e5e7eb" />
@@ -286,66 +286,66 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </section>
 
             {/* 4. Detailed Schedule Table */}
-            <section className="mb-4 md:mb-6 flex-1">
-                 <div className="flex items-center gap-2 mb-2 text-teal-700 font-bold text-xs md:text-sm border-b border-gray-100 pb-1 w-fit">
-                    <CalendarCheck size={14} className="md:w-4 md:h-4" />
+            <section className="mb-4 md:mb-6 print:mb-6 flex-1">
+                 <div className="flex items-center gap-2 mb-2 text-teal-700 font-bold text-xs md:text-sm print:text-sm border-b border-gray-100 pb-1 w-fit">
+                    <CalendarCheck size={14} className="md:w-4 md:h-4 print:w-4 print:h-4" />
                     كشف المتابعة والحصص الدراسية
                 </div>
                 
-                <div className="overflow-x-auto -mx-2 md:mx-0 print:overflow-visible">
-                    <table className="w-full border-collapse text-[10px] md:text-xs text-center border border-gray-300 rounded-lg overflow-hidden min-w-full">
+                <div className="overflow-x-auto -mx-2 md:mx-0 print:mx-0 print:overflow-visible">
+                    <table className="w-full border-collapse text-[10px] md:text-xs print:text-xs text-center border border-gray-300 rounded-lg overflow-hidden min-w-full">
                         <thead className="bg-gray-100 text-gray-700">
                             <tr>
-                                <th className="border border-gray-300 p-1.5 md:p-2 w-8 font-bold text-[10px] md:text-xs">م</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold text-right text-[10px] md:text-xs">المادة</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold text-right w-1/4 text-[10px] md:text-xs">المعلم</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">الحضور</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">المشاركة</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">الواجبات</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-16 text-[10px] md:text-xs">السلوك</th>
-                                <th className="border border-gray-300 p-1.5 md:p-2 font-bold w-1/5 text-[10px] md:text-xs">ملاحظات</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 w-8 font-bold text-[10px] md:text-xs print:text-xs">م</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-right text-[10px] md:text-xs print:text-xs">المادة</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-right w-1/4 text-[10px] md:text-xs print:text-xs">المعلم</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">الحضور</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">المشاركة</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">الواجبات</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">السلوك</th>
+                                <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-1/5 text-[10px] md:text-xs print:text-xs">ملاحظات</th>
                             </tr>
                         </thead>
                         <tbody>
                             {dailySchedule.length > 0 ? dailySchedule.map((session, idx) => (
-                                <tr key={idx} className="bg-white hover:bg-gray-50">
-                                    <td className="border border-gray-300 p-1.5 md:p-2 font-bold bg-gray-50 text-[10px] md:text-xs">{session.period}</td>
-                                    <td className="border border-gray-300 p-1.5 md:p-2 font-bold text-gray-800 text-right text-[10px] md:text-xs">{session.subject}</td>
-                                    <td className="border border-gray-300 p-1.5 md:p-2 text-gray-600 font-medium text-right text-[9px] md:text-[10px]">{session.teacher}</td>
+                                <tr key={idx} className="bg-white hover:bg-gray-50 print:hover:bg-white">
+                                    <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold bg-gray-50 text-[10px] md:text-xs print:text-xs">{session.period}</td>
+                                    <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-gray-800 text-right text-[10px] md:text-xs print:text-xs">{session.subject}</td>
+                                    <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 text-gray-600 font-medium text-right text-[9px] md:text-[10px] print:text-[10px]">{session.teacher}</td>
                                     
                                     {/* Status Columns - Populated with Daily Record for Visual Representation */}
-                                    <td className="border border-gray-300 p-1">
-                                        <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 px-1 rounded-sm ${attendanceInfo.bg} ${attendanceInfo.textCol}`}>
+                                    <td className="border border-gray-300 p-1 print:p-1">
+                                        <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 px-1 rounded-sm ${attendanceInfo.bg} ${attendanceInfo.textCol}`}>
                                             {attendanceInfo.text}
                                         </div>
                                     </td>
-                                    <td className="border border-gray-300 p-1">
+                                    <td className="border border-gray-300 p-1 print:p-1">
                                          {record.attendance === 'present' ? (
-                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${participationInfo.bg} ${participationInfo.textCol}`}>
+                                            <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${participationInfo.bg} ${participationInfo.textCol}`}>
                                                 {participationInfo.text}
                                             </div>
-                                         ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                         ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
                                     </td>
-                                    <td className="border border-gray-300 p-1">
+                                    <td className="border border-gray-300 p-1 print:p-1">
                                         {record.attendance === 'present' ? (
-                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${homeworkInfo.bg} ${homeworkInfo.textCol}`}>
+                                            <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${homeworkInfo.bg} ${homeworkInfo.textCol}`}>
                                                 {homeworkInfo.text}
                                             </div>
-                                        ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                        ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
                                     </td>
-                                    <td className="border border-gray-300 p-1">
+                                    <td className="border border-gray-300 p-1 print:p-1">
                                         {record.attendance === 'present' ? (
-                                            <div className={`text-[9px] md:text-[10px] font-bold py-0.5 md:py-1 rounded-sm ${behaviorInfo.bg} ${behaviorInfo.textCol}`}>
+                                            <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${behaviorInfo.bg} ${behaviorInfo.textCol}`}>
                                                 {behaviorInfo.text}
                                             </div>
-                                        ) : <span className="text-gray-300 text-[9px]">-</span>}
+                                        ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
                                     </td>
-                                    <td className="border border-gray-300 p-1 text-[8px] md:text-[9px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap max-w-[120px] md:max-w-none">
+                                    <td className="border border-gray-300 p-1 print:p-1 text-[8px] md:text-[9px] print:text-[9px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap max-w-[120px] md:max-w-none print:max-w-none">
                                        {record.notes || '-'}
                                     </td>
                                 </tr>
                             )) : (
-                                <tr><td colSpan={8} className="p-4 md:p-6 text-center text-gray-400 italic text-xs md:text-sm">لا توجد حصص مسجلة في الجدول لهذا اليوم</td></tr>
+                                <tr><td colSpan={8} className="p-4 md:p-6 print:p-6 text-center text-gray-400 italic text-xs md:text-sm print:text-sm">لا توجد حصص مسجلة في الجدول لهذا اليوم</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -353,27 +353,27 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
             </section>
 
             {/* 5. Notes & Messages Section */}
-            <section className="mt-auto space-y-3 md:space-y-4">
+            <section className="mt-auto space-y-3 md:space-y-4 print:space-y-4">
                 
                 {/* General Daily Notes */}
                 {record.notes && (
-                    <div className="border border-gray-300 rounded-lg p-2 md:p-3 bg-white relative">
-                        <div className="absolute -top-2.5 md:-top-3 right-2 md:right-3 bg-white px-2 text-[10px] md:text-xs font-bold text-teal-700 flex items-center gap-1">
-                            <FileText size={12} className="md:w-3.5 md:h-3.5" />
+                    <div className="border border-gray-300 rounded-lg p-2 md:p-3 print:p-3 bg-white relative">
+                        <div className="absolute -top-2.5 md:-top-3 print:-top-3 right-2 md:right-3 print:right-3 bg-white px-2 text-[10px] md:text-xs print:text-xs font-bold text-teal-700 flex items-center gap-1">
+                            <FileText size={12} className="md:w-3.5 md:h-3.5 print:w-3.5 print:h-3.5" />
                             الملاحظات العامة على اليوم الدراسي
                         </div>
-                        <p className="text-xs md:text-sm font-medium leading-relaxed text-gray-800 mt-2 md:mt-1 p-1 break-words whitespace-pre-wrap">{record.notes}</p>
+                        <p className="text-xs md:text-sm print:text-sm font-medium leading-relaxed text-gray-800 mt-2 md:mt-1 print:mt-1 p-1 break-words whitespace-pre-wrap">{record.notes}</p>
                     </div>
                 )}
 
                  {/* Counselor/Admin Message */}
                  {settings.reportGeneralMessage && (
-                     <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-2 md:p-3 relative">
-                        <div className="absolute -top-2.5 md:-top-3 right-2 md:right-3 bg-white px-2 text-[10px] md:text-xs font-bold text-blue-700 flex items-center gap-1 border border-blue-100 rounded-full">
-                            <BookOpen size={12} className="md:w-3.5 md:h-3.5" />
+                     <div className="border border-blue-200 bg-blue-50/50 rounded-lg p-2 md:p-3 print:p-3 relative">
+                        <div className="absolute -top-2.5 md:-top-3 print:-top-3 right-2 md:right-3 print:right-3 bg-white px-2 text-[10px] md:text-xs print:text-xs font-bold text-blue-700 flex items-center gap-1 border border-blue-100 rounded-full">
+                            <BookOpen size={12} className="md:w-3.5 md:h-3.5 print:w-3.5 print:h-3.5" />
                             رسالة الموجه الطلابي / الإدارة
                         </div>
-                        <p className="text-[10px] md:text-xs text-blue-900 mt-2 md:mt-1 leading-relaxed text-center font-medium">
+                        <p className="text-[10px] md:text-xs print:text-xs text-blue-900 mt-2 md:mt-1 print:mt-1 leading-relaxed text-center font-medium">
                             "{settings.reportGeneralMessage}"
                         </p>
                      </div>
