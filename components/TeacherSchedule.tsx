@@ -359,7 +359,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       </div>
 
       {/* Desktop Schedule */}
-      <div className="hidden md:block overflow-x-auto rounded-lg border-2 border-gray-300 shadow-sm">
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-teal-200 shadow-sm bg-white">
         <table className="w-full border-collapse text-xs table-fixed">
           <colgroup>
             <col className="w-[12%]" />
@@ -367,12 +367,12 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </colgroup>
           <thead>
             <tr>
-              <th className="p-2 bg-gray-100 border-2 border-gray-300 text-right font-bold text-gray-800 text-xs sticky right-0 z-20">اليوم</th>
+              <th className="p-2 bg-teal-50 border border-teal-200 text-right font-bold text-teal-900 text-xs sticky right-0 z-20">اليوم</th>
               {periods.map(p => (
-                <th key={p} className="p-2 bg-gray-100 border-2 border-gray-300 text-center font-bold text-gray-800">
+                <th key={p} className="p-2 bg-teal-50 border border-teal-200 text-center font-bold text-teal-900">
                   <div className="flex flex-col items-center gap-0.5">
                     <span className="text-xs">ح {p}</span>
-                    <span className="text-[9px] font-normal text-gray-500 flex items-center gap-0.5 bg-white px-1 py-0.5 rounded border border-gray-300">
+                    <span className="text-[9px] font-normal text-teal-600 flex items-center gap-0.5 bg-white px-1 py-0.5 rounded border border-teal-200">
                       <Clock size={8} /> 45د
                     </span>
                   </div>
@@ -382,13 +382,13 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </thead>
           <tbody>
             {days.map(day => (
-              <tr key={day} className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-2 border-2 border-gray-300 font-bold text-gray-900 bg-gray-50 sticky right-0 z-10 text-xs border-r-4 border-r-gray-400">{day}</td>
+              <tr key={day} className="hover:bg-teal-50/30 transition-colors">
+                <td className="p-2 border border-teal-200 font-bold text-teal-900 bg-teal-50/50 sticky right-0 z-10 text-xs border-r-2 border-r-teal-300">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-1 border-2 border-gray-300 align-top min-h-[90px] bg-white">
+                    <td key={`${day}-${period}`} className="p-1 border border-teal-100 align-top min-h-[90px] bg-white">
                       {sessions.length > 0 ? (
                         <div className="flex flex-col gap-1">
                             {sessions.map((session, idx) => {
@@ -444,8 +444,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full min-h-[70px] border-2 border-dashed border-gray-300 rounded flex items-center justify-center opacity-40">
-                          <Lock size={12} className="text-gray-400" />
+                        <div className="h-full min-h-[70px] border border-dashed border-teal-200 rounded flex items-center justify-center opacity-40">
+                          <Lock size={12} className="text-teal-300" />
                         </div>
                       )}
                     </td>
