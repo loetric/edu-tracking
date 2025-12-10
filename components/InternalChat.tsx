@@ -49,14 +49,14 @@ export const InternalChat: React.FC<InternalChatProps> = ({ messages, onSendMess
     <>
       <button
         onClick={() => { setIsOpen(!isOpen); setUnread(false); }}
-        className="fixed bottom-4 left-4 md:bottom-6 md:left-6 bg-teal-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-teal-700 active:bg-teal-800 transition-all hover:scale-105 active:scale-95 z-50 flex items-center gap-2"
+        className="group fixed bottom-4 left-4 md:bottom-6 md:left-6 bg-teal-600 text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-teal-700 active:bg-teal-800 transition-all hover:scale-105 active:scale-95 z-50 flex items-center gap-2 overflow-hidden"
         aria-label="فتح التواصل الداخلي"
       >
         <MessageSquare size={18} className="md:w-6 md:h-6 flex-shrink-0" />
         {unread && (
             <span className="absolute top-0 right-0 w-2.5 h-2.5 md:w-4 md:h-4 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
         )}
-        <span className="font-bold hidden md:inline text-sm">التواصل الداخلي</span>
+        <span className="font-bold text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 max-w-0 group-hover:max-w-[200px] transition-all duration-300 overflow-hidden">التواصل الداخلي</span>
       </button>
 
       {/* Mobile Backdrop */}
