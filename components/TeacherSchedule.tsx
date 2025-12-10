@@ -18,7 +18,7 @@ interface TeacherScheduleProps {
 
 export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-  const periods = [1, 2, 3, 4, 5, 6];
+  const periods = [1, 2, 3, 4, 5, 6, 7];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
   
   // Filters for Admin
