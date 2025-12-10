@@ -3,7 +3,7 @@ import { SharedFile, FileType, FileAccessLevel, Role } from '../types';
 import { 
   FileText, Upload, Edit, Trash2, Download, Search, X, 
   FileSpreadsheet, File, Image, FileType as FileTypeIcon,
-  Filter, ChevronDown, AlertCircle, CheckCircle2
+  Filter, ChevronDown, AlertCircle, CheckCircle2, Eye, ExternalLink
 } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
@@ -35,6 +35,9 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
   
   // Edit form state
   const [editingFile, setEditingFile] = useState<SharedFile | null>(null);
+  
+  // Preview state
+  const [previewFile, setPreviewFile] = useState<SharedFile | null>(null);
 
   const isAdmin = role === 'admin';
 
@@ -406,15 +409,26 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
                       </div>
 
                       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <a
-                          href={file.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-bold text-sm"
-                        >
-                          <Download size={16} />
-                          <span>تحميل</span>
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPreviewFile(file)}
+                            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold text-xs md:text-sm px-2 py-1 rounded-md hover:bg-blue-50 transition-colors"
+                            title="معاينة"
+                          >
+                            <Eye size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                            <span className="hidden sm:inline">معاينة</span>
+                          </button>
+                          <a
+                            href={file.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-bold text-xs md:text-sm px-2 py-1 rounded-md hover:bg-teal-50 transition-colors"
+                            title="تحميل"
+                          >
+                            <Download size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                            <span className="hidden sm:inline">تحميل</span>
+                          </a>
+                        </div>
                         {isAdmin && (
                           <div className="flex items-center gap-2">
                             <button
@@ -426,17 +440,17 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
                                 setUploadAccess(file.access_level);
                                 setShowUploadForm(true);
                               }}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              className="p-1.5 md:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                               title="تعديل"
                             >
-                              <Edit size={16} />
+                              <Edit size={14} className="md:w-4 md:h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(file)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1.5 md:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="حذف"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={14} className="md:w-4 md:h-4" />
                             </button>
                           </div>
                         )}
@@ -452,6 +466,99 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
           <FileText size={48} className="mx-auto mb-4 text-gray-300" />
           <p className="text-gray-500">لا توجد ملفات متاحة</p>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 md:p-4">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col">
+            {/* Preview Header */}
+            <div className="bg-teal-600 p-3 md:p-4 text-white flex justify-between items-center rounded-t-xl md:rounded-t-2xl">
+              <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                {getFileIcon(previewFile.file_category)}
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-sm md:text-lg truncate">{previewFile.name}</h3>
+                  {previewFile.description && (
+                    <p className="text-xs md:text-sm text-teal-100 truncate mt-0.5">{previewFile.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <a
+                  href={previewFile.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  title="فتح في نافذة جديدة"
+                >
+                  <ExternalLink size={16} className="md:w-5 md:h-5" />
+                </a>
+                <a
+                  href={previewFile.file_url}
+                  download
+                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  title="تحميل"
+                >
+                  <Download size={16} className="md:w-5 md:h-5" />
+                </a>
+                <button
+                  onClick={() => setPreviewFile(null)}
+                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                  title="إغلاق"
+                >
+                  <X size={16} className="md:w-5 md:h-5" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Preview Content */}
+            <div className="flex-1 overflow-hidden p-2 md:p-4">
+              {previewFile.file_category === 'pdf' ? (
+                <iframe
+                  src={previewFile.file_url}
+                  className="w-full h-full min-h-[400px] md:min-h-[600px] rounded-lg border border-gray-200"
+                  title={previewFile.name}
+                />
+              ) : previewFile.file_category === 'image' ? (
+                <div className="flex items-center justify-center h-full min-h-[400px] md:min-h-[600px] bg-gray-50 rounded-lg">
+                  <img
+                    src={previewFile.file_url}
+                    alt={previewFile.name}
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] md:min-h-[600px] bg-gray-50 rounded-lg p-6">
+                  <div className="mb-4">
+                    {getFileIcon(previewFile.file_category)}
+                  </div>
+                  <p className="text-gray-600 font-bold mb-4 text-center">
+                    لا يمكن معاينة هذا النوع من الملفات مباشرة
+                  </p>
+                  <div className="flex gap-3">
+                    <a
+                      href={previewFile.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold"
+                    >
+                      <ExternalLink size={16} />
+                      <span>فتح في نافذة جديدة</span>
+                    </a>
+                    <a
+                      href={previewFile.file_url}
+                      download
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-bold"
+                    >
+                      <Download size={16} />
+                      <span>تحميل</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
