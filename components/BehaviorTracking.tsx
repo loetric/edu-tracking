@@ -259,7 +259,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
           <div className="p-12 text-center">
             <div className="flex flex-col items-center gap-2">
               <Filter size={48} className="mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-500 font-bold">الرجاء اختيار صف لعرض الطلاب</p>
+              <p className="text-gray-500 font-bold">الرجاء اختيار فصل لعرض الطلاب</p>
             </div>
           </div>
         ) : filteredStudents.length > 0 ? (
