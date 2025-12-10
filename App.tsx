@@ -1577,7 +1577,7 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 md:mr-64 p-4 md:p-8 transition-all duration-300 print:hidden w-full max-w-[100vw] overflow-x-hidden">
+      <main className="flex-1 md:mr-64 p-2 md:p-4 lg:p-8 transition-all duration-300 print:hidden w-full max-w-[100vw] overflow-x-hidden">
         <header className="hidden md:flex justify-between items-center mb-8">
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">
