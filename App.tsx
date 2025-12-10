@@ -1503,6 +1503,14 @@ const App: React.FC = () => {
         ) : null;
       case 'files':
         return <FileSharing role={currentUser.role} onAddLog={handleAddLog} />;
+      case 'absence':
+        return currentUser.role === 'admin' ? (
+          <AbsenceManagement 
+            students={students}
+            records={currentRecords}
+            settings={effectiveSettings}
+          />
+        ) : null;
       case 'profile':
         return <UserProfile user={currentUser} />;
       default:
