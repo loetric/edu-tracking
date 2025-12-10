@@ -327,9 +327,9 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 md:space-y-3 lg:space-y-4">
       {/* Header and Upload Button */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="bg-white p-3 md:p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-gray-800">التعاميم</h2>
           <p className="text-sm text-gray-500 mt-1">استعراض التعاميم والملفات المهمة</p>

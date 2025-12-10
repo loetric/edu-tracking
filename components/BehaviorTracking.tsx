@@ -138,9 +138,9 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 md:space-y-4 lg:space-y-6">
       {/* Header */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white p-3 md:p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
             <AlertCircle size={28} />

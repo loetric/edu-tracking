@@ -198,7 +198,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   const isSessionCompleted = (sessionId: string) => completedSessions.includes(sessionId);
 
   return (
-    <div className="space-y-3 md:space-y-6">
+    <div className="space-y-2 md:space-y-4 lg:space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-2.5 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-2 md:gap-4 print:hidden">
         <div className="min-w-0 flex-1">
           <h2 className="text-sm md:text-xl font-bold text-gray-800">
