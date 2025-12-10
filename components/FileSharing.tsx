@@ -738,6 +738,65 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
           onCancel={confirmModal.onCancel}
         />
       )}
+
+      {/* Readers Modal */}
+      {showReadersModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-teal-600 p-4 md:p-6 text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <Users size={24} />
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold">من قام بقراءة التعميم</h3>
+                  <p className="text-sm text-teal-100 mt-1">{showReadersModal.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowReadersModal(null);
+                  setReaders([]);
+                }}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              {readers.length > 0 ? (
+                <div className="space-y-2">
+                  {readers.map((reader) => (
+                    <div
+                      key={reader.id}
+                      className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-bold">
+                          {reader.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-sm md:text-base">
+                            {reader.name}
+                          </h4>
+                          <p className="text-xs text-gray-500">
+                            {reader.role === 'admin' ? 'مدير' : reader.role === 'counselor' ? 'موجه' : 'معلم'}
+                          </p>
+                        </div>
+                      </div>
+                      <CheckCircle size={20} className="text-green-600" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Users size={48} className="mx-auto mb-4 text-gray-300" />
+                  <p className="text-gray-500 font-bold">لم يقرأ أحد هذا التعميم بعد</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
