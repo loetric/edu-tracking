@@ -199,7 +199,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
   return (
     <div className="space-y-2 md:space-y-4 lg:space-y-6">
-      <div className="sticky top-0 z-30 bg-white p-2.5 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-2 md:gap-4 print:hidden flex flex-col md:flex-row justify-between items-start md:items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-2.5 md:p-4 rounded-xl shadow-sm border border-gray-100 gap-2 md:gap-4 print:hidden">
         <div className="min-w-0 flex-1">
           <h2 className="text-sm md:text-xl font-bold text-gray-800">
               {isAdmin ? 'متابعة التقارير اليومية' : 'المتابعة اليومية'}
@@ -266,7 +266,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
       {/* Schedule Tabs */}
       {schedule && (
-          <div className="sticky top-[80px] md:top-[100px] z-20 bg-white p-1.5 md:p-2 rounded-xl border border-gray-100 shadow-sm overflow-x-auto print:hidden">
+          <div className="bg-white p-1.5 md:p-2 rounded-xl border border-gray-100 shadow-sm overflow-x-auto print:hidden">
               <div className="flex items-center gap-1.5 md:gap-2 min-w-max">
                   <div className="text-xs md:text-sm font-bold text-gray-400 pl-2 md:pl-4 border-l border-gray-100 ml-1 md:ml-2 py-1.5 md:py-2 flex-shrink-0">
                       {isAdmin ? 'جدول الحصص اليومي:' : 'حصصي اليوم:'}

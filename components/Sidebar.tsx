@@ -78,19 +78,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
               </>
             )}
           </div>
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              className={`absolute ${isCollapsed ? 'left-1' : 'left-2'} top-1/2 -translate-y-1/2 -translate-x-full bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:bg-gray-50 transition-colors hidden md:flex items-center justify-center z-50`}
-              title={isCollapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
-            >
-              {isCollapsed ? (
-                <ChevronRight size={16} className="text-gray-600" />
-              ) : (
-                <ChevronLeft size={16} className="text-gray-600" />
-              )}
-            </button>
-          )}
         </div>
 
         <nav className="flex-1 overflow-y-auto py-2 md:py-4 scrollbar-thin scrollbar-thumb-gray-200">
@@ -162,7 +149,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
           )}
         </nav>
 
-        <div className="p-2 md:p-4 border-t border-gray-100 bg-gray-50/50">
+        <div className="p-2 md:p-4 border-t border-gray-100 bg-gray-50/50 space-y-2">
+          {onToggleCollapse && (
+            <button
+              onClick={onToggleCollapse}
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : ''} gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-2.5 rounded-lg transition-colors duration-200 text-gray-600 hover:bg-gray-100`}
+              title={isCollapsed ? 'توسيع القائمة' : 'تصغير القائمة'}
+            >
+              {isCollapsed ? (
+                <ChevronLeft size={16} className="md:w-5 md:h-5 flex-shrink-0" />
+              ) : (
+                <>
+                  <ChevronRight size={16} className="md:w-5 md:h-5 flex-shrink-0" />
+                  <span className="text-xs md:text-sm">تصغير القائمة</span>
+                </>
+              )}
+            </button>
+          )}
           <button 
               onClick={onLogout}
               className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-center'} gap-1.5 md:gap-2 bg-white border border-red-100 text-red-600 py-2 md:py-2.5 rounded-lg hover:bg-red-50 hover:border-red-200 transition-all font-medium shadow-sm active:scale-95 text-xs md:text-base`}
