@@ -428,7 +428,12 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                             <div key={item.className} className={`bg-white border rounded-lg p-2.5 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
                                 <div className="flex items-center justify-between mb-1.5 gap-2">
                                     <p className="font-bold text-gray-800 text-xs truncate flex-1">{item.className}</p>
-                                    {item.isReady && <CheckCircle size={12} className="text-green-600 flex-shrink-0" />}
+                                    {item.isReady && (
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                            <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">تم الرصد</span>
+                                            <CheckCircle size={12} className="text-green-600" />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="text-[10px] text-gray-500 mb-2 flex flex-wrap gap-x-1.5">
                                     <span>المعلمين:</span>
