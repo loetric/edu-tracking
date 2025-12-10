@@ -27,10 +27,19 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStudentForEdit, setSelectedStudentForEdit] = useState<Student | null>(null);
 
-  // Get classes from settings only (not from student data)
-  const classes = settings?.classGrades && settings.classGrades.length > 0
-    ? ['all', ...settings.classGrades.sort()]
-    : ['all'];
+  // Get classes from settings, but fallback to student data if settings is empty
+  // This ensures the counselor can see classes that have students, even if not yet defined in settings
+  const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
+    ? settings.classGrades
+    : [];
+  
+  // Get classes from students (for fallback)
+  const classesFromStudents = Array.from(new Set(students.map(s => s.classGrade?.trim()).filter(Boolean))).sort();
+  
+  // Merge both sources, prioritizing settings but including student classes
+  const allClasses = Array.from(new Set([...classesFromSettings, ...classesFromStudents])).sort();
+  
+  const classes = allClasses.length > 0 ? ['all', ...allClasses] : ['all'];
 
   const challengeTypes: { type: ChallengeType; label: string; icon: any; color: string }[] = [
     { type: 'none', label: 'طبيعي / لا يوجد', icon: User, color: 'bg-gray-100 text-gray-600 border-gray-200' },
