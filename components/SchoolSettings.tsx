@@ -530,28 +530,69 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     };
 
 
+  const handleEditSession = (session: ScheduleItem) => {
+      setEditingSession(session);
+      setNewSession({
+          day: session.day,
+          period: session.period,
+          subject: session.subject,
+          classRoom: session.classRoom,
+          teacher: session.teacher
+      });
+      setIsAddingSession(true);
+  };
+
+  const handleCancelEdit = () => {
+      setEditingSession(null);
+      setNewSession({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
+      setIsAddingSession(false);
+  };
+
   const handleAddSession = async () => {
       if (newSession.day && newSession.period && newSession.subject && newSession.classRoom && newSession.teacher && onUpdateSchedule) {
           try {
               // Trim and normalize teacher name to ensure consistency
               const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
-              const sessionToAdd: ScheduleItem = {
-                  id: Date.now().toString(),
-                  day: newSession.day,
-                  period: newSession.period,
-                  subject: newSession.subject.trim(),
-                  classRoom: newSession.classRoom.trim(),
-                  teacher: normalizedTeacher
-              };
-              const updatedSchedule = [...schedule, sessionToAdd];
-              console.log('handleAddSession: Adding session, new schedule length:', updatedSchedule.length);
+              
+              let updatedSchedule: ScheduleItem[];
+              
+              if (editingSession) {
+                  // Update existing session
+                  updatedSchedule = schedule.map(s => 
+                      s.id === editingSession.id 
+                          ? {
+                              ...s,
+                              day: newSession.day!,
+                              period: newSession.period!,
+                              subject: newSession.subject!.trim(),
+                              classRoom: newSession.classRoom!.trim(),
+                              teacher: normalizedTeacher
+                          }
+                          : s
+                  );
+                  console.log('handleAddSession: Updating session, schedule length:', updatedSchedule.length);
+              } else {
+                  // Add new session
+                  const sessionToAdd: ScheduleItem = {
+                      id: Date.now().toString(),
+                      day: newSession.day,
+                      period: newSession.period,
+                      subject: newSession.subject.trim(),
+                      classRoom: newSession.classRoom.trim(),
+                      teacher: normalizedTeacher
+                  };
+                  updatedSchedule = [...schedule, sessionToAdd];
+                  console.log('handleAddSession: Adding session, new schedule length:', updatedSchedule.length);
+              }
+              
               await onUpdateSchedule(updatedSchedule);
-              setNewSession({ ...newSession, subject: '', classRoom: '' }); // Keep day/teacher/period possibly
+              setNewSession({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
+              setEditingSession(null);
               setIsAddingSession(false);
               // Success message is shown in onUpdateSchedule
           } catch (error) {
-              console.error('handleAddSession: Error adding session:', error);
-              alert({ message: 'فشل في إضافة الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
+              console.error('handleAddSession: Error saving session:', error);
+              alert({ message: editingSession ? 'فشل في تحديث الحصة. يرجى المحاولة مرة أخرى.' : 'فشل في إضافة الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
           }
       } else {
           alert({ message: 'الرجاء تعبئة جميع بيانات الحصة', type: 'warning' });
