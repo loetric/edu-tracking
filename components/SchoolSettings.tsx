@@ -27,6 +27,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   
   // Class Grades Management State
   const [classGrades, setClassGrades] = useState<string[]>(settings?.classGrades || []);
