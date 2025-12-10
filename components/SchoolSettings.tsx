@@ -509,22 +509,29 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     };
 
 
-  const handleAddSession = () => {
+  const handleAddSession = async () => {
       if (newSession.day && newSession.period && newSession.subject && newSession.classRoom && newSession.teacher && onUpdateSchedule) {
-          // Trim and normalize teacher name to ensure consistency
-          const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
-          const sessionToAdd: ScheduleItem = {
-              id: Date.now().toString(),
-              day: newSession.day,
-              period: newSession.period,
-              subject: newSession.subject.trim(),
-              classRoom: newSession.classRoom.trim(),
-              teacher: normalizedTeacher
-          };
-          onUpdateSchedule([...schedule, sessionToAdd]);
-          setNewSession({ ...newSession, subject: '', classRoom: '' }); // Keep day/teacher/period possibly
-          setIsAddingSession(false);
-          alert({ message: 'تم إضافة الحصة للجدول بنجاح', type: 'success' });
+          try {
+              // Trim and normalize teacher name to ensure consistency
+              const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
+              const sessionToAdd: ScheduleItem = {
+                  id: Date.now().toString(),
+                  day: newSession.day,
+                  period: newSession.period,
+                  subject: newSession.subject.trim(),
+                  classRoom: newSession.classRoom.trim(),
+                  teacher: normalizedTeacher
+              };
+              const updatedSchedule = [...schedule, sessionToAdd];
+              console.log('handleAddSession: Adding session, new schedule length:', updatedSchedule.length);
+              await onUpdateSchedule(updatedSchedule);
+              setNewSession({ ...newSession, subject: '', classRoom: '' }); // Keep day/teacher/period possibly
+              setIsAddingSession(false);
+              // Success message is shown in onUpdateSchedule
+          } catch (error) {
+              console.error('handleAddSession: Error adding session:', error);
+              alert({ message: 'فشل في إضافة الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
+          }
       } else {
           alert({ message: 'الرجاء تعبئة جميع بيانات الحصة', type: 'warning' });
       }
@@ -540,7 +547,15 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       });
       
       if (shouldDelete && onUpdateSchedule) {
-          onUpdateSchedule(schedule.filter(s => s.id !== id));
+          try {
+              const updatedSchedule = schedule.filter(s => s.id !== id);
+              console.log('handleDeleteSession: Deleting session, new schedule length:', updatedSchedule.length);
+              await onUpdateSchedule(updatedSchedule);
+              // Success message is shown in onUpdateSchedule
+          } catch (error) {
+              console.error('handleDeleteSession: Error deleting session:', error);
+              alert({ message: 'فشل في حذف الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
+          }
       }
   };
 
