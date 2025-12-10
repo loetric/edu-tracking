@@ -95,7 +95,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 animate-in fade-in relative">
+    <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-3 md:p-6 lg:p-8 animate-in fade-in relative">
       
       {/* Substitute Modal */}
       {selectedSessionForSub && onAssignSubstitute && (

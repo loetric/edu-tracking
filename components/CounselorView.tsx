@@ -92,11 +92,11 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
   const sortedClasses = Object.keys(studentsByClass).sort();
 
   return (
-    <div className="space-y-6 overflow-x-hidden">
+    <div className="space-y-3 md:space-y-4 lg:space-y-6 overflow-x-hidden">
       
       {/* Settings Section (Collapsible or Top) */}
       {settings && onUpdateSettings && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 print:hidden">
+          <div className="bg-white p-3 md:p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100 print:hidden">
               <details className="group">
                   <summary className="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
                       <span className="flex items-center gap-2">

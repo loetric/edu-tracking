@@ -593,7 +593,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   ]));
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-2 md:px-4">
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
         <div className="flex flex-wrap gap-2 md:gap-3 border-b border-gray-200 pb-2">

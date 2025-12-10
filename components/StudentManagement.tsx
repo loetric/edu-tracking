@@ -271,9 +271,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   const hasActiveFilters = searchTerm || filterClassRoom || filterChallenge;
 
   return (
-    <div className="space-y-3 md:space-y-6">
+    <div className="space-y-2 md:space-y-4 lg:space-y-6">
       {/* Header with Actions */}
-      <div className="bg-white p-3 md:p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="bg-white p-2.5 md:p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
           <div className="flex-1 min-w-0">
             <h2 className="text-base md:text-2xl font-bold text-gray-800">إدارة الطلاب</h2>
