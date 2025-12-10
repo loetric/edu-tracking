@@ -46,19 +46,10 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     ? [...settings.classGrades].sort()
     : [];
   
-  // Extract unique class rooms (الفصول) from students' classGrade
-  // Extract full classGrade as classRoom (e.g., "الرابع الابتدائي/أ" -> "الرابع الابتدائي/أ" or "الرابع الابتدائي" -> "الرابع الابتدائي")
-  const uniqueClassRooms = Array.from(
-    new Set(
-      students
-        .map(s => {
-          const classGrade = s.classGrade || '';
-          // Return the full classGrade as classRoom
-          return classGrade;
-        })
-        .filter(Boolean)
-    )
-  ).sort();
+  // Get class rooms (الفصول) from settings only (not from student data)
+  const uniqueClassRooms = settings?.classGrades && settings.classGrades.length > 0
+    ? [...settings.classGrades].sort()
+    : [];
   
   // Get unique challenges for filter
   const uniqueChallenges = Array.from(new Set(students.map(s => s.challenge || 'none'))).sort();

@@ -26,11 +26,13 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
 
-  // Get unique classes
+  // Get unique classes from settings only (not from student data)
   const uniqueClasses = useMemo(() => {
-    const classes = Array.from(new Set(students.map(s => s.classGrade).filter(Boolean))) as string[];
-    return ['all', ...classes.sort()];
-  }, [students]);
+    const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
+      ? settings.classGrades
+      : [];
+    return ['all', ...classesFromSettings.sort()];
+  }, [settings]);
 
   // Filter records by date range
   const filteredRecords = useMemo(() => {

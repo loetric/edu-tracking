@@ -1458,6 +1458,7 @@ const App: React.FC = () => {
           <BehaviorTracking 
             students={students}
             records={currentRecords}
+            settings={effectiveSettings}
           />
         ) : null;
       case 'files':

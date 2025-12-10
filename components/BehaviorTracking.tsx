@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Student, DailyRecord } from '../types';
+import { Student, DailyRecord, SchoolSettings } from '../types';
 import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '../constants';
 import { CustomSelect } from './CustomSelect';
@@ -7,20 +7,23 @@ import { CustomSelect } from './CustomSelect';
 interface BehaviorTrackingProps {
   students: Student[];
   records: Record<string, DailyRecord>;
+  settings: SchoolSettings;
 }
 
 type BehaviorCategory = 'excellent' | 'good' | 'needs_attention';
 
-export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records }) => {
+export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings }) => {
   const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('all');
 
-  // Get unique classes
+  // Get unique classes from settings only (not from student data)
   const uniqueClasses = useMemo(() => {
-    const classes = Array.from(new Set(students.map(s => s.classGrade).filter(Boolean))) as string[];
-    return ['all', ...classes.sort()];
-  }, [students]);
+    const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
+      ? settings.classGrades
+      : [];
+    return ['all', ...classesFromSettings.sort()];
+  }, [settings]);
 
   // Categorize students based on behavior records
   const categorizedStudents = useMemo(() => {
