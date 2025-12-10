@@ -384,7 +384,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             )}
             
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
+            <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right border-collapse min-w-[800px]">
                 <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
