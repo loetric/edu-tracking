@@ -14,6 +14,7 @@ import { CounselorView } from './components/CounselorView';
 import { BehaviorTracking } from './components/BehaviorTracking';
 import { DailyStudentView } from './components/DailyStudentView';
 import { InternalChat } from './components/InternalChat';
+import { AbsenceManagement } from './components/AbsenceManagement';
 import { BulkReportModal } from './components/BulkReportModal';
 import { UserProfile } from './components/UserProfile';
 import { FileSharing } from './components/FileSharing';
