@@ -49,16 +49,48 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   // Get class rooms (الفصول) from settings only (not from student data)
   const uniqueClassRooms = useMemo(() => {
     // Debug: log settings to see what we're getting
-    console.log('StudentManagement - settings:', settings);
-    console.log('StudentManagement - settings.classGrades:', settings?.classGrades);
+    console.log('=== StudentManagement Debug ===');
+    console.log('settings:', settings);
+    console.log('settings?.classGrades:', settings?.classGrades);
+    console.log('typeof settings?.classGrades:', typeof settings?.classGrades);
+    console.log('Array.isArray(settings?.classGrades):', Array.isArray(settings?.classGrades));
     
-    if (settings?.classGrades && Array.isArray(settings.classGrades) && settings.classGrades.length > 0) {
-      const rooms = [...settings.classGrades].sort();
-      console.log('StudentManagement - uniqueClassRooms:', rooms);
-      return rooms;
+    if (!settings) {
+      console.log('No settings object');
+      return [];
     }
-    console.log('StudentManagement - No classGrades found, returning empty array');
-    return [];
+    
+    if (!settings.classGrades) {
+      console.log('No classGrades property in settings');
+      return [];
+    }
+    
+    // Handle string (JSON) case
+    let classGradesArray = settings.classGrades;
+    if (typeof settings.classGrades === 'string') {
+      try {
+        classGradesArray = JSON.parse(settings.classGrades);
+        console.log('Parsed classGrades from string:', classGradesArray);
+      } catch (e) {
+        console.error('Error parsing classGrades string:', e);
+        return [];
+      }
+    }
+    
+    if (!Array.isArray(classGradesArray)) {
+      console.log('classGrades is not an array:', classGradesArray);
+      return [];
+    }
+    
+    if (classGradesArray.length === 0) {
+      console.log('classGrades array is empty');
+      return [];
+    }
+    
+    const rooms = [...classGradesArray].filter(g => g && g.trim().length > 0).sort();
+    console.log('Final uniqueClassRooms:', rooms);
+    console.log('=== End Debug ===');
+    return rooms;
   }, [settings?.classGrades]);
   
   // Get unique challenges for filter

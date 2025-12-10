@@ -60,7 +60,23 @@ export const getSettings = async (): Promise<SchoolSettings> => {
       throw new Error('لا توجد بيانات مدرسة في قاعدة البيانات');
     }
     
-    return data as SchoolSettings;
+    // Parse classGrades if it's a string (JSON)
+    const parsedData = { ...data };
+    if (parsedData.classGrades && typeof parsedData.classGrades === 'string') {
+      try {
+        parsedData.classGrades = JSON.parse(parsedData.classGrades);
+      } catch (e) {
+        console.error('Error parsing classGrades:', e);
+        parsedData.classGrades = [];
+      }
+    }
+    
+    // Ensure classGrades is an array
+    if (parsedData.classGrades && !Array.isArray(parsedData.classGrades)) {
+      parsedData.classGrades = [];
+    }
+    
+    return parsedData as SchoolSettings;
   } catch (error) {
     console.error('Get settings error:', error);
     throw error; // Re-throw to let caller handle
@@ -78,15 +94,32 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
       .limit(1)
       .single();
 
+    // Ensure classGrades is properly formatted
+    const settingsToSave = { ...settings };
+    if (settingsToSave.classGrades && Array.isArray(settingsToSave.classGrades)) {
+      // Supabase will handle JSON array automatically, but ensure it's clean
+      settingsToSave.classGrades = settingsToSave.classGrades.filter(g => g && g.trim().length > 0);
+    }
+
     if (existingSettings) {
-      await supabase
+      const { error } = await supabase
         .from('settings')
-        .update(settings)
+        .update(settingsToSave)
         .eq('id', existingSettings.id);
+      
+      if (error) {
+        console.error('Update settings error:', error);
+        throw error;
+      }
     } else {
-      await supabase
+      const { error } = await supabase
         .from('settings')
-        .insert([settings]);
+        .insert([settingsToSave]);
+      
+      if (error) {
+        console.error('Insert settings error:', error);
+        throw error;
+      }
     }
   } catch (error) {
     console.error('Update settings error:', error);
