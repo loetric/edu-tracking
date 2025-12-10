@@ -119,4 +119,5 @@ export interface SharedFile {
   updated_at: Date;
   read_by?: string[]; // Array of user IDs who read this file
   read_count?: number; // Total number of readers
+  is_read_by_current_user?: boolean; // Whether current user has read this file
 }

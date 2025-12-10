@@ -26,7 +26,7 @@ interface SchoolSettingsProps {
 export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
-    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'password' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'users' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   
   // Class Grades Management State
@@ -444,7 +444,8 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           name: user.name,
           username: user.username,
           role: user.role,
-          avatar: user.avatar
+          avatar: user.avatar,
+          email: user.email
       });
   };
 
@@ -471,7 +472,8 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                 name: editFormData.name,
                 username: editFormData.username,
                 role: editFormData.role,
-                avatar: editFormData.avatar
+                avatar: editFormData.avatar,
+                email: editFormData.email
             });
             
             if (updated) {
@@ -569,7 +571,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         <div className="flex flex-wrap gap-2 md:gap-3 border-b border-gray-200 pb-2">
           <button onClick={() => setActiveTab('general')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
           <button onClick={() => setActiveTab('users')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
-          <button onClick={() => setActiveTab('password')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'password' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعادة تعيين كلمات المرور</button>
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
           <button onClick={() => setActiveTab('classes')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'classes' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف الفصول</button>
           <button onClick={() => setActiveTab('subjects')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'subjects' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>تعريف المواد الدراسية</button>
@@ -848,6 +849,16 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                    />
                                </div>
                                <div>
+                                   <label className="block text-xs font-bold text-gray-500 mb-1">البريد الإلكتروني</label>
+                                   <input 
+                                       type="email" 
+                                       value={editFormData.email || ''} 
+                                       onChange={e => setEditFormData({...editFormData, email: e.target.value})} 
+                                       className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500" 
+                                       placeholder="user@example.com" 
+                                   />
+                               </div>
+                               <div>
                                    <label className="block text-xs font-bold text-gray-500 mb-1">الدور / الصلاحية</label>
                                    <CustomSelect
                                      value={editFormData.role || 'teacher'}
@@ -980,12 +991,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
            </div>
         )}
 
-                {activeTab === 'password' && (
-                    <div className="space-y-6 animate-in fade-in">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">إدارة إعادة تعيين كلمات المرور</h2>
-                        <PasswordReset users={users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role }))} />
-                    </div>
-                )}
 
         {activeTab === 'classes' && (
           <div className="space-y-6 animate-in fade-in">

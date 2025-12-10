@@ -171,67 +171,67 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   return (
     <div className="space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-6">
-            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+            <div className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">إجمالي الطلاب</p>
-                    <h4 className="text-xl md:text-2xl font-bold text-gray-800">{students.length}</h4>
+                    <p className="text-gray-500 text-[9px] md:text-[10px] font-medium mb-0.5 truncate break-words whitespace-normal">إجمالي الطلاب</p>
+                    <h4 className="text-lg md:text-xl font-bold text-gray-800">{students.length}</h4>
                 </div>
-                <div className="p-2 md:p-3 bg-teal-50 text-teal-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <Users size={16} className="md:w-5 md:h-5" />
+                <div className="p-1.5 md:p-2 bg-teal-50 text-teal-600 rounded-lg flex-shrink-0">
+                    <Users size={14} className="md:w-4 md:h-4" />
                 </div>
             </div>
             
-            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">نسبة الحضور اليوم</p>
-                    <h4 className="text-xl md:text-2xl font-bold text-gray-800">
+                    <p className="text-gray-500 text-[9px] md:text-[10px] font-medium mb-0.5 truncate break-words whitespace-normal">نسبة الحضور اليوم</p>
+                    <h4 className="text-lg md:text-xl font-bold text-gray-800">
                       {totalTodayRecords > 0 ? `${attendanceRate}%` : '0%'}
                     </h4>
                     {totalTodayRecords === 0 && (
-                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
+                      <p className="text-[8px] md:text-[10px] text-gray-400 mt-0.5">لا توجد بيانات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-3 bg-blue-50 text-blue-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <CalendarCheck size={16} className="md:w-5 md:h-5" />
+                <div className="p-1.5 md:p-2 bg-blue-50 text-blue-600 rounded-lg flex-shrink-0">
+                    <CalendarCheck size={14} className="md:w-4 md:h-4" />
                 </div>
             </div>
             
             <button
               onClick={() => setShowAbsentStudents(true)}
-              className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
             >
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">نسبة الغياب اليوم</p>
-                    <h4 className="text-xl md:text-2xl font-bold text-red-600">
+                    <p className="text-gray-500 text-[9px] md:text-[10px] font-medium mb-0.5 truncate break-words whitespace-normal">نسبة الغياب اليوم</p>
+                    <h4 className="text-lg md:text-xl font-bold text-red-600">
                       {totalTodayRecords > 0 ? `${absenceRate}%` : '0%'}
                     </h4>
                     {totalTodayRecords > 0 && absentCount > 0 && (
-                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">{absentCount} طالب</p>
+                      <p className="text-[8px] md:text-[10px] text-gray-400 mt-0.5">{absentCount} طالب</p>
                     )}
                     {totalTodayRecords === 0 && (
-                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
+                      <p className="text-[8px] md:text-[10px] text-gray-400 mt-0.5">لا توجد بيانات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-3 bg-red-50 text-red-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <UserX size={16} className="md:w-5 md:h-5" />
+                <div className="p-1.5 md:p-2 bg-red-50 text-red-600 rounded-lg flex-shrink-0">
+                    <UserX size={14} className="md:w-4 md:h-4" />
                 </div>
             </button>
 
-            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+            <div className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">الأداء العام</p>
-                    <h4 className={`text-lg md:text-2xl font-bold ${overallPerformanceColor} truncate`}>
+                    <p className="text-gray-500 text-[9px] md:text-[10px] font-medium mb-0.5 truncate break-words whitespace-normal">الأداء العام</p>
+                    <h4 className={`text-base md:text-lg font-bold ${overallPerformanceColor} truncate`}>
                       {totalTodayRecords > 0 ? overallPerformanceLabel : 'لا توجد بيانات'}
                     </h4>
                     {totalTodayRecords > 0 && (
-                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">
+                      <p className="text-[8px] md:text-[10px] text-gray-400 mt-0.5">
                         {overallPerformanceScore.toFixed(1)}/5.0
                       </p>
                     )}
                 </div>
-                <div className="p-2 md:p-3 bg-green-50 text-green-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <TrendingUp size={16} className="md:w-5 md:h-5" />
+                <div className="p-1.5 md:p-2 bg-green-50 text-green-600 rounded-lg flex-shrink-0">
+                    <TrendingUp size={14} className="md:w-4 md:h-4" />
                 </div>
             </div>
 
@@ -244,17 +244,17 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                   alert({ message: 'لا توجد تنبيهات سلوك حالياً', type: 'info' });
                 }
               }}
-              className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white p-2 md:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
             >
                 <div className="min-w-0 flex-1">
-                    <p className="text-gray-500 text-[10px] md:text-xs font-medium mb-0.5 md:mb-1 truncate">تنبيهات السلوك</p>
-                    <h4 className="text-xl md:text-2xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
+                    <p className="text-gray-500 text-[9px] md:text-[10px] font-medium mb-0.5 truncate break-words whitespace-normal">تنبيهات السلوك</p>
+                    <h4 className="text-lg md:text-xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
                     {behaviorAlertsCount === 0 && (
-                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد تنبيهات</p>
+                      <p className="text-[8px] md:text-[10px] text-gray-400 mt-0.5">لا توجد تنبيهات</p>
                     )}
                 </div>
-                <div className="p-2 md:p-3 bg-orange-50 text-orange-600 rounded-lg md:rounded-xl flex-shrink-0">
-                    <AlertTriangle size={16} className="md:w-5 md:h-5" />
+                <div className="p-1.5 md:p-2 bg-orange-50 text-orange-600 rounded-lg flex-shrink-0">
+                    <AlertTriangle size={14} className="md:w-4 md:h-4" />
                 </div>
             </button>
         </div>
@@ -263,13 +263,13 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             {/* Teachers Monitoring Table (Only for Admin) */}
             {role === 'admin' && (
                 <div className="lg:col-span-2 bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                    <div className="p-3 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div className="p-2 md:p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div className="min-w-0 flex-1">
-                            <h3 className="text-sm md:text-lg font-bold text-gray-800 flex items-center gap-1.5 md:gap-2">
-                                <Clock size={14} className="md:w-5 md:h-5 text-teal-600 flex-shrink-0" />
-                                <span className="truncate">متابعة اكتمال الرصد اليومي ({dayName})</span>
+                            <h3 className="text-xs md:text-sm font-bold text-gray-800 flex items-center gap-1 md:gap-1.5">
+                                <Clock size={12} className="md:w-4 md:h-4 text-teal-600 flex-shrink-0" />
+                                <span className="truncate break-words whitespace-normal">متابعة اكتمال الرصد اليومي ({dayName})</span>
                             </h3>
-                            <p className="text-[10px] md:text-xs text-gray-500 mt-0.5 md:mt-1">يظهر الفصل "مكتمل" عند رصد جميع حصص الجدول الدراسي لهذا اليوم</p>
+                            <p className="text-[9px] md:text-[10px] text-gray-500 mt-0.5 break-words whitespace-normal">يظهر الفصل "مكتمل" عند رصد جميع حصص الجدول الدراسي لهذا اليوم</p>
                         </div>
                     </div>
                     

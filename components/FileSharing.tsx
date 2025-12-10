@@ -159,6 +159,21 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
     }
   };
 
+  const handleFileClick = async (file: SharedFile) => {
+    // Mark file as read when clicked
+    if (!file.is_read_by_current_user) {
+      try {
+        const { api } = await import('../services/api');
+        await api.markFileAsRead(file.id);
+        // Reload files to update read status
+        await loadFiles();
+      } catch (error) {
+        console.error('Error marking file as read:', error);
+      }
+    }
+    setPreviewFile(file);
+  };
+
   const handleDelete = async (file: SharedFile) => {
     const confirmed = await confirm({
       title: 'تأكيد الحذف',
@@ -177,12 +192,28 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
         alert({ message: 'تم حذف الملف بنجاح', type: 'success' });
         onAddLog?.('حذف ملف', `تم حذف ملف: ${file.name}`);
         await loadFiles();
+        // Clear preview if deleted file was being viewed
+        if (previewFile?.id === file.id) {
+          setPreviewFile(null);
+        }
       } else {
         alert({ message: 'فشل في حذف الملف', type: 'error' });
       }
     } catch (error) {
       console.error('Error deleting file:', error);
       alert({ message: 'فشل في حذف الملف', type: 'error' });
+    }
+  };
+
+  const handleShowReaders = async (file: SharedFile) => {
+    try {
+      const { api } = await import('../services/api');
+      const readersList = await api.getFileReaders(file.id);
+      setReaders(readersList);
+      setShowReadersModal(file);
+    } catch (error) {
+      console.error('Error loading readers:', error);
+      alert({ message: 'فشل في تحميل قائمة القراء', type: 'error' });
     }
   };
 
@@ -246,16 +277,12 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
     return matchSearch && matchType && matchAccess;
   });
 
-  // Group files by type
-  const filesByType = filteredFiles.reduce((acc, file) => {
-    if (!acc[file.file_type]) {
-      acc[file.file_type] = [];
-    }
-    acc[file.file_type].push(file);
-    return acc;
-  }, {} as Record<FileType, SharedFile[]>);
-
-  const sortedTypes: FileType[] = ['general', 'circular', 'decision'];
+  // Sort files by created_at descending (newest first)
+  const sortedFiles = [...filteredFiles].sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return dateB - dateA;
+  });
 
   if (isLoading) {
     return (
@@ -269,7 +296,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header and Upload Button */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
@@ -296,283 +323,230 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
         )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
-          {/* Filter Icon & Label */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Filter size={12} className="text-teal-600 flex-shrink-0" />
-            <span className="font-medium text-gray-700 text-[10px] md:text-xs">الفلاتر:</span>
-          </div>
-          
-          {/* Search */}
-          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={12} />
+      {/* Email-like Layout: List on left, Content on right */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-250px)] min-h-[600px]">
+        {/* Left Side: Announcements List */}
+        <div className="w-full md:w-1/3 border-l md:border-l-0 md:border-r border-gray-200 flex flex-col">
+          {/* Search and Filters */}
+          <div className="p-3 border-b border-gray-200 bg-gray-50">
+            <div className="relative mb-2">
+              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none" size={14} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="بحث..."
-                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
+                placeholder="بحث في التعاميم..."
+                className="w-full pr-8 pl-2 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-teal-500"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute top-0.5 left-1 text-gray-400 hover:text-gray-600 p-0.5"
+                  className="absolute top-1.5 left-2 text-gray-400 hover:text-gray-600 p-1"
                 >
-                  <X size={10} />
+                  <X size={14} />
                 </button>
               )}
             </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <CustomSelect
+                  value={filterType}
+                  onChange={(value) => setFilterType(value as FileType | 'all')}
+                  options={[
+                    { value: 'all', label: 'جميع الأنواع' },
+                    { value: 'general', label: 'ملف عام' },
+                    { value: 'circular', label: 'تعميم' },
+                    { value: 'decision', label: 'قرار' }
+                  ]}
+                  className="w-full text-xs"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Type Filter */}
-          <div className="w-[120px] md:w-[150px] flex-shrink-0">
-            <CustomSelect
-              value={filterType}
-              onChange={(value) => setFilterType(value as FileType | 'all')}
-              options={[
-                { value: 'all', label: 'جميع الأنواع' },
-                { value: 'general', label: 'ملف عام' },
-                { value: 'circular', label: 'تعميم' },
-                { value: 'decision', label: 'قرار' }
-              ]}
-              className="w-full text-[10px] md:text-xs"
-            />
-          </div>
-
-          {/* Access Level Filter */}
-          <div className="w-[120px] md:w-[150px] flex-shrink-0">
-            <CustomSelect
-              value={filterAccess}
-              onChange={(value) => setFilterAccess(value as FileAccessLevel | 'all')}
-              options={[
-                { value: 'all', label: 'جميع المستويات' },
-                { value: 'public', label: 'العموم' },
-                { value: 'teachers', label: 'المعلمون' },
-                { value: 'counselors', label: 'الموجهون' },
-                { value: 'teachers_counselors', label: 'المعلمون والموجهون' }
-              ]}
-              className="w-full text-[10px] md:text-xs"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Files List - Grouped by Type */}
-      {filteredFiles.length > 0 ? (
-        <div className="space-y-6">
-          {sortedTypes.map(type => {
-            const typeFiles = filesByType[type] || [];
-            if (typeFiles.length === 0) return null;
-
-            return (
-              <div key={type} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                {/* Type Header */}
-                <div className="bg-teal-50 border-b border-teal-200 px-6 py-3">
-                  <h3 className="text-lg font-bold text-teal-800 flex items-center justify-between">
-                    <span>{getFileTypeLabel(type)}</span>
-                    <span className="text-sm font-normal text-teal-600">
-                      ({typeFiles.length} ملف)
-                    </span>
-                  </h3>
-                </div>
-
-                {/* Files Grid */}
-                <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {typeFiles.map(file => (
-                    <div
-                      key={file.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
-                    >
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="flex-shrink-0">
-                          {getFileIcon(file.file_category)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-800 text-sm md:text-base truncate mb-1">
-                            {file.name}
-                          </h4>
-                          {file.description && (
-                            <p className="text-xs text-gray-500 line-clamp-2 mb-2">
-                              {file.description}
-                            </p>
+          {/* Announcements List */}
+          <div className="flex-1 overflow-y-auto">
+            {sortedFiles.length > 0 ? (
+              <div className="divide-y divide-gray-100">
+                {sortedFiles.map(file => (
+                  <button
+                    key={file.id}
+                    onClick={() => handleFileClick(file)}
+                    className={`w-full text-right p-4 hover:bg-gray-50 transition-colors border-r-4 ${
+                      previewFile?.id === file.id 
+                        ? 'bg-teal-50 border-r-teal-500' 
+                        : 'border-r-transparent'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`font-bold text-sm mb-1 truncate ${
+                          previewFile?.id === file.id ? 'text-teal-700' : 'text-gray-800'
+                        }`}>
+                          {file.name}
+                        </h4>
+                        {file.description && (
+                          <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                            {file.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span>{getFileTypeLabel(file.file_type)}</span>
+                          {file.created_at && (
+                            <>
+                              <span>•</span>
+                              <span>{new Date(file.created_at).toLocaleDateString('ar-SA')}</span>
+                            </>
                           )}
-                          <div className="flex flex-wrap gap-2 text-xs">
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                              {getAccessLevelLabel(file.access_level)}
-                            </span>
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                              {formatFileSize(file.file_size)}
-                            </span>
-                            {file.read_count !== undefined && file.read_count > 0 && (
-                              <button
-                                onClick={() => handleShowReaders(file)}
-                                className="px-2 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors flex items-center gap-1"
-                                title="عرض القراء"
-                              >
-                                <CheckCircle size={12} />
-                                {file.read_count} قراءة
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setPreviewFile(file)}
-                            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-bold text-xs md:text-sm px-2 py-1 rounded-md hover:bg-blue-50 transition-colors"
-                            title="معاينة"
-                          >
-                            <Eye size={14} className="md:w-4 md:h-4 flex-shrink-0" />
-                            <span className="hidden sm:inline">معاينة</span>
-                          </button>
-                          <a
-                            href={file.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-bold text-xs md:text-sm px-2 py-1 rounded-md hover:bg-teal-50 transition-colors"
-                            title="تحميل"
-                          >
-                            <Download size={14} className="md:w-4 md:h-4 flex-shrink-0" />
-                            <span className="hidden sm:inline">تحميل</span>
-                          </a>
-                        </div>
-                        {isAdmin && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => {
-                                setEditingFile(file);
-                                setUploadName(file.name);
-                                setUploadDescription(file.description || '');
-                                setUploadType(file.file_type);
-                                setUploadAccess(file.access_level);
-                                setShowUploadForm(true);
-                              }}
-                              className="p-1.5 md:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="تعديل"
-                            >
-                              <Edit size={14} className="md:w-4 md:h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(file)}
-                              className="p-1.5 md:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="حذف"
-                            >
-                              <Trash2 size={14} className="md:w-4 md:h-4" />
-                            </button>
-                          </div>
+                      <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                        {getFileIcon(file.file_category)}
+                        {file.is_read_by_current_user && (
+                          <CheckCircle2 size={14} className="text-green-500" />
+                        )}
+                        {file.read_count !== undefined && file.read_count > 0 && (
+                          <span className="text-xs text-gray-400">{file.read_count}</span>
                         )}
                       </div>
                     </div>
-                  ))}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                <div className="text-center">
+                  <FileText size={48} className="mx-auto mb-2 opacity-20" />
+                  <p className="text-sm">لا توجد تعاميم</p>
                 </div>
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-          <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-          <p className="text-gray-500">لا توجد ملفات متاحة</p>
-        </div>
-      )}
 
-      {/* Preview Modal */}
-      {previewFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-2 md:p-4">
-          <div className="bg-white rounded-xl md:rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] flex flex-col">
-            {/* Preview Header */}
-            <div className="bg-teal-600 p-3 md:p-4 text-white flex justify-between items-center rounded-t-xl md:rounded-t-2xl">
-              <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                {getFileIcon(previewFile.file_category)}
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-sm md:text-lg truncate">{previewFile.name}</h3>
-                  {previewFile.description && (
-                    <p className="text-xs md:text-sm text-teal-100 truncate mt-0.5">{previewFile.description}</p>
-                  )}
+        {/* Right Side: File Preview/Content */}
+        <div className="w-full md:w-2/3 flex flex-col">
+          {previewFile ? (
+            <>
+              {/* File Header */}
+              <div className="p-4 border-b border-gray-200 bg-gray-50">
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">{previewFile.name}</h3>
+                    {previewFile.description && (
+                      <p className="text-sm text-gray-600 mb-2">{previewFile.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 text-xs">
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        {getFileTypeLabel(previewFile.file_type)}
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        {getAccessLevelLabel(previewFile.access_level)}
+                      </span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        {formatFileSize(previewFile.file_size)}
+                      </span>
+                      {previewFile.created_at && (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                          {new Date(previewFile.created_at).toLocaleDateString('ar-SA', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingFile(previewFile);
+                            setUploadName(previewFile.name);
+                            setUploadDescription(previewFile.description || '');
+                            setUploadType(previewFile.file_type);
+                            setUploadAccess(previewFile.access_level);
+                            setShowUploadForm(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="تعديل"
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(previewFile)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="حذف"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
+                    {previewFile.read_count !== undefined && previewFile.read_count > 0 && role === 'admin' && (
+                      <button
+                        onClick={() => handleShowReaders(previewFile)}
+                        className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors flex items-center gap-1 text-xs font-bold"
+                        title="عرض القراء"
+                      >
+                        <Users size={14} />
+                        {previewFile.read_count} قراءة
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+
+              {/* File Content/Preview */}
+              <div className="flex-1 overflow-y-auto p-4 bg-white">
+                {previewFile.file_category === 'pdf' ? (
+                  <iframe
+                    src={previewFile.file_url}
+                    className="w-full h-full min-h-[500px] border border-gray-200 rounded-lg"
+                    title={previewFile.name}
+                  />
+                ) : previewFile.file_category === 'image' ? (
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={previewFile.file_url}
+                      alt={previewFile.name}
+                      className="max-w-full max-h-[600px] rounded-lg shadow-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <FileText size={64} className="mb-4 opacity-20" />
+                    <p className="text-lg font-bold mb-2">معاينة غير متاحة</p>
+                    <p className="text-sm mb-4">يرجى تحميل الملف لعرضه</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Download Button */}
+              <div className="p-4 border-t border-gray-200 bg-gray-50">
                 <a
                   href={previewFile.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                  title="فتح في نافذة جديدة"
-                >
-                  <ExternalLink size={16} className="md:w-5 md:h-5" />
-                </a>
-                <a
-                  href={previewFile.file_url}
                   download
-                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                  title="تحميل"
+                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md"
                 >
-                  <Download size={16} className="md:w-5 md:h-5" />
+                  <Download size={20} />
+                  <span>تحميل الملف</span>
                 </a>
-                <button
-                  onClick={() => setPreviewFile(null)}
-                  className="p-1.5 md:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                  title="إغلاق"
-                >
-                  <X size={16} className="md:w-5 md:h-5" />
-                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              <div className="text-center">
+                <FileText size={64} className="mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-bold">اختر تعميماً لعرضه</p>
+                <p className="text-sm mt-2">انقر على أي تعميم من القائمة لعرض محتواه</p>
               </div>
             </div>
-            
-            {/* Preview Content */}
-            <div className="flex-1 overflow-hidden p-2 md:p-4">
-              {previewFile.file_category === 'pdf' ? (
-                <iframe
-                  src={previewFile.file_url}
-                  className="w-full h-full min-h-[400px] md:min-h-[600px] rounded-lg border border-gray-200"
-                  title={previewFile.name}
-                />
-              ) : previewFile.file_category === 'image' ? (
-                <div className="flex items-center justify-center h-full min-h-[400px] md:min-h-[600px] bg-gray-50 rounded-lg">
-                  <img
-                    src={previewFile.file_url}
-                    alt={previewFile.name}
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full min-h-[400px] md:min-h-[600px] bg-gray-50 rounded-lg p-6">
-                  <div className="mb-4">
-                    {getFileIcon(previewFile.file_category)}
-                  </div>
-                  <p className="text-gray-600 font-bold mb-4 text-center">
-                    لا يمكن معاينة هذا النوع من الملفات مباشرة
-                  </p>
-                  <div className="flex gap-3">
-                    <a
-                      href={previewFile.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold"
-                    >
-                      <ExternalLink size={16} />
-                      <span>فتح في نافذة جديدة</span>
-                    </a>
-                    <a
-                      href={previewFile.file_url}
-                      download
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-bold"
-                    >
-                      <Download size={16} />
-                      <span>تحميل</span>
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Upload/Edit Modal */}
       {showUploadForm && (

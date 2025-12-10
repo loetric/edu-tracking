@@ -32,10 +32,12 @@ export const getFiles = async (): Promise<SharedFile[]> => {
     const filesWithReads = (files || []).map(file => {
       const fileReads = reads?.filter(r => r.file_id === file.id) || [];
       const readBy = fileReads.map(r => r.user_id);
+      const isReadByCurrentUser = user ? readBy.includes(user.id) : false;
       return {
         ...mapFileFromDB(file),
         read_by: readBy,
-        read_count: fileReads.length
+        read_count: fileReads.length,
+        is_read_by_current_user: isReadByCurrentUser
       };
     });
 

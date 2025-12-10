@@ -30,13 +30,33 @@ export const getUsers = async (): Promise<User[]> => {
  */
 export const updateUserProfile = async (
   userId: string,
-  updates: { username?: string; name?: string; role?: Role; avatar?: string }
+  updates: { username?: string; name?: string; role?: Role; avatar?: string; email?: string }
 ): Promise<User | null> => {
   try {
+    // Prepare updates object, handling email separately if provided
+    const profileUpdates: any = {
+      username: updates.username,
+      name: updates.name,
+      role: updates.role,
+      avatar: updates.avatar
+    };
+    
+    // If email is provided, add it to updates (trim and lowercase)
+    if (updates.email !== undefined) {
+      profileUpdates.email = updates.email.trim().toLowerCase();
+    }
+    
+    // Remove undefined values
+    Object.keys(profileUpdates).forEach(key => {
+      if (profileUpdates[key] === undefined) {
+        delete profileUpdates[key];
+      }
+    });
+
     // First, update the profile
     const { error: updateError } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(profileUpdates)
       .eq('id', userId);
 
     if (updateError) {
