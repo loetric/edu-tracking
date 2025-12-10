@@ -32,6 +32,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
   const [uploadType, setUploadType] = useState<FileType>('general');
   const [uploadAccess, setUploadAccess] = useState<FileAccessLevel>('public');
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Edit form state
   const [editingFile, setEditingFile] = useState<SharedFile | null>(null);
@@ -97,6 +98,16 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
+    
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) return prev; // Don't go to 100% until upload completes
+        return prev + 5;
+      });
+    }, 500);
+
     try {
       const { api } = await import('../services/api');
       await api.uploadFile(
@@ -106,6 +117,9 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
         uploadType,
         uploadAccess
       );
+      
+      setUploadProgress(100);
+      clearInterval(progressInterval);
       
       alert({ message: 'تم رفع الملف بنجاح', type: 'success' });
       onAddLog?.('رفع ملف', `تم رفع ملف: ${uploadName}`);
@@ -117,17 +131,34 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       setUploadDescription('');
       setUploadType('general');
       setUploadAccess('public');
+      setUploadProgress(0);
       
       // Reload files
       await loadFiles();
     } catch (error: any) {
+      clearInterval(progressInterval);
+      setUploadProgress(0);
       console.error('Error uploading file:', error);
+      
+      let errorMessage = 'فشل في رفع الملف. يرجى المحاولة مرة أخرى';
+      
+      if (error?.message) {
+        if (error.message.includes('timeout') || error.message.includes('انتهت مهلة')) {
+          errorMessage = 'انتهت مهلة الاتصال. يرجى التحقق من سرعة الإنترنت والمحاولة مرة أخرى. إذا كان الملف كبيراً، يرجى تقليل حجمه.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'مشكلة في الاتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       alert({ 
-        message: error?.message || 'فشل في رفع الملف. يرجى المحاولة مرة أخرى', 
+        message: errorMessage, 
         type: 'error' 
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -658,6 +689,25 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
                   />
                 </div>
               </div>
+
+              {/* Upload Progress */}
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600 font-medium">جاري رفع الملف...</span>
+                    <span className="text-teal-600 font-bold">{uploadProgress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-teal-600 h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    يرجى عدم إغلاق هذه النافذة حتى يكتمل الرفع
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4 border-t border-gray-100">
                 <button

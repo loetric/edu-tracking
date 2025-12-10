@@ -66,7 +66,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
             const fetchWithRetry = async (attempt = 0): Promise<Response> => {
               const maxRetries = 2;
               const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased to 15 seconds for Chrome
+              // Increased timeout for file uploads (5 minutes for large files)
+              const isStorageRequest = url.toString().includes('/storage/');
+              const timeoutDuration = isStorageRequest ? 5 * 60 * 1000 : 15000; // 5 minutes for storage, 15 seconds for others
+              const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
               
               // Merge existing signal if present (for nested abort controllers)
               const existingSignal = (options as any)?.signal;

@@ -24,6 +24,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterClassGrade, setFilterClassGrade] = useState<string>('');
+  const [filterClassRoom, setFilterClassRoom] = useState<string>('');
   const [filterChallenge, setFilterChallenge] = useState<string>('');
   const [newStudent, setNewStudent] = useState<Partial<Student>>({
     id: '',
@@ -46,6 +47,31 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     ? [...settings.classGrades].sort()
     : [];
   
+  // Extract unique class rooms (الفصول) from students' classGrade
+  // Only extract from classGrade that contains "/" (e.g., "الرابع الابتدائي/أ" -> "أ")
+  // Filter by selected classGrade if a filter is active
+  const uniqueClassRooms = Array.from(
+    new Set(
+      students
+        .filter(s => {
+          // If filterClassGrade is selected, only include students matching that grade
+          if (filterClassGrade) {
+            return s.classGrade === filterClassGrade || s.classGrade.startsWith(filterClassGrade + '/');
+          }
+          return true;
+        })
+        .map(s => {
+          const classGrade = s.classGrade || '';
+          // If contains "/", extract the part after "/" as classRoom
+          if (classGrade.includes('/')) {
+            return classGrade.split('/').slice(1).join('/');
+          }
+          return null; // Don't include if no "/" separator
+        })
+        .filter(Boolean) as string[]
+    )
+  ).sort();
+  
   // Get unique challenges for filter
   const uniqueChallenges = Array.from(new Set(students.map(s => s.challenge || 'none'))).sort();
 
@@ -57,9 +83,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
       student.parentPhone.includes(searchTerm);
     
     const matchesClassGrade = student.classGrade === filterClassGrade;
+    
+    // Match classRoom (الفصل)
+    let matchesClassRoom = true;
+    if (filterClassRoom) {
+      const studentClassGrade = student.classGrade || '';
+      if (studentClassGrade.includes('/')) {
+        const studentClassRoom = studentClassGrade.split('/').slice(1).join('/');
+        matchesClassRoom = studentClassRoom === filterClassRoom;
+      } else {
+        matchesClassRoom = studentClassGrade === filterClassRoom;
+      }
+    }
+    
     const matchesChallenge = !filterChallenge || (student.challenge || 'none') === filterChallenge;
     
-    return matchesSearch && matchesClassGrade && matchesChallenge;
+    return matchesSearch && matchesClassGrade && matchesClassRoom && matchesChallenge;
   }) : [];
 
   const handleAddStudentSubmit = () => {
@@ -216,10 +255,11 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
   const clearFilters = () => {
     setSearchTerm('');
     setFilterClassGrade('');
+    setFilterClassRoom('');
     setFilterChallenge('');
   };
 
-  const hasActiveFilters = searchTerm || filterClassGrade || filterChallenge;
+  const hasActiveFilters = searchTerm || filterClassGrade || filterClassRoom || filterChallenge;
 
   return (
     <div className="space-y-3 md:space-y-6">
@@ -541,7 +581,11 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           <div className="w-[120px] md:w-[150px] flex-shrink-0">
             <CustomSelect
               value={filterClassGrade}
-              onChange={(value) => setFilterClassGrade(value)}
+              onChange={(value) => {
+                setFilterClassGrade(value);
+                // Reset classRoom filter when classGrade changes
+                setFilterClassRoom('');
+              }}
               options={[
                 { value: '', label: 'جميع الصفوف' },
                 ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
@@ -551,6 +595,22 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               disabled={uniqueClassGrades.length === 0}
             />
           </div>
+
+          {/* Class Room Filter (الفصول) */}
+          {filterClassGrade && uniqueClassRooms.length > 0 && (
+            <div className="w-[120px] md:w-[150px] flex-shrink-0">
+              <CustomSelect
+                value={filterClassRoom}
+                onChange={(value) => setFilterClassRoom(value)}
+                options={[
+                  { value: '', label: 'جميع الفصول' },
+                  ...uniqueClassRooms.map(room => ({ value: room, label: room }))
+                ]}
+                placeholder="جميع الفصول"
+                className="w-full text-[10px] md:text-xs"
+              />
+            </div>
+          )}
 
           {/* Challenge Filter */}
           {role !== 'admin' && (

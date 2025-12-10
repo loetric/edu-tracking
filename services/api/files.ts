@@ -76,20 +76,73 @@ export const uploadFile = async (
     // File path should be just the fileName, not including bucket name
     const filePath = fileName;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(CONFIG.FILES.STORAGE_BUCKET)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    // Retry logic for file upload with timeout handling
+    let uploadError: any = null;
+    let uploadData: any = null;
+    const maxRetries = 3;
+    let retryCount = 0;
 
-    if (uploadError) {
+    while (retryCount < maxRetries && !uploadData) {
+      try {
+        const uploadPromise = supabase.storage
+          .from(CONFIG.FILES.STORAGE_BUCKET)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+            contentType: file.type || undefined
+          });
+
+        // Add timeout wrapper (5 minutes for large files)
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. يرجى التحقق من سرعة الإنترنت والمحاولة مرة أخرى.')), 5 * 60 * 1000);
+        });
+
+        const result = await Promise.race([uploadPromise, timeoutPromise]) as any;
+        
+        if (result.error) {
+          uploadError = result.error;
+          // If it's a timeout or network error, retry
+          if (result.error.message?.includes('timeout') || 
+              result.error.message?.includes('network') || 
+              result.error.message?.includes('fetch')) {
+            retryCount++;
+            if (retryCount < maxRetries) {
+              // Wait before retry (exponential backoff)
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+              continue;
+            }
+          } else {
+            // Non-retryable error, break
+            break;
+          }
+        } else {
+          uploadData = result.data;
+          break;
+        }
+      } catch (error: any) {
+        uploadError = error;
+        if (error.message?.includes('timeout') || error.message?.includes('network')) {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            continue;
+          }
+        } else {
+          break;
+        }
+      }
+    }
+
+    if (uploadError || !uploadData) {
       console.error('File upload error:', uploadError);
       // If bucket doesn't exist, provide a helpful error message
-      if (uploadError.message?.includes('Bucket not found') || uploadError.message?.includes('not found')) {
+      if (uploadError?.message?.includes('Bucket not found') || uploadError?.message?.includes('not found')) {
         throw new Error(`Bucket "${CONFIG.FILES.STORAGE_BUCKET}" غير موجود. يرجى إنشاء الـ bucket في Supabase Storage أولاً.`);
       }
-      throw uploadError;
+      if (uploadError?.message?.includes('timeout') || uploadError?.message?.includes('Request timeout')) {
+        throw new Error('انتهت مهلة الاتصال. يرجى التحقق من سرعة الإنترنت والمحاولة مرة أخرى. إذا كان الملف كبيراً، يرجى تقليل حجمه.');
+      }
+      throw uploadError || new Error('فشل في رفع الملف. يرجى المحاولة مرة أخرى.');
     }
 
     // Get public URL
