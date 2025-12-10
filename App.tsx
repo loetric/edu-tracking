@@ -1392,8 +1392,13 @@ const App: React.FC = () => {
                 onUpdateSchedule={async (s) => { 
                    try {
                      console.log('App: Updating schedule with', s.length, 'items');
-                     await api.updateSchedule(s); 
-                     setSchedule(s); 
+                     await api.updateSchedule(s);
+                     
+                     // Always reload from database to ensure consistency
+                     const freshSchedule = await api.getSchedule();
+                     console.log('App: Reloaded schedule from database:', freshSchedule.length, 'items');
+                     setSchedule(freshSchedule);
+                     
                      handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام');
                      alert({ message: 'تم تحديث الجدول الدراسي بنجاح!', type: 'success' });
                    } catch (error: any) {
