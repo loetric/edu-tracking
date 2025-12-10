@@ -949,13 +949,24 @@ const App: React.FC = () => {
   };
 
   const handleSaveRecords = async (records: Record<string, DailyRecord>) => {
+    console.log('handleSaveRecords called with:', records);
     setIsDataLoading(true);
     try {
+      console.log('Saving records to database...');
       await api.saveDailyRecords(records);
-      setCurrentRecords(prev => ({ ...prev, ...records }));
+      console.log('Records saved successfully. Updating currentRecords...');
+      setCurrentRecords(prev => {
+        const updated = { ...prev, ...records };
+        console.log('Updated currentRecords:', updated);
+        return updated;
+      });
       const count = Object.keys(records).length;
       handleAddLog('حفظ بيانات يومية', `تم حفظ تقييمات لـ ${count} طلاب`);
       alert({ message: CONFIG.SUCCESS.DATA_SAVED, type: 'success' });
+    } catch (error) {
+      console.error('Error in handleSaveRecords:', error);
+      alert({ message: 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.', type: 'error' });
+      throw error; // Re-throw to let StudentTracker handle it
     } finally {
       setIsDataLoading(false);
     }

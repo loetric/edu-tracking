@@ -54,7 +54,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
       })
     : [];
 
-  // Load existing records for displayed students when session is selected
+  // Load existing records for displayed students when session is selected (only on session change, not on propRecords change)
   useEffect(() => {
     if (selectedSession && displayedStudents.length > 0) {
       // Get records for students in this session
@@ -69,13 +69,19 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
         }
       });
       
-      // Merge with any local changes (preserve local edits)
+      // Only merge if we don't have local changes for these students
       setRecords(prev => {
         const merged = { ...sessionRecords };
-        // Keep local changes if they exist
+        // Keep local changes if they exist (don't overwrite user edits)
         Object.keys(prev).forEach(key => {
           if (displayedStudents.some(s => s.id === key)) {
-            merged[key] = prev[key];
+            // Only use propRecords if we don't have local changes
+            if (!prev[key] || prev[key] === sessionRecords[key]) {
+              // No local changes, use propRecords
+            } else {
+              // Keep local changes
+              merged[key] = prev[key];
+            }
           }
         });
         return merged;
@@ -84,7 +90,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
       // Clear records when no session is selected
       setRecords({});
     }
-  }, [selectedSession, propRecords, currentDate, displayedStudents.length]);
+  }, [selectedSession?.id, currentDate]); // Only depend on session change, not propRecords
 
   // Get today's day name in Arabic
   const dayName = new Date().toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -107,7 +113,12 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
   const handleStatusChange = (studentId: string, field: keyof DailyRecord, value: any) => {
     // Only Teacher can edit
-    if (isAdmin) return; 
+    if (isAdmin) {
+      console.log('handleStatusChange: Admin cannot edit');
+      return;
+    }
+
+    console.log('handleStatusChange called:', { studentId, field, value });
 
     setRecords(prev => {
       // 1. Get current record or create default "Present/Excellent" record
@@ -142,10 +153,13 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
         }
       }
 
-      return {
+      const newRecords = {
         ...prev,
         [studentId]: updatedRecord
       };
+
+      console.log('handleStatusChange: Updated records:', newRecords);
+      return newRecords;
     });
   };
 
@@ -222,9 +236,21 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             )}
 
             <button
-                onClick={() => {
+                onClick={async () => {
+                    console.log('Save button clicked. Records to save:', records);
+                    console.log('Records count:', Object.keys(records).length);
+                    
                     if (Object.keys(records).length > 0) {
-                        onSave(records);
+                        try {
+                            console.log('Calling onSave with records:', records);
+                            await onSave(records);
+                            console.log('onSave completed successfully');
+                            // Don't clear records immediately - let propRecords update first
+                            // The useEffect will handle merging when propRecords updates
+                        } catch (error) {
+                            console.error('Error saving records:', error);
+                            alert({ message: 'حدث خطأ أثناء حفظ البيانات. يرجى المحاولة مرة أخرى.', type: 'error' });
+                        }
                     } else {
                         alert({ message: 'لا توجد بيانات للحفظ', type: 'warning' });
                     }
