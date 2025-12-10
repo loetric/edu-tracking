@@ -45,10 +45,17 @@ export const updateSchedule = async (schedule: ScheduleItem[]): Promise<void> =>
       return;
     }
     
+    // Prepare schedule items with created_at if missing
+    const now = new Date().toISOString();
+    const scheduleWithTimestamps = schedule.map(item => ({
+      ...item,
+      created_at: item.created_at || now
+    }));
+    
     // Then insert the new schedule
     const { data, error: insertError } = await supabase
       .from('schedule')
-      .insert(schedule)
+      .insert(scheduleWithTimestamps)
       .select();
     
     if (insertError) {

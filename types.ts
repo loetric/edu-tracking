@@ -83,6 +83,7 @@ export interface ScheduleItem {
   // New fields for substitution logic
   originalTeacher?: string; 
   isSubstituted?: boolean;
+  created_at?: string | Date; // ISO string or Date object
 }
 
 export interface Substitution {
