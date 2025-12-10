@@ -95,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                     }}
                     className={`w-full flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group relative ${
                       activeTab === item.id
-                        ? 'bg-teal-50 text-teal-700 font-bold border-r-4 border-teal-500 shadow-sm'
+                        ? 'bg-teal-50 text-teal-700 font-bold shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
