@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Student, SchoolSettings } from '../types';
 import { UserPlus, Upload, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
 import { ExcelImporter } from './ExcelImporter';
@@ -47,9 +47,19 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
     : [];
   
   // Get class rooms (الفصول) from settings only (not from student data)
-  const uniqueClassRooms = settings?.classGrades && settings.classGrades.length > 0
-    ? [...settings.classGrades].sort()
-    : [];
+  const uniqueClassRooms = useMemo(() => {
+    // Debug: log settings to see what we're getting
+    console.log('StudentManagement - settings:', settings);
+    console.log('StudentManagement - settings.classGrades:', settings?.classGrades);
+    
+    if (settings?.classGrades && Array.isArray(settings.classGrades) && settings.classGrades.length > 0) {
+      const rooms = [...settings.classGrades].sort();
+      console.log('StudentManagement - uniqueClassRooms:', rooms);
+      return rooms;
+    }
+    console.log('StudentManagement - No classGrades found, returning empty array');
+    return [];
+  }, [settings?.classGrades]);
   
   // Get unique challenges for filter
   const uniqueChallenges = Array.from(new Set(students.map(s => s.challenge || 'none'))).sort();
@@ -548,14 +558,19 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           <div className="w-[120px] md:w-[150px] flex-shrink-0">
             <CustomSelect
               value={filterClassRoom}
-              onChange={(value) => setFilterClassRoom(value)}
-              options={[
+              onChange={(value) => {
+                console.log('Filter changed to:', value);
+                setFilterClassRoom(value);
+              }}
+              options={uniqueClassRooms.length > 0 ? [
                 { value: '', label: 'جميع الفصول' },
                 ...uniqueClassRooms.map(room => ({ value: room, label: room }))
+              ] : [
+                { value: '', label: 'لا توجد فصول - يرجى تعريف الفصول في الإعدادات' }
               ]}
-              placeholder="جميع الفصول"
+              placeholder={uniqueClassRooms.length > 0 ? "جميع الفصول" : "لا توجد فصول"}
               className="w-full text-[10px] md:text-xs"
-              disabled={uniqueClassRooms.length === 0}
+              disabled={false}
             />
           </div>
 
