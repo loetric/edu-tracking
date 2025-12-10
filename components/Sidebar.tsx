@@ -84,7 +84,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
               return (
                 <li key={`${item.id}-${item.roles.join('-')}`}>
                   <button
-                    onClick={() => {
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       setActiveTab(item.id);
                       onClose(); // Close sidebar on mobile when item selected
                     }}

@@ -538,20 +538,19 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           </div>
 
           {/* Class Grade Filter */}
-          {uniqueClassGrades.length > 0 && (
-            <div className="w-[120px] md:w-[150px] flex-shrink-0">
-              <CustomSelect
-                value={filterClassGrade}
-                onChange={(value) => setFilterClassGrade(value)}
-                options={[
-                  { value: '', label: 'جميع الصفوف' },
-                  ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
-                ]}
-                placeholder="جميع الصفوف"
-                className="w-full text-[10px] md:text-xs"
-              />
-            </div>
-          )}
+          <div className="w-[120px] md:w-[150px] flex-shrink-0">
+            <CustomSelect
+              value={filterClassGrade}
+              onChange={(value) => setFilterClassGrade(value)}
+              options={[
+                { value: '', label: 'جميع الصفوف' },
+                ...uniqueClassGrades.map(grade => ({ value: grade, label: grade }))
+              ]}
+              placeholder="جميع الصفوف"
+              className="w-full text-[10px] md:text-xs"
+              disabled={uniqueClassGrades.length === 0}
+            />
+          </div>
 
           {/* Challenge Filter */}
           {role !== 'admin' && (

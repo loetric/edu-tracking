@@ -122,6 +122,11 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     alert({ message: 'تم حفظ إعدادات المدرسة بنجاح', type: 'success' });
   };
 
+  const handleSave = () => {
+    onSave({ ...formData, classGrades });
+    alert({ message: 'تم حفظ إعدادات التقارير بنجاح', type: 'success' });
+  };
+
   const handleAddClassGrade = () => {
     if (!newClassGrade.trim()) {
       alert({ message: 'الرجاء إدخال اسم الصف', type: 'warning' });
