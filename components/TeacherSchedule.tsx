@@ -117,7 +117,25 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                   <div className="mb-6">
                       <label className="block text-sm font-medium text-gray-700 mb-2">اختر المعلم البديل (المكلف):</label>
                       <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
-                          {availableTeachers.filter(t => t !== (selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher)).map(teacher => (
+                          {(() => {
+                              // Filter teachers: exclude the original teacher and check availability
+                              const originalTeacher = selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher;
+                              const availableSubstitutes = availableTeachers.filter(t => t !== originalTeacher);
+                              
+                              // Filter by availability: teacher should not have a session at the same time
+                              const availableAtTime = availableSubstitutes.filter(teacher => {
+                                  // Check if this teacher has a session at the same day and period
+                                  const hasConflict = schedule.some(s => 
+                                      s.day === selectedSessionForSub.day && 
+                                      s.period === selectedSessionForSub.period &&
+                                      (s.teacher === teacher || s.originalTeacher === teacher) &&
+                                      s.id !== selectedSessionForSub.id
+                                  );
+                                  return !hasConflict;
+                              });
+                              
+                              return availableAtTime.length > 0 ? availableAtTime : availableSubstitutes;
+                          })().map(teacher => (
                               <button
                                 key={teacher}
                                 onClick={() => {
@@ -131,6 +149,27 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                               </button>
                           ))}
                       </div>
+                      {(() => {
+                          const originalTeacher = selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher;
+                          const availableSubstitutes = availableTeachers.filter(t => t !== originalTeacher);
+                          const availableAtTime = availableSubstitutes.filter(teacher => {
+                              const hasConflict = schedule.some(s => 
+                                  s.day === selectedSessionForSub.day && 
+                                  s.period === selectedSessionForSub.period &&
+                                  (s.teacher === teacher || s.originalTeacher === teacher) &&
+                                  s.id !== selectedSessionForSub.id
+                              );
+                              return !hasConflict;
+                          });
+                          if (availableAtTime.length === 0 && availableSubstitutes.length > 0) {
+                              return (
+                                  <p className="text-xs text-yellow-600 mt-2 bg-yellow-50 p-2 rounded border border-yellow-200">
+                                      ⚠️ جميع المعلمين المتاحين لديهم حصص في نفس الوقت
+                                  </p>
+                              );
+                          }
+                          return null;
+                      })()}
                   </div>
                   
                   <button 
@@ -344,7 +383,11 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         <div className="space-y-0.5">
                                             <div className="flex items-center gap-1 opacity-90">
                                                 <User size={10} />
-                                                <span className="truncate max-w-[100px]">{session.teacher}</span>
+                                                <span className="truncate max-w-[100px]">
+                                                    {session.isSubstituted && session.originalTeacher 
+                                                        ? `${session.originalTeacher} (احتياط: ${session.teacher})`
+                                                        : session.teacher}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-1 opacity-75">
                                                 <BookOpen size={10} />
@@ -395,6 +438,14 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                       </div>
                       <p className="font-bold text-blue-800 mb-1 text-sm md:text-base">{session.subject}</p>
                       <p className="text-xs md:text-sm text-gray-600">{session.classRoom}</p>
+                      {session.isSubstituted && session.originalTeacher ? (
+                        <div className="mt-1">
+                          <p className="text-[10px] md:text-xs text-gray-700">المعلم: {session.originalTeacher}</p>
+                          <p className="text-[10px] md:text-xs text-purple-600">احتياط: {session.teacher}</p>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] md:text-xs text-gray-700 mt-1">المعلم: {session.teacher}</p>
+                      )}
                     </div>
                   );
                 })}

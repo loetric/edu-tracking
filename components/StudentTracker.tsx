@@ -4,6 +4,7 @@ import { Student, DailyRecord, StatusType, AttendanceStatus, Role, ScheduleItem 
 import { getStatusColor, getStatusLabel, getChallengeColor, getChallengeLabel } from '../constants';
 import { Send, CheckCircle, AlertCircle, Save, Users, Eye, Clock, Calendar, Printer, MousePointerClick, Lock, Hourglass } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
+import { useModal } from '../hooks/useModal';
 
 interface StudentTrackerProps {
   students: Student[];
@@ -29,6 +30,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   onSessionEnter,
   completedSessions = []
 }) => {
+  const { alert } = useModal();
   // Local state to hold temporary changes before saving
   const [records, setRecords] = useState<Record<string, DailyRecord>>({});
   const [currentDate] = useState(new Date().toISOString().split('T')[0]);
@@ -171,16 +173,20 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                 </button>
             )}
 
-            {!isAdmin && (
-                <button
-                onClick={() => onSave(records)}
-                disabled={!selectedSession}
-                className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-1.5 md:py-2 rounded-lg transition-shadow shadow-md font-bold text-xs md:text-sm flex-1 md:flex-initial justify-center ${!selectedSession ? 'bg-gray-300 text-gray-100' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
-                >
+            <button
+                onClick={() => {
+                    if (Object.keys(records).length > 0) {
+                        onSave(records);
+                    } else {
+                        alert({ message: 'لا توجد بيانات للحفظ', type: 'warning' });
+                    }
+                }}
+                disabled={!selectedSession || Object.keys(records).length === 0}
+                className={`flex items-center gap-1.5 md:gap-2 px-4 md:px-6 py-1.5 md:py-2 rounded-lg transition-shadow shadow-md font-bold text-xs md:text-sm flex-1 md:flex-initial justify-center ${!selectedSession || Object.keys(records).length === 0 ? 'bg-gray-300 text-gray-100 cursor-not-allowed' : 'bg-teal-600 text-white hover:bg-teal-700'}`}
+            >
                 <Save size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
                 <span>حفظ الكل</span>
-                </button>
-            )}
+            </button>
         </div>
       </div>
 
