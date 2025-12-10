@@ -91,6 +91,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   // Schedule Management State
   const [newSession, setNewSession] = useState<Partial<ScheduleItem>>({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
   const [isAddingSession, setIsAddingSession] = useState(false);
+  const [editingSession, setEditingSession] = useState<ScheduleItem | null>(null);
 
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6, 7];
@@ -1369,11 +1370,19 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                      <p className="text-xs text-gray-500">إضافة وتعديل الحصص للمعلمين</p>
                  </div>
                  <button 
-                  onClick={() => setIsAddingSession(!isAddingSession)}
+                  onClick={() => {
+                      if (isAddingSession && editingSession) {
+                          handleCancelEdit();
+                      } else {
+                          setIsAddingSession(!isAddingSession);
+                          setEditingSession(null);
+                          setNewSession({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
+                      }
+                  }}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 flex items-center gap-2 shadow-sm"
                  >
                      <Plus size={16} />
-                     إضافة حصة جديدة
+                     {isAddingSession && !editingSession ? 'إلغاء' : 'إضافة حصة جديدة'}
                  </button>
              </div>
 
@@ -1381,7 +1390,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                  <div className="bg-white border-2 border-blue-100 p-6 rounded-xl shadow-sm space-y-4">
                      <h4 className="font-bold text-blue-800 flex items-center gap-2">
                         <BookOpen size={18}/>
-                        تفاصيل الحصة الدراسية
+                        {editingSession ? 'تعديل الحصة الدراسية' : 'تفاصيل الحصة الدراسية'}
                      </h4>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
@@ -1460,8 +1469,10 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                          </div>
                      </div>
                      <div className="flex justify-end gap-2 pt-2">
-                         <button onClick={() => setIsAddingSession(false)} className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded">إلغاء</button>
-                         <button onClick={handleAddSession} className="px-4 py-2 text-sm bg-blue-600 text-white rounded font-bold hover:bg-blue-700">حفظ الحصة</button>
+                         <button onClick={handleCancelEdit} className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded">إلغاء</button>
+                         <button onClick={handleAddSession} className="px-4 py-2 text-sm bg-blue-600 text-white rounded font-bold hover:bg-blue-700">
+                             {editingSession ? 'حفظ التعديلات' : 'حفظ الحصة'}
+                         </button>
                      </div>
                  </div>
              )}
@@ -1476,7 +1487,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                              <th className="p-4">المادة</th>
                              <th className="p-4">الفصل</th>
                              <th className="p-4">المعلم</th>
-                             <th className="p-4">حذف</th>
+                             <th className="p-4">إجراءات</th>
                          </tr>
                      </thead>
                      <tbody className="divide-y divide-gray-100">
@@ -1498,9 +1509,22 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                  <td className="p-4 text-gray-600">{item.classRoom}</td>
                                  <td className="p-4 text-sm">{item.teacher}</td>
                                  <td className="p-4">
-                                     <button onClick={() => handleDeleteSession(item.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors">
-                                         <Trash2 size={16} />
-                                     </button>
+                                     <div className="flex items-center gap-2">
+                                         <button 
+                                             onClick={() => handleEditSession(item)} 
+                                             className="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition-colors"
+                                             title="تعديل"
+                                         >
+                                             <Edit2 size={16} />
+                                         </button>
+                                         <button 
+                                             onClick={() => handleDeleteSession(item.id)} 
+                                             className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors"
+                                             title="حذف"
+                                         >
+                                             <Trash2 size={16} />
+                                         </button>
+                                     </div>
                                  </td>
                              </tr>
                          ))}
@@ -1529,9 +1553,22 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                                     <span className="font-bold text-gray-700">{item.day}</span>
                                     <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">حصة {item.period}</span>
                                 </div>
-                                <button onClick={() => handleDeleteSession(item.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors">
-                                    <Trash2 size={16} />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => handleEditSession(item)} 
+                                        className="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-full transition-colors"
+                                        title="تعديل"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeleteSession(item.id)} 
+                                        className="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-full transition-colors"
+                                        title="حذف"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                             <div className="space-y-1 text-sm">
                                 <p><span className="font-bold text-blue-800">المادة:</span> {item.subject}</p>
