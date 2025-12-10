@@ -386,16 +386,16 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
             <table className="w-full text-right border-collapse min-w-[800px]">
-                <thead className="bg-gray-50 print:bg-gray-200">
+                <thead className="bg-gray-50 print:bg-gray-200 sticky top-0 z-10">
                 <tr>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الطالب</th>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الحضور</th>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">المشاركة</th>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الواجبات</th>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">السلوك</th>
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">ملاحظات</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50">الطالب</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50">الحضور</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50">المشاركة</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50">الواجبات</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50">السلوك</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black bg-gray-50 min-w-[150px]">ملاحظات</th>
                     {isAdmin && (
-                    <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:hidden">إجراءات</th>
+                    <th className="px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:hidden bg-gray-50">إجراءات</th>
                     )}
                 </tr>
                 </thead>
@@ -479,7 +479,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                         </td>
                         
                         {isAdmin && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium print:hidden">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap text-sm font-medium print:hidden">
                             <button
                             onClick={() => onSendReport(student, record)}
                             className="text-teal-600 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 p-2 rounded-full transition-colors flex items-center gap-1 group"
