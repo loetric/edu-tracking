@@ -766,8 +766,14 @@ const App: React.FC = () => {
   const handleUpdateSchedule = async (newSchedule: ScheduleItem[]) => {
     setIsDataLoading(true);
     try {
+      console.log('App: Updating schedule with', newSchedule.length, 'items');
       await api.updateSchedule(newSchedule);
-      setSchedule(newSchedule);
+      
+      // Always reload from database to ensure consistency
+      const freshSchedule = await api.getSchedule();
+      console.log('App: Reloaded schedule from database:', freshSchedule.length, 'items');
+      setSchedule(freshSchedule);
+      
       handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام');
       alert({ message: 'تم تحديث الجدول الدراسي بنجاح!', type: 'success' });
     } catch (error: any) {
