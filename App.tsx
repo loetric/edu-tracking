@@ -1331,6 +1331,7 @@ const App: React.FC = () => {
         return (
           <StudentTracker 
             students={students} 
+            records={currentRecords}
             onSave={handleSaveRecords}
             isAdmin={currentUser.role === 'admin'}
             role={currentUser.role}

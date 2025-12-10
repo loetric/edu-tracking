@@ -8,6 +8,7 @@ import { useModal } from '../hooks/useModal';
 
 interface StudentTrackerProps {
   students: Student[];
+  records?: Record<string, DailyRecord>; // Current records from parent
   onSave: (records: Record<string, DailyRecord>) => void;
   onSendReport: (student: Student, record: DailyRecord) => void;
   onBulkReport?: (records: Record<string, DailyRecord>) => void;
@@ -20,6 +21,7 @@ interface StudentTrackerProps {
 
 export const StudentTracker: React.FC<StudentTrackerProps> = ({ 
   students, 
+  records: propRecords = {}, // Current records from parent
   onSave, 
   onSendReport, 
   onBulkReport,
@@ -35,6 +37,54 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
   const [records, setRecords] = useState<Record<string, DailyRecord>>({});
   const [currentDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSession, setSelectedSession] = useState<ScheduleItem | null>(null);
+
+  // Filter students based on selected session class
+  // Match if classGrade equals classRoom, or if classRoom starts with classGrade (e.g., "الرابع الابتدائي/أ" matches "الرابع الابتدائي")
+  const displayedStudents = selectedSession 
+    ? students.filter(s => {
+        const studentClass = s.classGrade?.trim() || '';
+        const sessionClass = selectedSession.classRoom?.trim() || '';
+        // Exact match
+        if (studentClass === sessionClass) return true;
+        // Match if session class starts with student class (e.g., "الرابع الابتدائي/أ" starts with "الرابع الابتدائي")
+        if (sessionClass.startsWith(studentClass + '/') || sessionClass.startsWith(studentClass + '_')) return true;
+        // Match if student class starts with session class
+        if (studentClass.startsWith(sessionClass + '/') || studentClass.startsWith(sessionClass + '_')) return true;
+        return false;
+      })
+    : [];
+
+  // Load existing records for displayed students when session is selected
+  useEffect(() => {
+    if (selectedSession && displayedStudents.length > 0) {
+      // Get records for students in this session
+      const sessionRecords: Record<string, DailyRecord> = {};
+      displayedStudents.forEach(student => {
+        // Look for existing record in propRecords (by studentId and date)
+        const existingRecord = Object.values(propRecords).find(
+          r => r.studentId === student.id && r.date === currentDate
+        );
+        if (existingRecord) {
+          sessionRecords[student.id] = existingRecord;
+        }
+      });
+      
+      // Merge with any local changes (preserve local edits)
+      setRecords(prev => {
+        const merged = { ...sessionRecords };
+        // Keep local changes if they exist
+        Object.keys(prev).forEach(key => {
+          if (displayedStudents.some(s => s.id === key)) {
+            merged[key] = prev[key];
+          }
+        });
+        return merged;
+      });
+    } else if (!selectedSession) {
+      // Clear records when no session is selected
+      setRecords({});
+    }
+  }, [selectedSession, propRecords, currentDate, displayedStudents.length]);
 
   // Get today's day name in Arabic
   const dayName = new Date().toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -110,22 +160,6 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
     behavior: 'excellent',
     notes: '' 
   };
-
-  // Filter students based on selected session class
-  // Match if classGrade equals classRoom, or if classRoom starts with classGrade (e.g., "الرابع الابتدائي/أ" matches "الرابع الابتدائي")
-  const displayedStudents = selectedSession 
-    ? students.filter(s => {
-        const studentClass = s.classGrade?.trim() || '';
-        const sessionClass = selectedSession.classRoom?.trim() || '';
-        // Exact match
-        if (studentClass === sessionClass) return true;
-        // Match if session class starts with student class (e.g., "الرابع الابتدائي/أ" starts with "الرابع الابتدائي")
-        if (sessionClass.startsWith(studentClass + '/') || sessionClass.startsWith(studentClass + '_')) return true;
-        // Match if student class starts with session class
-        if (studentClass.startsWith(sessionClass + '/') || studentClass.startsWith(sessionClass + '_')) return true;
-        return false;
-      })
-    : [];
 
   const handlePrintList = () => {
     window.print();
