@@ -1530,7 +1530,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row overflow-x-hidden" dir="rtl">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row overflow-x-hidden h-screen" dir="rtl">
       {/* Mobile Header */}
       <div className="md:hidden bg-white p-2 shadow-sm border-b border-gray-100 flex justify-between items-center sticky top-0 z-30">
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
