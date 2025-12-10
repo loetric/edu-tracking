@@ -1401,6 +1401,7 @@ const App: React.FC = () => {
                 onUpdateSchedule={currentUser.role === 'admin' ? handleUpdateSchedule : undefined}
                 availableTeachers={allTeachers}
                 settings={effectiveSettings}
+                onSessionEnter={currentUser.role === 'teacher' ? handleSessionEnter : undefined}
             />
         );
       case 'reports':

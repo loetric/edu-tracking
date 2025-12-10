@@ -271,8 +271,8 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       {/* Header and Upload Button */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-800">مشاركة الملفات</h2>
-          <p className="text-sm text-gray-500 mt-1">إدارة ومشاركة الملفات مع المستخدمين</p>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">التعاميم</h2>
+          <p className="text-sm text-gray-500 mt-1">استعراض التعاميم والملفات المهمة</p>
         </div>
         {isAdmin && (
           <button

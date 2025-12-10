@@ -45,6 +45,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
     { type: 'none', label: 'طبيعي / لا يوجد', icon: User, color: 'bg-gray-100 text-gray-600 border-gray-200' },
     { type: 'sick', label: 'ظروف صحية', icon: Heart, color: 'bg-red-100 text-red-600 border-red-200' },
     { type: 'orphan', label: 'يتيم', icon: User, color: 'bg-purple-100 text-purple-600 border-purple-200' },
+    { type: 'special', label: 'خاص', icon: ShieldAlert, color: 'bg-indigo-100 text-indigo-600 border-indigo-200' },
     { type: 'financial', label: 'ظروف مادية', icon: Coins, color: 'bg-blue-100 text-blue-600 border-blue-200' },
     { type: 'retest', label: 'إعادة اختبار', icon: AlertOctagon, color: 'bg-yellow-100 text-yellow-600 border-yellow-200' },
     { type: 'behavioral', label: 'متابعة سلوكية', icon: ShieldAlert, color: 'bg-orange-100 text-orange-600 border-orange-200' },

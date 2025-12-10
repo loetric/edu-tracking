@@ -55,6 +55,7 @@ export const getChallengeColor = (challenge: string) => {
     case 'orphan': return 'bg-purple-50 border-purple-200 shadow-sm';
     case 'financial': return 'bg-blue-50 border-blue-200 shadow-sm';
     case 'behavioral': return 'bg-orange-50 border-orange-200 shadow-sm';
+    case 'special': return 'bg-indigo-50 border-indigo-200 shadow-sm';
     case 'other': return 'bg-gray-50 border-gray-200 shadow-sm';
     default: return 'bg-white border-transparent';
   }
@@ -67,6 +68,7 @@ export const getChallengeLabel = (challenge: string) => {
     case 'orphan': return 'يتيم';
     case 'financial': return 'ظروف مادية';
     case 'behavioral': return 'متابعة سلوكية';
+    case 'special': return 'خاص';
     case 'other': return 'أخرى';
     default: return '';
   }

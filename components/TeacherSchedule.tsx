@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { ScheduleItem, Role, Subject, SchoolSettings } from '../types';
-import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle, Printer } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
 interface TeacherScheduleProps {
@@ -13,9 +13,10 @@ interface TeacherScheduleProps {
   subjects?: Subject[]; // List of subjects for filtering
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
   settings?: SchoolSettings; // Settings to get classGrades from
+  onSessionEnter?: (session: ScheduleItem) => void; // For teacher to enter session tracking
 }
 
-export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings }) => {
+export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
@@ -66,8 +67,11 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
   };
 
   const handleSessionClick = (session: ScheduleItem) => {
-      if (onAssignSubstitute && role === 'admin') {
+      if (role === 'admin' && onAssignSubstitute) {
           setSelectedSessionForSub(session);
+      } else if (role === 'teacher' && onSessionEnter) {
+          // Teacher clicks to enter session tracking
+          onSessionEnter(session);
       }
   };
 
@@ -208,21 +212,30 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                 </div>
             </div>
             
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 self-start md:self-center">
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500 ring-4 ring-green-100"></span>
-                    <span className="text-gray-700">تم الدخول</span>
-                </div>
-                <div className="w-px h-4 bg-gray-300"></div>
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-500 ring-4 ring-purple-100"></span>
-                    <span className="text-gray-700">احتياط</span>
-                </div>
-                <div className="w-px h-4 bg-gray-300"></div>
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-100"></span>
-                    <span className="text-gray-700">معلق</span>
+            {/* Print Button & Legend */}
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+                <button
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
+                >
+                    <Printer size={16} />
+                    <span>طباعة الجدول</span>
+                </button>
+                <div className="flex items-center gap-4 text-xs font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 self-start md:self-center print:hidden">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500 ring-4 ring-green-100"></span>
+                        <span className="text-gray-700">تم الدخول</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-300"></div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 ring-4 ring-purple-100"></span>
+                        <span className="text-gray-700">احتياط</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-300"></div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-red-500 ring-4 ring-red-100"></span>
+                        <span className="text-gray-700">معلق</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -379,8 +392,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                 return (
                                     <div 
                                         key={session.id}
-                                        onClick={() => role === 'admin' && handleSessionClick(session)}
-                                        className={`border-l-4 p-2 rounded-r-lg transition-all relative group shadow-sm text-xs ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-500' : session.isSubstituted ? 'border-l-purple-500' : 'border-l-red-400'}`}
+                                        onClick={() => handleSessionClick(session)}
+                                        className={`border-l-4 p-2 rounded-r-lg transition-all relative group shadow-sm text-xs ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-500' : session.isSubstituted ? 'border-l-purple-500' : 'border-l-red-400'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer' : ''}`}
                                     >
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="font-bold line-clamp-1">{session.subject}</span>

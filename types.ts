@@ -24,7 +24,7 @@ export interface SchoolSettings {
   classGrades?: string[]; // قائمة الفصول المعرفة من قبل مدير النظام
 }
 
-export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'other';
+export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'special' | 'other';
 export type StudentStatus = 'regular' | 'dropped' | 'expelled'; // منتظم، منقطع، مفصول
 
 export interface Student {

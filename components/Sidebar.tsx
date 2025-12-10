@@ -21,7 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
     { id: 'tracking', label: 'متابعة الطلاب', icon: Users, roles: ['teacher'] }, // Only teachers see "متابعة الطلاب"
     { id: 'students', label: 'إدارة الطلاب', icon: UserCog, roles: ['admin'] },
     { id: 'reports', label: 'التقارير', icon: FileText, roles: ['admin', 'counselor'] },
-    { id: 'files', label: 'مشاركة الملفات', icon: FolderOpen, roles: ['admin', 'teacher', 'counselor'] },
+    { id: 'files', label: 'التعاميم', icon: FolderOpen, roles: ['admin', 'teacher', 'counselor'] },
     { id: 'archive', label: 'سجل الحركات', icon: History, roles: ['admin'] },
   ];
 

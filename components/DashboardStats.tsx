@@ -4,6 +4,7 @@ import { Student, DailyRecord, Role, ScheduleItem } from '../types';
 import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText, UserX, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
+import { getChallengeLabel, getChallengeColor } from '../constants';
 
 interface DashboardStatsProps {
   students: Student[];
@@ -17,6 +18,7 @@ interface DashboardStatsProps {
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule }) => {
   const { alert, alertModal } = useModal();
   const [showAbsentStudents, setShowAbsentStudents] = useState(false);
+  const [showBehaviorAlerts, setShowBehaviorAlerts] = useState(false);
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
@@ -233,7 +235,17 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                 </div>
             </div>
 
-            <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+            <button
+              onClick={() => {
+                const studentsWithChallenges = students.filter(s => s.challenge && s.challenge !== 'none');
+                if (studentsWithChallenges.length > 0) {
+                  setShowBehaviorAlerts(true);
+                } else {
+                  alert({ message: 'لا توجد تنبيهات سلوك حالياً', type: 'info' });
+                }
+              }}
+              className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
+            >
                 <div className="min-w-0 flex-1">
                     <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">تنبيهات السلوك</p>
                     <h4 className="text-xl md:text-3xl font-bold text-orange-500">{behaviorAlertsCount}</h4>
@@ -244,7 +256,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                 <div className="p-2 md:p-4 bg-orange-50 text-orange-600 rounded-lg md:rounded-xl flex-shrink-0">
                     <AlertTriangle size={16} className="md:w-6 md:h-6" />
                 </div>
-            </div>
+            </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-8">
@@ -535,6 +547,66 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                   <div className="text-center py-12">
                     <UserX size={48} className="mx-auto mb-4 text-gray-300" />
                     <p className="text-gray-500 font-bold">لا يوجد طلاب غائبين اليوم</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Behavior Alerts Modal */}
+        {showBehaviorAlerts && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="bg-orange-600 p-4 md:p-6 text-white flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle size={24} />
+                  <div>
+                    <h3 className="text-lg md:text-xl font-bold">تنبيهات السلوك</h3>
+                    <p className="text-sm text-orange-100 mt-1">{behaviorAlertsCount} طالب</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowBehaviorAlerts(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                {students.filter(s => s.challenge && s.challenge !== 'none').length > 0 ? (
+                  <div className="space-y-2">
+                    {students
+                      .filter(s => s.challenge && s.challenge !== 'none')
+                      .map((student) => (
+                        <div
+                          key={student.id}
+                          className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-800 text-sm md:text-base truncate">
+                              {student.name}
+                            </h4>
+                            <div className="flex items-center gap-3 mt-1 text-xs md:text-sm text-gray-600">
+                              <span className="truncate">{student.classGrade || 'غير محدد'}</span>
+                              {student.studentNumber && (
+                                <span className="text-gray-400">#{student.studentNumber}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-bold ${getChallengeColor(student.challenge)}`}>
+                              {getChallengeLabel(student.challenge)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <AlertTriangle size={48} className="mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500 font-bold">لا توجد تنبيهات سلوك حالياً</p>
                   </div>
                 )}
               </div>
