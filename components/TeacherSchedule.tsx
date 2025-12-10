@@ -360,16 +360,20 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
       {/* Desktop Schedule */}
       <div className="hidden md:block overflow-x-auto rounded-lg border-2 border-gray-300 shadow-sm">
-        <table className="w-full border-collapse text-xs">
+        <table className="w-full border-collapse text-xs table-fixed">
+          <colgroup>
+            <col className="w-[12%]" />
+            {periods.map(() => <col key={Math.random()} className="w-[12.5%]" />)}
+          </colgroup>
           <thead>
             <tr>
-              <th className="p-3 bg-gray-100 border-2 border-gray-300 text-right min-w-[100px] font-bold text-gray-800 text-sm sticky right-0 z-20">اليوم</th>
+              <th className="p-2 bg-gray-100 border-2 border-gray-300 text-right font-bold text-gray-800 text-xs sticky right-0 z-20">اليوم</th>
               {periods.map(p => (
-                <th key={p} className="p-3 bg-gray-100 border-2 border-gray-300 text-center font-bold text-gray-800 min-w-[140px]">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-sm">الحصة {p}</span>
-                    <span className="text-[10px] font-normal text-gray-500 flex items-center gap-1 bg-white px-2 py-1 rounded-full border border-gray-300">
-                      <Clock size={10} /> 45 د
+                <th key={p} className="p-2 bg-gray-100 border-2 border-gray-300 text-center font-bold text-gray-800">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-xs">ح {p}</span>
+                    <span className="text-[9px] font-normal text-gray-500 flex items-center gap-0.5 bg-white px-1 py-0.5 rounded border border-gray-300">
+                      <Clock size={8} /> 45د
                     </span>
                   </div>
                 </th>
@@ -379,60 +383,60 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           <tbody>
             {days.map(day => (
               <tr key={day} className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-3 border-2 border-gray-300 font-bold text-gray-900 bg-gray-50 sticky right-0 z-10 text-sm border-r-4 border-r-gray-400">{day}</td>
+                <td className="p-2 border-2 border-gray-300 font-bold text-gray-900 bg-gray-50 sticky right-0 z-10 text-xs border-r-4 border-r-gray-400">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-2 border-2 border-gray-300 align-top min-h-[100px] bg-white">
+                    <td key={`${day}-${period}`} className="p-1 border-2 border-gray-300 align-top min-h-[90px] bg-white">
                       {sessions.length > 0 ? (
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-col gap-1">
                             {sessions.map((session, idx) => {
                                 const isCompleted = completedSessions.includes(session.id);
                                 return (
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border-l-4 p-2 rounded-r-md transition-all relative group shadow-md text-[11px] ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-600' : session.isSubstituted ? 'border-l-purple-600' : 'border-l-red-500'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer' : ''}`}
+                                        className={`border-l-3 p-1 rounded-r transition-all relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-l-green-600' : session.isSubstituted ? 'border-l-purple-600' : 'border-l-red-500'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer' : ''}`}
                                     >
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="font-bold line-clamp-1 text-[11px]">{session.subject}</span>
-                                            {isCompleted && <Check size={10} className="text-green-600 flex-shrink-0"/>}
+                                        <div className="flex justify-between items-start mb-0.5">
+                                            <span className="font-bold line-clamp-1 text-[9px] leading-tight">{session.subject}</span>
+                                            {isCompleted && <Check size={8} className="text-green-600 flex-shrink-0"/>}
                                         </div>
                                         
-                                        <div className="space-y-1">
+                                        <div className="space-y-0.5">
                                             {session.isSubstituted && session.originalTeacher ? (
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-1">
-                                                        <User size={10} className="flex-shrink-0" />
-                                                        <span className="truncate text-[10px] font-bold">
+                                                <div className="space-y-0.5">
+                                                    <div className="flex items-center gap-0.5">
+                                                        <User size={7} className="flex-shrink-0" />
+                                                        <span className="truncate text-[8px] font-bold leading-tight">
                                                             {session.originalTeacher}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <RefreshCw size={9} className="text-purple-600 flex-shrink-0" />
-                                                        <span className="truncate text-[9px] font-medium text-purple-700">
+                                                    <div className="flex items-center gap-0.5">
+                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0" />
+                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight">
                                                             احتياط: {session.teacher}
                                                         </span>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-1">
-                                                    <User size={10} className="flex-shrink-0" />
-                                                    <span className="truncate text-[10px]">
+                                                <div className="flex items-center gap-0.5">
+                                                    <User size={7} className="flex-shrink-0" />
+                                                    <span className="truncate text-[8px] leading-tight">
                                                         {session.teacher}
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-1">
-                                                <BookOpen size={10} className="flex-shrink-0" />
-                                                <span className="text-[10px]">{session.classRoom}</span>
+                                            <div className="flex items-center gap-0.5">
+                                                <BookOpen size={7} className="flex-shrink-0" />
+                                                <span className="text-[8px] leading-tight truncate">{session.classRoom}</span>
                                             </div>
                                         </div>
 
                                         {role === 'admin' && !session.isSubstituted && !isCompleted && (
-                                            <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="bg-gray-800 text-white text-[9px] px-1 rounded cursor-pointer">بديل</div>
+                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="bg-gray-800 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer">بديل</div>
                                             </div>
                                         )}
                                     </div>
@@ -440,8 +444,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full min-h-[80px] border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center opacity-40">
-                          <Lock size={16} className="text-gray-400" />
+                        <div className="h-full min-h-[70px] border-2 border-dashed border-gray-300 rounded flex items-center justify-center opacity-40">
+                          <Lock size={12} className="text-gray-400" />
                         </div>
                       )}
                     </td>
