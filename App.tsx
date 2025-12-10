@@ -70,6 +70,7 @@ const App: React.FC = () => {
 
   // UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isClearingChat, setIsClearingChat] = useState(false); // Track if we're clearing chat to prevent real-time re-adding
 
   // PDF & Modal States
