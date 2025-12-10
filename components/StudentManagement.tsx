@@ -695,7 +695,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
 
         {/* Mobile Cards */}
         <div className="md:hidden divide-y divide-gray-100">
-          {!filterClassGrade ? (
+              {!filterClassRoom ? (
             <div className="p-8 text-center">
               <div className="flex flex-col items-center gap-2">
                 <Filter size={32} className="text-gray-300" />
