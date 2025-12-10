@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Student, DailyRecord, Role, ScheduleItem } from '../types';
-import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText, UserX, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
 
@@ -16,6 +16,7 @@ interface DashboardStatsProps {
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule }) => {
   const { alert, alertModal } = useModal();
+  const [showAbsentStudents, setShowAbsentStudents] = useState(false);
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
@@ -56,9 +57,19 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   // Calculate attendance rate for today
   const totalTodayRecords = todayRecords.length;
   const presentCount = todayRecords.filter(r => r.attendance === 'present').length;
+  const absentCount = todayRecords.filter(r => r.attendance === 'absent' || r.attendance === 'excused').length;
   const attendanceRate = totalTodayRecords > 0 
     ? Math.round((presentCount / totalTodayRecords) * 100) 
     : 0;
+  const absenceRate = totalTodayRecords > 0
+    ? Math.round((absentCount / totalTodayRecords) * 100)
+    : 0;
+  
+  // Get absent students for today
+  const absentStudentIds = todayRecords
+    .filter(r => r.attendance === 'absent' || r.attendance === 'excused')
+    .map(r => r.studentId);
+  const absentStudents = students.filter(s => absentStudentIds.includes(s.id));
   
   // Calculate average performance for today
   let overallPerformanceScore = 0;
@@ -158,7 +169,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   return (
     <div className="space-y-4 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-6">
             <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
                     <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">إجمالي الطلاب</p>
@@ -183,6 +194,27 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     <CalendarCheck size={16} className="md:w-6 md:h-6" />
                 </div>
             </div>
+            
+            <button
+              onClick={() => setShowAbsentStudents(true)}
+              className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer"
+            >
+                <div className="min-w-0 flex-1">
+                    <p className="text-gray-500 text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 truncate">نسبة الغياب اليوم</p>
+                    <h4 className="text-xl md:text-3xl font-bold text-red-600">
+                      {totalTodayRecords > 0 ? `${absenceRate}%` : '0%'}
+                    </h4>
+                    {totalTodayRecords > 0 && absentCount > 0 && (
+                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">{absentCount} طالب</p>
+                    )}
+                    {totalTodayRecords === 0 && (
+                      <p className="text-[9px] md:text-xs text-gray-400 mt-0.5 md:mt-1">لا توجد بيانات</p>
+                    )}
+                </div>
+                <div className="p-2 md:p-4 bg-red-50 text-red-600 rounded-lg md:rounded-xl flex-shrink-0">
+                    <UserX size={16} className="md:w-6 md:h-6" />
+                </div>
+            </button>
 
             <div className="bg-white p-3 md:p-6 rounded-xl md:rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="min-w-0 flex-1">
@@ -443,6 +475,71 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
             duration={alertModal.options.duration || 3000}
             onClose={alertModal.onClose}
           />
+        )}
+
+        {/* Absent Students Modal */}
+        {showAbsentStudents && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="bg-red-600 p-4 md:p-6 text-white flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <UserX size={24} />
+                  <div>
+                    <h3 className="text-lg md:text-xl font-bold">الطلاب الغائبين اليوم</h3>
+                    <p className="text-sm text-red-100 mt-1">{absentCount} طالب</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAbsentStudents(false)}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                {absentStudents.length > 0 ? (
+                  <div className="space-y-2">
+                    {absentStudents.map((student) => {
+                      const record = todayRecords.find(r => r.studentId === student.id);
+                      return (
+                        <div
+                          key={student.id}
+                          className="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-800 text-sm md:text-base truncate">
+                              {student.name}
+                            </h4>
+                            <div className="flex items-center gap-3 mt-1 text-xs md:text-sm text-gray-600">
+                              <span className="truncate">{student.classGrade || 'غير محدد'}</span>
+                              {student.studentNumber && (
+                                <span className="text-gray-400">#{student.studentNumber}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-bold ${
+                              record?.attendance === 'excused' 
+                                ? 'bg-yellow-100 text-yellow-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {record?.attendance === 'excused' ? 'معذور' : 'غائب'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <UserX size={48} className="mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500 font-bold">لا يوجد طلاب غائبين اليوم</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
     </div>
   );

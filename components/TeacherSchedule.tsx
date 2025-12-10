@@ -190,12 +190,20 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">
-                        {role === 'admin' ? 'الجدول الدراسي العام' : 'جدولي الدراسي'}
+                        {role === 'admin' && filterType === 'teacher' && filterValue
+                            ? `جدول ${filterValue}`
+                            : role === 'admin' 
+                            ? 'الجدول الدراسي العام' 
+                            : 'جدولي الدراسي'}
                     </h2>
                     <p className="text-gray-500">
-                        {role === 'admin' 
+                        {role === 'admin' && filterType === 'teacher' && filterValue ? (
+                            <span>
+                                النصاب: {schedule.filter(s => (s.teacher === filterValue || s.originalTeacher === filterValue) && !s.isSubstituted).length} حصة
+                            </span>
+                        ) : role === 'admin' 
                             ? 'نظرة شاملة على جميع الحصص الدراسية' 
-                            : 'الحصص المسندة إليك خلال الأسبوع'}
+                            : `النصاب: ${schedule.filter(s => !s.isSubstituted).length} حصة - الحصص المسندة إليك خلال الأسبوع`}
                     </p>
                 </div>
             </div>
@@ -377,18 +385,32 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="font-bold line-clamp-1">{session.subject}</span>
                                             {isCompleted && <Check size={10} className="text-green-600"/>}
-                                            {!isCompleted && session.isSubstituted && <RefreshCw size={10} className="text-purple-600"/>}
                                         </div>
                                         
                                         <div className="space-y-0.5">
-                                            <div className="flex items-center gap-1 opacity-90">
-                                                <User size={10} />
-                                                <span className="truncate max-w-[100px]">
-                                                    {session.isSubstituted && session.originalTeacher 
-                                                        ? `${session.originalTeacher} (احتياط: ${session.teacher})`
-                                                        : session.teacher}
-                                                </span>
-                                            </div>
+                                            {session.isSubstituted && session.originalTeacher ? (
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1 opacity-90">
+                                                        <User size={10} />
+                                                        <span className="truncate max-w-[100px] text-xs font-bold">
+                                                            {session.originalTeacher}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 opacity-90">
+                                                        <RefreshCw size={9} className="text-purple-600" />
+                                                        <span className="truncate max-w-[100px] text-[10px] font-medium text-purple-700">
+                                                            احتياط: {session.teacher}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-1 opacity-90">
+                                                    <User size={10} />
+                                                    <span className="truncate max-w-[100px]">
+                                                        {session.teacher}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center gap-1 opacity-75">
                                                 <BookOpen size={10} />
                                                 <span>{session.classRoom}</span>
@@ -439,12 +461,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                       <p className="font-bold text-blue-800 mb-1 text-sm md:text-base">{session.subject}</p>
                       <p className="text-xs md:text-sm text-gray-600">{session.classRoom}</p>
                       {session.isSubstituted && session.originalTeacher ? (
-                        <div className="mt-1">
-                          <p className="text-[10px] md:text-xs text-gray-700">المعلم: {session.originalTeacher}</p>
-                          <p className="text-[10px] md:text-xs text-purple-600">احتياط: {session.teacher}</p>
+                        <div className="mt-1 space-y-0.5">
+                          <p className="text-[10px] md:text-xs text-gray-700 font-bold">المعلم: {session.originalTeacher}</p>
+                          <div className="flex items-center gap-1">
+                            <RefreshCw size={10} className="text-purple-600" />
+                            <p className="text-[10px] md:text-xs text-purple-700 font-medium">احتياط: {session.teacher}</p>
+                          </div>
                         </div>
                       ) : (
-                        <p className="text-[10px] md:text-xs text-gray-700 mt-1">المعلم: {session.teacher}</p>
+                        <p className="text-[10px] md:text-xs text-gray-700 mt-1 font-bold">المعلم: {session.teacher}</p>
                       )}
                     </div>
                   );
