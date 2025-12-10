@@ -11,6 +11,7 @@ import { TeacherSchedule } from './components/TeacherSchedule';
 import { StudentManagement } from './components/StudentManagement';
 import { PDFReport } from './components/PDFReport';
 import { CounselorView } from './components/CounselorView';
+import { BehaviorTracking } from './components/BehaviorTracking';
 import { InternalChat } from './components/InternalChat';
 import { BulkReportModal } from './components/BulkReportModal';
 import { UserProfile } from './components/UserProfile';
@@ -1439,6 +1440,13 @@ const App: React.FC = () => {
                 onSessionEnter={handleSessionEnter}
                 completedSessions={completedSessions}
             />;
+      case 'behavior-tracking':
+        return currentUser.role === 'counselor' ? (
+          <BehaviorTracking 
+            students={students}
+            records={currentRecords}
+          />
+        ) : null;
       case 'files':
         return <FileSharing role={currentUser.role} onAddLog={handleAddLog} />;
       case 'profile':

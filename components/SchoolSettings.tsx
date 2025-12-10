@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { supabase } from '../services/supabase';
 import { SchoolSettings, User, Role, ScheduleItem, Subject, Student } from '../types';
 import { PasswordReset } from './PasswordReset';
-import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2 } from 'lucide-react';
+import { Save, Image as ImageIcon, Database, BookOpen, Plus, Upload, Phone, Trash2, AlertTriangle, Users, UserPlus, Shield, X, Calendar, Check, Edit2, RotateCcw } from 'lucide-react';
 import { AVAILABLE_TEACHERS } from '../constants';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -717,14 +717,25 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                        <h3 className="font-bold text-gray-800">قائمة المستخدمين</h3>
                        <p className="text-xs text-gray-500">إدارة حسابات المعلمين والإداريين</p>
                    </div>
-                   <button 
-                    onClick={() => setIsAddingUser(!isAddingUser)}
-                    className="bg-teal-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-teal-700 flex items-center gap-1.5 md:gap-2 shadow-sm"
-                   >
-                       <UserPlus size={14} className="md:w-4 md:h-4 flex-shrink-0" />
-                       <span className="hidden sm:inline">إضافة مستخدم جديد</span>
-                       <span className="sm:hidden">إضافة</span>
-                   </button>
+                   <div className="flex items-center gap-2">
+                       <button 
+                        onClick={() => setShowPasswordResetModal(true)}
+                        className="bg-orange-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-orange-700 flex items-center gap-1.5 md:gap-2 shadow-sm"
+                        title="استعادة كلمة المرور"
+                       >
+                           <RotateCcw size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                           <span className="hidden sm:inline">استعادة كلمة المرور</span>
+                           <span className="sm:hidden">استعادة</span>
+                       </button>
+                       <button 
+                        onClick={() => setIsAddingUser(!isAddingUser)}
+                        className="bg-teal-600 text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-teal-700 flex items-center gap-1.5 md:gap-2 shadow-sm"
+                       >
+                           <UserPlus size={14} className="md:w-4 md:h-4 flex-shrink-0" />
+                           <span className="hidden sm:inline">إضافة مستخدم جديد</span>
+                           <span className="sm:hidden">إضافة</span>
+                       </button>
+                   </div>
                </div>
 
                {isAddingUser && (
@@ -1446,6 +1457,32 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
           duration={alertModal.options.duration || 3000}
           onClose={alertModal.onClose}
         />
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordResetModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-orange-600 p-4 md:p-6 text-white flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <RotateCcw size={24} />
+                <h3 className="text-lg md:text-xl font-bold">استعادة كلمة المرور</h3>
+              </div>
+              <button
+                onClick={() => setShowPasswordResetModal(false)}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <PasswordReset 
+                users={users.map(u => ({ id: u.id, username: u.username, name: u.name, role: u.role }))} 
+                onClose={() => setShowPasswordResetModal(false)}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
