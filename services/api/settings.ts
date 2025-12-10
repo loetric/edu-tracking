@@ -95,30 +95,73 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
       .single();
 
     // Ensure classGrades is properly formatted
-    const settingsToSave = { ...settings };
+    const settingsToSave: any = { ...settings };
+    
+    // Handle classGrades - convert to JSON if it's an array
     if (settingsToSave.classGrades && Array.isArray(settingsToSave.classGrades)) {
-      // Supabase will handle JSON array automatically, but ensure it's clean
-      settingsToSave.classGrades = settingsToSave.classGrades.filter(g => g && g.trim().length > 0);
+      // Filter out empty values and convert to JSON string for Supabase
+      const cleanClassGrades = settingsToSave.classGrades.filter(g => g && g.trim().length > 0);
+      // Supabase JSONB columns can accept arrays directly, but we'll ensure it's clean
+      settingsToSave.classGrades = cleanClassGrades;
+    } else if (!settingsToSave.classGrades) {
+      // If classGrades is not provided, set it to empty array
+      settingsToSave.classGrades = [];
     }
 
     if (existingSettings) {
+      // Only update fields that exist in the database
+      // If classGrades column doesn't exist, exclude it from update
+      const updateData: any = { ...settingsToSave };
+      
+      // Try to update, if classGrades column doesn't exist, update without it
       const { error } = await supabase
         .from('settings')
-        .update(settingsToSave)
+        .update(updateData)
         .eq('id', existingSettings.id);
       
       if (error) {
-        console.error('Update settings error:', error);
-        throw error;
+        // If error is about missing column, try without classGrades
+        if (error.code === 'PGRST204' && error.message?.includes('classGrades')) {
+          console.warn('classGrades column not found, updating without it. Please run migration: sql/add_class_grades_column.sql');
+          delete updateData.classGrades;
+          const { error: retryError } = await supabase
+            .from('settings')
+            .update(updateData)
+            .eq('id', existingSettings.id);
+          
+          if (retryError) {
+            console.error('Update settings error (retry):', retryError);
+            throw retryError;
+          }
+        } else {
+          console.error('Update settings error:', error);
+          throw error;
+        }
       }
     } else {
+      // For insert, exclude classGrades if column doesn't exist
+      const insertData: any = { ...settingsToSave };
       const { error } = await supabase
         .from('settings')
-        .insert([settingsToSave]);
+        .insert([insertData]);
       
       if (error) {
-        console.error('Insert settings error:', error);
-        throw error;
+        // If error is about missing column, try without classGrades
+        if (error.code === 'PGRST204' && error.message?.includes('classGrades')) {
+          console.warn('classGrades column not found, inserting without it. Please run migration: sql/add_class_grades_column.sql');
+          delete insertData.classGrades;
+          const { error: retryError } = await supabase
+            .from('settings')
+            .insert([insertData]);
+          
+          if (retryError) {
+            console.error('Insert settings error (retry):', retryError);
+            throw retryError;
+          }
+        } else {
+          console.error('Insert settings error:', error);
+          throw error;
+        }
       }
     }
   } catch (error) {
