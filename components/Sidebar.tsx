@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                     }`}
                   >
                     <item.icon size={16} className={`md:w-5 md:h-5 transition-colors flex-shrink-0 ${activeTab === item.id ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                    <span className="text-xs md:text-base">{displayLabel}</span>
+                    <span className="text-xs md:text-base truncate flex-1 text-right">{displayLabel}</span>
                     {item.id === 'files' && unreadFilesCount > 0 && (
                       <span className="absolute left-2 top-2 flex items-center justify-center">
                         <Bell size={12} className="text-red-500 animate-pulse" />
