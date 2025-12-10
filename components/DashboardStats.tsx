@@ -148,9 +148,45 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
       const total = classSessions.length;
       const completedCount = classSessions.filter(s => completedSessions.includes(s.id)).length;
       
-      // Determine responsible teachers (unique)
-      // Explicitly type teachers as string[] to avoid inference issues
-      const teachers: string[] = Array.from(new Set(classSessions.map(s => s.teacher).filter((t): t is string => !!t)));
+      // Determine responsible teachers with substitution info
+      // Collect all teachers (original and substitute) with their substitution status
+      interface TeacherInfo {
+        name: string;
+        isSubstituted: boolean;
+        originalTeacher?: string;
+      }
+      
+      const teacherMap = new Map<string, TeacherInfo>();
+      
+      classSessions.forEach(s => {
+        if (s.isSubstituted && s.originalTeacher && s.teacher) {
+          // Add original teacher
+          if (!teacherMap.has(s.originalTeacher)) {
+            teacherMap.set(s.originalTeacher, {
+              name: s.originalTeacher,
+              isSubstituted: false
+            });
+          }
+          // Add substitute teacher
+          if (!teacherMap.has(s.teacher)) {
+            teacherMap.set(s.teacher, {
+              name: s.teacher,
+              isSubstituted: true,
+              originalTeacher: s.originalTeacher
+            });
+          }
+        } else if (s.teacher) {
+          // Regular teacher (not substituted)
+          if (!teacherMap.has(s.teacher)) {
+            teacherMap.set(s.teacher, {
+              name: s.teacher,
+              isSubstituted: false
+            });
+          }
+        }
+      });
+      
+      const teachers: TeacherInfo[] = Array.from(teacherMap.values());
 
       return {
           className,
@@ -166,6 +202,15 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
       const msg = `تذكير: ${teacherName}، نرجو التكرم بسرعة رصد الدرجات والمتابعة اليومية للفصل (${className}).`;
       onSendReminder(msg);
       alert({ message: `تم إرسال التذكير إلى ${teacherName} في نظام التواصل الداخلي.`, type: 'success' });
+  };
+
+  // Helper to get first teacher name for reminder
+  const getFirstTeacherName = (teachers: Array<{ name: string; isSubstituted: boolean; originalTeacher?: string }>): string => {
+      if (teachers.length === 0) return '';
+      const firstTeacher = teachers[0];
+      return firstTeacher.isSubstituted && firstTeacher.originalTeacher 
+          ? firstTeacher.originalTeacher 
+          : firstTeacher.name;
   };
 
   return (
@@ -290,9 +335,15 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         <td className="px-4 md:px-6 py-3 md:py-4 font-bold text-gray-800">
                                             <div className="flex flex-col">
                                                 <span className="text-sm md:text-base">{item.className}</span>
-                                                <span className="text-[10px] md:text-xs text-gray-400 font-normal">
-                                                    المعلمين: {item.teachers.join('، ')}
-                                                </span>
+                                                <div className="text-[10px] md:text-xs text-gray-400 font-normal flex flex-wrap gap-x-2">
+                                                    {item.teachers.map((teacherInfo, idx) => (
+                                                        <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
+                                                            {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
+                                                                ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
+                                                                : teacherInfo.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-4 md:px-6 py-3 md:py-4">
@@ -333,7 +384,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 </button>
                                             ) : (
                                                  <button 
-                                                    onClick={() => handleReminderClick(item.teachers[0] || '', item.className)}
+                                                    onClick={() => handleReminderClick(getFirstTeacherName(item.teachers), item.className)}
                                                     className="flex items-center gap-1.5 md:gap-2 text-orange-600 hover:text-white hover:bg-orange-500 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-orange-200"
                                                 >
                                                     <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
@@ -360,7 +411,17 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     <p className="font-bold text-gray-800 text-xs truncate flex-1">{item.className}</p>
                                     {item.isReady && <CheckCircle size={12} className="text-green-600 flex-shrink-0" />}
                                 </div>
-                                <p className="text-[10px] text-gray-500 mb-2 line-clamp-1">المعلمين: {item.teachers.join('، ')}</p>
+                                <div className="text-[10px] text-gray-500 mb-2 flex flex-wrap gap-x-1.5">
+                                    <span>المعلمين:</span>
+                                    {item.teachers.map((teacherInfo, idx) => (
+                                        <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
+                                            {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
+                                                ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
+                                                : teacherInfo.name}
+                                            {idx < item.teachers.length - 1 && '، '}
+                                        </span>
+                                    ))}
+                                </div>
                                 <div className="mb-2">
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="text-[9px] font-bold text-gray-600">نسبة الإنجاز</span>
@@ -380,7 +441,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     </button>
                                 ) : (
                                     <button 
-                                        onClick={() => handleReminderClick(item.teachers[0] || '', item.className)}
+                                        onClick={() => handleReminderClick(getFirstTeacherName(item.teachers), item.className)}
                                         className="w-full text-orange-600 hover:text-white hover:bg-orange-500 py-1.5 rounded-lg text-[10px] font-bold transition-colors border border-orange-200 flex items-center justify-center gap-1"
                                     >
                                         <Send size={10} className="rtl:rotate-180 flex-shrink-0"/>
