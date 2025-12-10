@@ -359,7 +359,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       </div>
 
       {/* Desktop Schedule */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-cyan-300/30 backdrop-blur-sm bg-gradient-to-br from-cyan-50/80 via-blue-50/80 to-indigo-50/80 shadow-lg shadow-cyan-200/20">
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm">
         <table className="w-full border-collapse text-xs table-fixed">
           <colgroup>
             <col className="w-[12%]" />
@@ -367,12 +367,12 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </colgroup>
           <thead>
             <tr>
-              <th className="p-2 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 backdrop-blur-md border border-cyan-400/40 text-right font-bold text-white text-xs sticky right-0 z-20 shadow-lg shadow-cyan-500/20">اليوم</th>
+              <th className="p-2 bg-gray-50 border border-gray-300 text-right font-bold text-gray-800 text-xs sticky right-0 z-20">اليوم</th>
               {periods.map(p => (
-                <th key={p} className="p-2 bg-gradient-to-r from-cyan-600/90 to-blue-600/90 backdrop-blur-md border border-cyan-400/40 text-center font-bold text-white shadow-lg shadow-cyan-500/20">
+                <th key={p} className="p-2 bg-gray-50 border border-gray-300 text-center font-bold text-gray-800">
                   <div className="flex flex-col items-center gap-0.5">
                     <span className="text-xs">ح {p}</span>
-                    <span className="text-[9px] font-normal text-cyan-50 flex items-center gap-0.5 bg-white/20 backdrop-blur-sm px-1 py-0.5 rounded-lg border border-white/30 shadow-sm">
+                    <span className="text-[9px] font-normal text-gray-600 flex items-center gap-0.5 bg-white px-1 py-0.5 rounded border border-gray-300">
                       <Clock size={8} /> 45د
                     </span>
                   </div>
@@ -382,13 +382,13 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </thead>
           <tbody>
             {days.map(day => (
-              <tr key={day} className="hover:bg-cyan-50/30 transition-all duration-200">
-                <td className="p-2 border border-cyan-200/50 font-bold text-cyan-900 bg-gradient-to-r from-cyan-100/60 to-blue-100/60 backdrop-blur-sm sticky right-0 z-10 text-xs border-r-2 border-r-cyan-300/60 shadow-sm">{day}</td>
+              <tr key={day} className="hover:bg-gray-50/50 transition-all duration-200">
+                <td className="p-2 border border-gray-300 font-bold text-gray-800 bg-gray-50 sticky right-0 z-10 text-xs border-r-2 border-r-gray-400">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-1 border border-cyan-200/40 align-top min-h-[90px] bg-white/50 backdrop-blur-sm">
+                    <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white">
                       {sessions.length > 0 ? (
                         <div className="flex flex-col gap-1">
                             {sessions.map((session, idx) => {
@@ -397,7 +397,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border border-cyan-300/40 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400/60 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400/60 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400/60 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80`}
+                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80`}
                                     >
                                         <div className="flex justify-between items-start mb-0.5">
                                             <span className="font-bold line-clamp-1 text-[9px] leading-tight">{session.subject}</span>
@@ -444,8 +444,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full min-h-[70px] border border-dashed border-cyan-200/50 rounded-xl flex items-center justify-center opacity-40 backdrop-blur-sm">
-                          <Lock size={12} className="text-cyan-300/60" />
+                        <div className="h-full min-h-[70px] border border-dashed border-gray-300 rounded-xl flex items-center justify-center opacity-40">
+                          <Lock size={12} className="text-gray-300" />
                         </div>
                       )}
                     </td>

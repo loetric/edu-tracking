@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, Users, FileText, Upload, History, Settings, LogOut, Calendar, School, X, UserCog, User, FolderOpen, AlertCircle, UserX } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Upload, History, Settings, LogOut, Calendar, School, X, UserCog, User, FolderOpen, AlertCircle, UserX, Bell } from 'lucide-react';
 import { Role, SchoolSettings } from '../types';
 
 interface SidebarProps {
@@ -11,9 +11,10 @@ interface SidebarProps {
   settings: SchoolSettings;
   isOpen: boolean;
   onClose: () => void;
+  unreadFilesCount?: number;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, onLogout, settings, isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role, onLogout, settings, isOpen, onClose, unreadFilesCount = 0 }) => {
   // Define all possible items
   const allItems = [
     { id: 'dashboard', label: 'الرئيسية', icon: LayoutDashboard, roles: ['admin', 'teacher', 'counselor'] },
@@ -92,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                       setActiveTab(item.id);
                       onClose(); // Close sidebar on mobile when item selected
                     }}
-                    className={`w-full flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group ${
+                    className={`w-full flex items-center gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group relative ${
                       activeTab === item.id
                         ? 'bg-teal-50 text-teal-700 font-bold border-r-4 border-teal-500 shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -100,6 +101,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                   >
                     <item.icon size={16} className={`md:w-5 md:h-5 transition-colors flex-shrink-0 ${activeTab === item.id ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
                     <span className="text-xs md:text-base">{displayLabel}</span>
+                    {item.id === 'files' && unreadFilesCount > 0 && (
+                      <span className="absolute left-2 top-2 flex items-center justify-center">
+                        <Bell size={12} className="text-red-500 animate-pulse" />
+                        <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                          {unreadFilesCount > 9 ? '9+' : unreadFilesCount}
+                        </span>
+                      </span>
+                    )}
                   </button>
                 </li>
               );

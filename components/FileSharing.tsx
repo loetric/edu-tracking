@@ -14,9 +14,10 @@ import { CONFIG } from '../config';
 interface FileSharingProps {
   role: Role;
   onAddLog?: (action: string, details: string) => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
-export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
+export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnreadCountChange }) => {
   const { alert, confirm, alertModal, confirmModal } = useModal();
   const [files, setFiles] = useState<SharedFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +55,12 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
       const { api } = await import('../services/api');
       const loadedFiles = await api.getFiles();
       setFiles(loadedFiles);
+      
+      // Calculate unread files count
+      const unreadCount = loadedFiles.filter(file => !file.is_read_by_current_user).length;
+      if (onUnreadCountChange) {
+        onUnreadCountChange(unreadCount);
+      }
     } catch (error) {
       console.error('Error loading files:', error);
       alert({ message: 'فشل في تحميل الملفات', type: 'error' });
@@ -204,6 +211,14 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog }) => {
     }
     setPreviewFile(file);
   };
+  
+  // Update unread count when files change
+  useEffect(() => {
+    if (onUnreadCountChange) {
+      const unreadCount = files.filter(file => !file.is_read_by_current_user).length;
+      onUnreadCountChange(unreadCount);
+    }
+  }, [files, onUnreadCountChange]);
 
   const handleDelete = async (file: SharedFile) => {
     const confirmed = await confirm({

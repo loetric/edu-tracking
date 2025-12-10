@@ -66,6 +66,7 @@ const App: React.FC = () => {
   const [currentRecords, setCurrentRecords] = useState<Record<string, DailyRecord>>({});
   const [completedSessions, setCompletedSessions] = useState<string[]>([]);
   const [substitutions, setSubstitutions] = useState<Substitution[]>([]);
+  const [unreadFilesCount, setUnreadFilesCount] = useState<number>(0);
 
   // UI State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1502,7 +1503,7 @@ const App: React.FC = () => {
           />
         ) : null;
       case 'files':
-        return <FileSharing role={currentUser.role} onAddLog={handleAddLog} />;
+        return <FileSharing role={currentUser.role} onAddLog={handleAddLog} onUnreadCountChange={setUnreadFilesCount} />;
       case 'absence':
         return currentUser.role === 'admin' ? (
           <AbsenceManagement 
