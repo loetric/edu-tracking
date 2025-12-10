@@ -21,16 +21,36 @@ export const getFiles = async (): Promise<SharedFile[]> => {
       throw filesError;
     }
 
-    // Get read status for each file
+    // Get read status for each file (if table exists)
+    let reads: any[] = [];
     const fileIds = (files || []).map(f => f.id);
-    const { data: reads } = await supabase
-      .from('file_reads')
-      .select('file_id, user_id')
-      .in('file_id', fileIds);
+    
+    if (fileIds.length > 0) {
+      try {
+        const { data: readsData, error: readsError } = await supabase
+          .from('file_reads')
+          .select('file_id, user_id')
+          .in('file_id', fileIds);
+        
+        // If table doesn't exist, silently continue without read tracking
+        if (readsError && (readsError.code === 'PGRST205' || readsError.message?.includes('Could not find the table'))) {
+          console.warn('file_reads table not found - read tracking feature not available');
+          reads = [];
+        } else if (readsError) {
+          console.error('Get file reads error:', readsError);
+          reads = [];
+        } else {
+          reads = readsData || [];
+        }
+      } catch (error) {
+        console.warn('Get file reads exception:', error);
+        reads = [];
+      }
+    }
 
     // Map reads to files
     const filesWithReads = (files || []).map(file => {
-      const fileReads = reads?.filter(r => r.file_id === file.id) || [];
+      const fileReads = reads.filter(r => r.file_id === file.id);
       const readBy = fileReads.map(r => r.user_id);
       const isReadByCurrentUser = user ? readBy.includes(user.id) : false;
       return {
@@ -76,15 +96,15 @@ export const uploadFile = async (
     // File path should be just the fileName, not including bucket name
     const filePath = fileName;
 
-    // Retry logic for file upload with timeout handling
+    // Upload file with simple retry logic
     let uploadError: any = null;
     let uploadData: any = null;
-    const maxRetries = 3;
+    const maxRetries = 2; // Reduced retries for faster failure
     let retryCount = 0;
 
-    while (retryCount < maxRetries && !uploadData) {
+    while (retryCount <= maxRetries && !uploadData) {
       try {
-        const uploadPromise = supabase.storage
+        const { data, error } = await supabase.storage
           .from(CONFIG.FILES.STORAGE_BUCKET)
           .upload(filePath, file, {
             cacheControl: '3600',
@@ -92,44 +112,46 @@ export const uploadFile = async (
             contentType: file.type || undefined
           });
 
-        // Add timeout wrapper (5 minutes for large files)
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('انتهت مهلة الاتصال. يرجى التحقق من سرعة الإنترنت والمحاولة مرة أخرى.')), 5 * 60 * 1000);
-        });
-
-        const result = await Promise.race([uploadPromise, timeoutPromise]) as any;
-        
-        if (result.error) {
-          uploadError = result.error;
+        if (error) {
+          uploadError = error;
+          
           // If it's a timeout or network error, retry
-          if (result.error.message?.includes('timeout') || 
-              result.error.message?.includes('network') || 
-              result.error.message?.includes('fetch')) {
+          const isRetryableError = 
+            error.message?.includes('timeout') || 
+            error.message?.includes('network') || 
+            error.message?.includes('fetch') ||
+            error.message?.includes('Request timeout');
+          
+          if (isRetryableError && retryCount < maxRetries) {
             retryCount++;
-            if (retryCount < maxRetries) {
-              // Wait before retry (exponential backoff)
-              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-              continue;
-            }
-          } else {
-            // Non-retryable error, break
-            break;
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+            continue;
           }
+          
+          // Non-retryable error or max retries reached
+          break;
         } else {
-          uploadData = result.data;
+          uploadData = data;
           break;
         }
       } catch (error: any) {
         uploadError = error;
-        if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        
+        // If it's a timeout or network error, retry
+        const isRetryableError = 
+          error.message?.includes('timeout') || 
+          error.message?.includes('network') ||
+          error.name === 'AbortError';
+        
+        if (isRetryableError && retryCount < maxRetries) {
           retryCount++;
-          if (retryCount < maxRetries) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-            continue;
-          }
-        } else {
-          break;
+          await new Promise(resolve => setTimeout(resolve, 2000 * retryCount));
+          continue;
         }
+        
+        // Non-retryable error or max retries reached
+        break;
       }
     }
 
@@ -327,13 +349,19 @@ export const markFileAsRead = async (fileId: string): Promise<boolean> => {
       if (error.code === '23505') {
         return true;
       }
+      // If table doesn't exist (PGRST205), silently fail - feature not available
+      if (error.code === 'PGRST205' || error.message?.includes('Could not find the table')) {
+        console.warn('file_reads table not found - tracking feature not available');
+        return false;
+      }
       console.error('Mark file as read error:', error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Mark file as read exception:', error);
+    // Silently fail if table doesn't exist
+    console.warn('Mark file as read exception:', error);
     return false;
   }
 };
@@ -358,6 +386,12 @@ export const getFileReaders = async (fileId: string): Promise<Array<{ id: string
       .order('read_at', { ascending: false });
 
     if (error) {
+      // If table doesn't exist, return empty array
+      if (error.code === 'PGRST205' || error.message?.includes('Could not find the table')) {
+        console.warn('file_reads table not found - tracking feature not available');
+        return [];
+      }
+      
       // Fallback: get reads and profiles separately
       const { data: readsData, error: readsError } = await supabase
         .from('file_reads')
@@ -366,6 +400,10 @@ export const getFileReaders = async (fileId: string): Promise<Array<{ id: string
         .order('read_at', { ascending: false });
 
       if (readsError) {
+        // If table doesn't exist in fallback too, return empty
+        if (readsError.code === 'PGRST205' || readsError.message?.includes('Could not find the table')) {
+          return [];
+        }
         console.error('Get file readers error:', readsError);
         return [];
       }
@@ -391,7 +429,8 @@ export const getFileReaders = async (fileId: string): Promise<Array<{ id: string
       role: item.profiles?.role || 'unknown'
     }));
   } catch (error) {
-    console.error('Get file readers exception:', error);
+    // Silently fail if table doesn't exist
+    console.warn('Get file readers exception:', error);
     return [];
   }
 };
