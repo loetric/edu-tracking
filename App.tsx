@@ -1324,7 +1324,8 @@ const App: React.FC = () => {
                   onSendReminder={(text) => handleSendMessage(text)}
                   role={currentUser.role}
                   completedSessions={completedSessions}
-                  schedule={effectiveSchedule} 
+                  schedule={effectiveSchedule}
+                  settings={effectiveSettings}
                />;
       case 'tracking':
         return (

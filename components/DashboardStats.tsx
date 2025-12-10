@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Student, DailyRecord, Role, ScheduleItem } from '../types';
+import { Student, DailyRecord, Role, ScheduleItem, SchoolSettings } from '../types';
 import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText, UserX, X } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
@@ -13,9 +13,10 @@ interface DashboardStatsProps {
   role?: Role;
   completedSessions?: string[];
   schedule: ScheduleItem[]; // Prop is required now
+  settings?: SchoolSettings; // Settings to get classGrades from
 }
 
-export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule }) => {
+export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule, settings }) => {
   const { alert, alertModal } = useModal();
   const [showAbsentStudents, setShowAbsentStudents] = useState(false);
   const [showBehaviorAlerts, setShowBehaviorAlerts] = useState(false);
@@ -139,9 +140,22 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
   // Use the passed schedule prop
   const todaysSessions = schedule.filter(s => s.day === dayName);
   
-  // Group sessions by class
-  // Explicitly cast to string[] to prevent unknown type inference from Set
-  const uniqueClasses = Array.from(new Set(todaysSessions.map(s => s.classRoom))) as string[];
+  // Get classes from settings only (not from schedule data)
+  // Use classGrades from settings, but filter to only show classes that have sessions today
+  const allClassesFromSettings = settings?.classGrades && settings.classGrades.length > 0
+    ? [...settings.classGrades].sort()
+    : [];
+  
+  // Get classes that have sessions today (for filtering)
+  const classesWithSessionsToday = Array.from(new Set(todaysSessions.map(s => s.classRoom))) as string[];
+  
+  // Use classes from settings, but only show those that have sessions today
+  // This ensures we only show classes defined in settings, and only if they have sessions
+  const uniqueClasses = allClassesFromSettings.filter(className => 
+    classesWithSessionsToday.some(sessionClass => 
+      sessionClass === className || sessionClass.startsWith(className)
+    )
+  );
   
   const classStatus = uniqueClasses.map(className => {
       const classSessions = todaysSessions.filter(s => s.classRoom === className);
