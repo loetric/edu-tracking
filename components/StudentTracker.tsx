@@ -280,7 +280,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                       <button
                         key={session.id}
                         onClick={() => handleSessionClick(session)}
-                        className={`flex flex-col items-start gap-0.5 md:gap-1 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-xs md:text-sm border flex-shrink-0 relative ${
+                        className={`flex flex-col items-start gap-0.5 md:gap-1 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-xs md:text-sm border flex-shrink-0 relative min-w-[120px] md:min-w-[140px] ${
                             selectedSession?.id === session.id 
                             ? 'bg-teal-50 border-teal-500 shadow-md transform scale-105 z-10' 
                             : !isAdmin && completed
@@ -290,20 +290,20 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         }`}
                       >
-                          {!isAdmin && completed && (
-                              <span className="absolute top-0.5 right-0.5 bg-green-600 text-white text-[7px] px-1 py-0.5 rounded-full font-bold">تم الرصد</span>
-                          )}
-                          <div className="flex items-center justify-between w-full gap-2 md:gap-3">
+                          <div className="flex items-center justify-between w-full gap-2 md:gap-3 mb-0.5">
                               <span className={`text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : completed && !isAdmin ? 'bg-green-200 text-green-800' : !completed && !isAdmin ? 'bg-red-200 text-red-800' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
+                              {!isAdmin && completed && (
+                                  <span className="bg-green-600 text-white text-[7px] px-1 py-0.5 rounded-full font-bold whitespace-nowrap">تم الرصد</span>
+                              )}
                               {isAdmin && (
                                   completed 
                                   ? <CheckCircle size={10} className="md:w-[14px] md:h-[14px] text-green-500 flex-shrink-0" />
                                   : <Hourglass size={10} className="md:w-[14px] md:h-[14px] text-orange-400 flex-shrink-0" />
                               )}
                           </div>
-                          <span className={`font-bold text-[10px] md:text-sm truncate max-w-[100px] md:max-w-none ${selectedSession?.id === session.id ? 'text-teal-900' : !isAdmin && completed ? 'text-green-900' : !isAdmin && !completed ? 'text-red-900' : 'text-gray-700'}`}>{session.subject}</span>
+                          <span className={`font-bold text-[10px] md:text-sm truncate w-full pr-0 ${selectedSession?.id === session.id ? 'text-teal-900' : !isAdmin && completed ? 'text-green-900' : !isAdmin && !completed ? 'text-red-900' : 'text-gray-700'}`}>{session.subject}</span>
                           <div className="flex items-center gap-1 w-full">
-                                <span className={`text-[9px] md:text-[10px] px-1 md:px-1.5 rounded truncate ${!isAdmin && completed ? 'bg-green-100 text-green-800' : !isAdmin && !completed ? 'bg-red-100 text-red-800' : 'bg-black/5'}`}>{session.classRoom}</span>
+                                <span className={`text-[9px] md:text-[10px] px-1 md:px-1.5 rounded truncate flex-1 ${!isAdmin && completed ? 'bg-green-100 text-green-800' : !isAdmin && !completed ? 'bg-red-100 text-red-800' : 'bg-black/5'}`}>{session.classRoom}</span>
                                 {isAdmin && <span className="text-[9px] md:text-[10px] text-gray-500 truncate max-w-[60px] md:max-w-[80px]">{session.teacher}</span>}
                           </div>
                       </button>
@@ -384,8 +384,8 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
             )}
             
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-right border-collapse">
+            <div className="hidden md:block overflow-x-auto max-h-[calc(100vh-400px)] overflow-y-auto">
+            <table className="w-full text-right border-collapse min-w-[800px]">
                 <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
                     <th className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider print:text-black">الطالب</th>
@@ -408,7 +408,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
 
                     return (
                     <tr key={student.id} className={`hover:bg-gray-50 transition-colors ${challengeClass} ${student.challenge !== 'none' ? 'border-l-4 border-l-current' : ''}`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap">
                         <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10 relative print:hidden">
                             <img className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm" src={student.avatar} alt="" />
@@ -429,7 +429,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             </div>
                         </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap w-32">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap w-28 md:w-32">
                         <CustomSelect
                             value={record.attendance}
                             onChange={(value) => handleStatusChange(student.id, 'attendance', value)}
@@ -446,28 +446,28 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             } ${isAdmin ? 'opacity-100' : ''}`}
                         />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap w-32">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap w-28 md:w-32">
                         <StatusSelect 
                             value={record.participation} 
                             onChange={(val) => handleStatusChange(student.id, 'participation', val)}
                             disabled={isAbsent} 
                         />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap w-32">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap w-28 md:w-32">
                         <StatusSelect 
                             value={record.homework} 
                             onChange={(val) => handleStatusChange(student.id, 'homework', val)} 
                             disabled={isAbsent}
                         />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap w-32">
+                        <td className="px-3 md:px-5 py-3 md:py-4 whitespace-nowrap w-28 md:w-32">
                         <StatusSelect 
                             value={record.behavior} 
                             onChange={(val) => handleStatusChange(student.id, 'behavior', val)} 
                             disabled={isAbsent}
                         />
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 md:px-5 py-3 md:py-4">
                         <textarea
                             placeholder={isAdmin ? "" : "أضف ملاحظة..."}
                             value={record.notes}
