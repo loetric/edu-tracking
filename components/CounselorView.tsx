@@ -260,7 +260,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                             <div className="bg-gradient-to-r from-teal-50 to-teal-100 print:bg-gray-100 border-b-2 border-teal-300 print:border-gray-400 px-6 py-4 print:py-3">
                                 <h2 className="text-lg md:text-xl font-bold text-teal-900 print:text-gray-900 flex items-center justify-between">
                                     <span className="flex items-center gap-2">
-                                        <span className="bg-teal-600 text-white px-3 py-1 rounded-lg text-sm print:bg-gray-600">الصف</span>
+                                        <span className="bg-teal-600 text-white px-3 py-1 rounded-lg text-sm print:bg-gray-600">الفصل</span>
                                         <span>{classGrade}</span>
                                     </span>
                                     <span className="text-sm font-normal text-teal-700 print:text-gray-700 bg-white px-3 py-1 rounded-full border border-teal-300 print:border-gray-400">

@@ -40,39 +40,13 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     }
   }, [settings?.classGrades]);
 
-  // Auto-add class grades from students when classes tab is opened
+  // Sync classGrades from settings when tab is opened (no auto-add from students)
   useEffect(() => {
-    if (activeTab === 'classes' && students.length > 0) {
-      // Extract unique class grades from students
-      const studentClassGrades = Array.from(
-        new Set(
-          students
-            .map(s => s.classGrade?.trim())
-            .filter(grade => grade && grade.length > 0)
-        )
-      ).sort();
-
-      // Merge with existing classGrades from settings (avoid duplicates)
-      if (studentClassGrades.length > 0) {
-        const currentClassGrades = settings?.classGrades || [];
-        const newClassGrades = studentClassGrades.filter(
-          grade => !currentClassGrades.includes(grade)
-        );
-
-        if (newClassGrades.length > 0) {
-          // Auto-add new class grades from students
-          const mergedClassGrades = [...currentClassGrades, ...newClassGrades].sort();
-          setClassGrades(mergedClassGrades);
-        } else if (currentClassGrades.length > 0 && classGrades.length === 0) {
-          // If no new grades but settings has grades, sync them
-          setClassGrades(currentClassGrades);
-        }
-      } else if (settings?.classGrades && settings.classGrades.length > 0 && classGrades.length === 0) {
-        // If no student grades but settings has grades, sync them
-        setClassGrades(settings.classGrades);
-      }
+    if (activeTab === 'classes' && settings?.classGrades && settings.classGrades.length > 0 && classGrades.length === 0) {
+      // Sync from settings only
+      setClassGrades(settings.classGrades);
     }
-  }, [activeTab, students, settings?.classGrades]); // Only run when tab changes to 'classes' or students/settings change
+  }, [activeTab, settings?.classGrades]); // Only sync from settings, no auto-add from students
   
   // Subjects Management State
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -127,32 +101,50 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
     alert({ message: 'تم حفظ إعدادات التقارير بنجاح', type: 'success' });
   };
 
-  const handleAddClassGrade = () => {
+  const handleAddClassGrade = async () => {
     if (!newClassGrade.trim()) {
-      alert({ message: 'الرجاء إدخال اسم الصف', type: 'warning' });
+      alert({ message: 'الرجاء إدخال اسم الفصل', type: 'warning' });
       return;
     }
     if (classGrades.includes(newClassGrade.trim())) {
-      alert({ message: 'هذا الصف مسجل مسبقاً', type: 'warning' });
+      alert({ message: 'هذا الفصل مسجل مسبقاً', type: 'warning' });
       return;
     }
-    setClassGrades([...classGrades, newClassGrade.trim()]);
+    const updatedClassGrades = [...classGrades, newClassGrade.trim()];
+    setClassGrades(updatedClassGrades);
     setNewClassGrade('');
-    alert({ message: 'تم إضافة الصف بنجاح', type: 'success' });
+    
+    // Save immediately to database
+    try {
+      await onSave({ ...formData, classGrades: updatedClassGrades });
+      alert({ message: 'تم إضافة الفصل وحفظه بنجاح', type: 'success' });
+    } catch (error) {
+      console.error('Error saving class grade:', error);
+      alert({ message: 'تم إضافة الفصل محلياً، لكن فشل الحفظ. يرجى المحاولة مرة أخرى.', type: 'warning' });
+    }
   };
 
   const handleDeleteClassGrade = async (grade: string) => {
     const shouldDelete = await confirm({
-      title: 'حذف الصف',
-      message: `هل أنت متأكد من حذف الصف "${grade}"؟\n\nسيتم حذف هذا الصف من القائمة فقط، ولن يتم حذف بيانات الطلاب المرتبطة به.`,
+      title: 'حذف الفصل',
+      message: `هل أنت متأكد من حذف الفصل "${grade}"؟\n\nسيتم حذف هذا الفصل من القائمة فقط، ولن يتم حذف بيانات الطلاب المرتبطة به.`,
       type: 'warning',
       confirmText: 'حذف',
       cancelText: 'إلغاء'
     });
     
     if (shouldDelete) {
-      setClassGrades(classGrades.filter(g => g !== grade));
-      alert({ message: 'تم حذف الصف بنجاح', type: 'success' });
+      const updatedClassGrades = classGrades.filter(g => g !== grade);
+      setClassGrades(updatedClassGrades);
+      
+      // Save immediately to database
+      try {
+        await onSave({ ...formData, classGrades: updatedClassGrades });
+        alert({ message: 'تم حذف الفصل وحفظه بنجاح', type: 'success' });
+      } catch (error) {
+        console.error('Error saving class grade deletion:', error);
+        alert({ message: 'تم حذف الفصل محلياً، لكن فشل الحفظ. يرجى المحاولة مرة أخرى.', type: 'warning' });
+      }
     }
   };
 
@@ -1086,8 +1078,11 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+              <p className="text-sm text-blue-800 mb-2">
                 <strong>ملاحظة:</strong> الفصول المعرفة هنا ستظهر في قوائم الاختيار عند إضافة أو تعديل بيانات الطلاب، مما يضمن اتساق البيانات في النظام.
+              </p>
+              <p className="text-xs text-blue-700">
+                <strong>مهم:</strong> يتم حفظ التغييرات تلقائياً عند إضافة أو حذف فصل.
               </p>
             </div>
           </div>

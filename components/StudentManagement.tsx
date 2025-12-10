@@ -356,16 +356,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
               />
             </div>
             <div>
-              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الصف *</label>
+              <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الفصل *</label>
               {availableClassGrades.length > 0 ? (
                 <CustomSelect
                   value={newStudent.classGrade || ''}
                   onChange={(value) => setNewStudent({ ...newStudent, classGrade: value })}
                   options={[
-                    { value: '', label: 'اختر الصف' },
+                    { value: '', label: 'اختر الفصل' },
                     ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
                   ]}
-                  placeholder="اختر الصف"
+                  placeholder="اختر الفصل"
                   className="w-full text-sm"
                 />
               ) : (
@@ -472,16 +472,16 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الصف *</label>
+                  <label className="block text-xs md:text-sm font-bold text-gray-700 mb-1">الفصل *</label>
                   {availableClassGrades.length > 0 ? (
                     <CustomSelect
                       value={newStudent.classGrade || ''}
                       onChange={(value) => setNewStudent({ ...newStudent, classGrade: value })}
                       options={[
-                        { value: '', label: 'اختر الصف' },
+                        { value: '', label: 'اختر الفصل' },
                         ...availableClassGrades.map(grade => ({ value: grade, label: grade }))
                       ]}
-                      placeholder="اختر الصف"
+                      placeholder="اختر الفصل"
                       className="w-full text-sm"
                     />
                   ) : (
@@ -650,7 +650,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 </th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم الطالب</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">الاسم</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-700">الصف</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-700">الفصل</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-700">رقم ولي الأمر</th>
                 {role === 'counselor' && (
                   <th className="px-6 py-4 text-sm font-bold text-gray-700">التحدي</th>
@@ -746,7 +746,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
             <div className="p-8 text-center">
               <div className="flex flex-col items-center gap-2">
                 <Filter size={32} className="text-gray-300" />
-                <p className="text-sm font-bold text-gray-500">الرجاء اختيار صف لعرض الطلاب</p>
+                <p className="text-sm font-bold text-gray-500">الرجاء اختيار فصل لعرض الطلاب</p>
               </div>
             </div>
           ) : filteredStudents.length > 0 ? (
@@ -790,7 +790,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 </div>
                 <div className="mt-2 space-y-0.5">
                   <p className="text-xs text-gray-600">
-                    <span className="font-bold">الصف:</span> <span className="truncate block">{student.classGrade}</span>
+                    <span className="font-bold">الفصل:</span> <span className="truncate block">{student.classGrade}</span>
                   </p>
                   {student.parentPhone && (
                     <p className="text-xs text-gray-600">

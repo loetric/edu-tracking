@@ -248,7 +248,7 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                             المعلم: {selectedSession.teacher}
                         </span>
                       </span>
-                    : <span className="flex items-center gap-1 text-base">يتم الآن رصد الدرجات لـ: <strong>{selectedSession.subject}</strong> - الصف <strong>{selectedSession.classRoom}</strong></span>
+                    : <span className="flex items-center gap-1 text-base">يتم الآن رصد الدرجات لـ: <strong>{selectedSession.subject}</strong> - الفصل <strong>{selectedSession.classRoom}</strong></span>
                 }
               </div>
               

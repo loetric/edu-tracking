@@ -174,7 +174,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                              )}
                              <div className="md:hidden">
                                  <p className="text-xs font-bold text-gray-900">{student.name}</p>
-                                 <p className="text-[10px] text-gray-500">الصف: {student.classGrade}</p>
+                                 <p className="text-[10px] text-gray-500">الفصل: {student.classGrade}</p>
                              </div>
                          </div>
                          <span className="text-[10px] md:text-xs font-bold text-gray-500">رقم الملف: {student.id}</span>
@@ -187,7 +187,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                              <span className="text-sm font-bold text-gray-900">{student.name}</span>
                          </div>
                          <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">
-                             <span className="text-[10px] text-gray-500 font-bold mb-1">الصف / الفصل</span>
+                             <span className="text-[10px] text-gray-500 font-bold mb-1">الفصل</span>
                              <span className="text-sm font-bold text-gray-900">{student.classGrade}</span>
                          </div>
                          <div className="border-b md:border-b-0 md:border-l border-gray-200 p-3 flex flex-col justify-center">

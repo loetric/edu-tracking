@@ -268,7 +268,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
               <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الطالب</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-700">الصف</th>
+                  <th className="px-4 py-3 text-xs font-bold text-gray-700">الفصل</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">التقييم السلوكي</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">الفئة</th>
                 </tr>

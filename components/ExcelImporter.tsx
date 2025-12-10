@@ -97,7 +97,7 @@ const findHeaderRow = (jsonData: any[]): number => {
     'اسم', 'name', 'الطالب', 'student', 'student_name',
     'رقم', 'number', 'id', 'student_id', 'طالب',
     'جوال', 'phone', 'mobile', 'parent', 'ولي',
-    'صف', 'class', 'grade', 'الصف', 'class_grade',
+    'class', 'grade', 'class_grade',
     'فصل', 'classroom', 'room', 'الفصل', 'section'
   ];
   
@@ -178,8 +178,8 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
   // Find name column
   const nameIndex = findColumnIndex(['اسم الطالب', 'اسم', 'name', 'الطالب', 'student_name', 'studentname', 'الاسم']);
   
-  // Find class grade column - prioritize "رقم الصف" (Class Number)
-  const classIndex = findColumnIndex(['رقم الصف', 'class number', 'class_grade', 'classgrade', 'class grade', 'الصف', 'class', 'grade', 'الدرجة', 'level']);
+  // Find class grade column - prioritize "الفصل" (Class)
+  const classIndex = findColumnIndex(['الفصل', 'فصل', 'class', 'class_grade', 'classgrade', 'class grade', 'grade', 'الدرجة', 'level']);
   
   // Find class room/section column - prioritize "الفصل" (Semester/Section)
   const classRoomIndex = findColumnIndex(['الفصل', 'فصل', 'classroom', 'room', 'section', 'sec', 'semester']);
@@ -202,7 +202,7 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
       studentNumber: studentNumberIndexFallback >= 0 ? headers[studentNumberIndexFallback] : 'NOT FOUND',
       name: nameIndex >= 0 ? headers[nameIndex] : 'NOT FOUND',
       classGrade: classIndex >= 0 ? headers[classIndex] : 'NOT FOUND',
-      classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND',
+      classRoom: classRoomIndex >= 0 ? headers[classRoomIndex] : 'NOT FOUND (fallback for classGrade)',
       phone: phoneIndex >= 0 ? headers[phoneIndex] : 'NOT FOUND'
     });
   }
@@ -217,22 +217,24 @@ const processSheet = (worksheet: XLSX.WorkSheet, sheetName: string): Student[] =
 
     const studentNumber = (studentNumberIndexFallback >= 0 ? String(row[studentNumberIndexFallback] || '').trim() : '');
     const name = nameIndex >= 0 ? String(row[nameIndex] || '').trim() : '';
-    const classGradeRaw = classIndex >= 0 ? String(row[classIndex] || '').trim() : '';
-    const classRoom = classRoomIndex >= 0 ? String(row[classRoomIndex] || '').trim() : '';
+    // Get classGrade from classIndex (الفصل) - use classRoomIndex as fallback
+    let classGrade = '';
+    if (classIndex >= 0) {
+      classGrade = String(row[classIndex] || '').trim();
+    } else if (classRoomIndex >= 0) {
+      // Fallback to classRoom column if classIndex not found
+      classGrade = String(row[classRoomIndex] || '').trim();
+    }
+    
+    // Clean classGrade - extract first part if contains separators
+    if (classGrade) {
+      classGrade = extractClassGrade(classGrade);
+    }
+    
     const phone = phoneIndex >= 0 ? String(row[phoneIndex] || '').trim() : '';
 
     // Skip empty rows
     if (!name && !studentNumber) continue;
-
-    // Extract classGrade (first part only)
-    let classGrade = extractClassGrade(classGradeRaw);
-    
-    // If classRoom exists, combine it with classGrade
-    if (classRoom && classGrade) {
-      classGrade = `${classGrade}/${classRoom}`;
-    } else if (classRoom && !classGrade) {
-      classGrade = classRoom;
-    }
 
     // Generate ID (clean and validate) - pass seenIds to ensure uniqueness
     let id = generateStudentId(studentNumber, i, seenIds);
@@ -509,8 +511,7 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
               const studentNumber = parts[0] || '';
               const name = parts[1] || '';
               const classGradeRaw = parts[2] || '';
-              const classRoom = parts[3] || '';
-              const phone = parts[4] || '';
+              const phone = parts[3] || ''; // Phone is now at index 3 (after removing classRoom column)
 
               // Clean and validate student ID
               const cleanedId = cleanStudentId(studentNumber);
@@ -520,13 +521,8 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
               const cleanedName = cleanStudentName(name);
               if (!cleanedName || cleanedName.length === 0) continue; // Skip if no valid name
 
+              // Extract classGrade (الفصل) - first part only
               let classGrade = extractClassGrade(classGradeRaw);
-              
-              if (classRoom && classGrade) {
-                classGrade = `${classGrade}/${classRoom}`;
-              } else if (classRoom && !classGrade) {
-                classGrade = classRoom;
-              }
 
               // Generate unique ID - pass csvSeenIds to ensure uniqueness
               let id = generateStudentId(cleanedId, i, csvSeenIds);
@@ -705,9 +701,9 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
   // Download template
   const downloadTemplate = () => {
     const templateData = [
-      ['رقم الطالب', 'اسم الطالب', 'الصف', 'الفصل', 'رقم الجوال'],
-      ['12345', 'أحمد محمد علي', 'الرابع الابتدائي_عام بنين - We can Mc Graw Hill', 'أ', '966500000000'],
-      ['12346', 'فاطمة أحمد', 'الخامس الابتدائي_عام بنات', 'ب', '966501111111']
+      ['رقم الطالب', 'اسم الطالب', 'الفصل', 'رقم الجوال'],
+      ['12345', 'أحمد محمد علي', 'الرابع الابتدائي/أ', '966500000000'],
+      ['12346', 'فاطمة أحمد', 'الخامس الابتدائي/ب', '966501111111']
     ];
 
     const ws = XLSX.utils.aoa_to_sheet(templateData);
@@ -725,10 +721,10 @@ export const ExcelImporter: React.FC<ExcelImporterProps> = ({ onImport }) => {
           </div>
           <h2 className="text-2xl font-bold text-gray-800">استيراد بيانات الطلاب</h2>
           <p className="text-gray-500 mt-2">
-            قم برفع ملف Excel (.xlsx, .xls) أو CSV يحتوي على: رقم الطالب، الاسم، الصف، الفصل، ورقم الجوال
+            قم برفع ملف Excel (.xlsx, .xls) أو CSV يحتوي على: رقم الطالب، الاسم، الفصل، ورقم الجوال
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            ملاحظة: سيتم استخراج الجزء الأول فقط من حقل الصف (قبل الشرطة أو الشرطة السفلية)
+            ملاحظة: سيتم استخراج الجزء الأول فقط من حقل الفصل (قبل الشرطة أو الشرطة السفلية)
           </p>
         </div>
 

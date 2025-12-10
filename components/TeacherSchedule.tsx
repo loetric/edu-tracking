@@ -274,7 +274,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             }}
                             className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-medium transition-colors ${filterType === 'class' ? 'bg-teal-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'}`}
                         >
-                            الصف
+                            الفصل
                         </button>
                         <button 
                             onClick={() => { 
@@ -300,7 +300,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         ? uniqueClasses.map(c => ({ value: c, label: c }))
                                         : uniqueSubjects.map(s => ({ value: s, label: s }))
                                 }
-                                placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الصف' : 'المادة'}`}
+                                placeholder={`اختر ${filterType === 'teacher' ? 'المعلم' : filterType === 'class' ? 'الفصل' : 'المادة'}`}
                                 className="w-full text-[10px] md:text-xs"
                             />
                         </div>
