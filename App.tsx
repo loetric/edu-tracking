@@ -1395,6 +1395,12 @@ const App: React.FC = () => {
                    setUsers(u); 
                    handleAddLog('إدارة مستخدمين', 'تم تحديث قائمة المستخدمين'); 
                 }}
+                onUpdateSubjects={async () => {
+                  // Reload subjects from database after any subject change
+                  const freshSubjects = await api.getSubjects();
+                  setSubjects(freshSubjects);
+                  handleAddLog('تعديل المواد', 'تم تحديث قائمة المواد الدراسية');
+                }}
                 onUpdateSchedule={async (s) => { 
                    try {
                      console.log('App: Updating schedule with', s.length, 'items');

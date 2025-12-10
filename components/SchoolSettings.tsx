@@ -20,10 +20,11 @@ interface SchoolSettingsProps {
   onSave: (settings: SchoolSettings) => void;
   onUpdateUsers: (users: User[]) => void;
   onUpdateSchedule?: (schedule: ScheduleItem[]) => void;
+  onUpdateSubjects?: () => void; // Callback to reload subjects in App.tsx
   onReset?: () => void;
 }
 
-export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onReset }) => {
+export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, users, schedule = [], currentUser, students = [], onSave, onUpdateUsers, onUpdateSchedule, onUpdateSubjects, onReset }) => {
   const { confirm, alert, confirmModal, alertModal } = useModal();
   const [formData, setFormData] = useState<SchoolSettings>(settings);
     const [activeTab, setActiveTab] = useState<'general' | 'users' | 'setup' | 'classes' | 'subjects' | 'reports'>('general');
@@ -163,7 +164,12 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       });
 
       if (addedSubject) {
-        setSubjects([...subjects, addedSubject]);
+        // Reload subjects from database to ensure consistency
+        await loadSubjects();
+        // Notify parent to reload subjects
+        if (onUpdateSubjects) {
+          await onUpdateSubjects();
+        }
         setNewSubject({ name: '', code: '', description: '' });
         alert({ message: 'تم إضافة المادة بنجاح', type: 'success' });
       }
@@ -196,7 +202,12 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       });
 
       if (updatedSubject) {
-        setSubjects(subjects.map(s => s.id === editingSubject.id ? updatedSubject : s));
+        // Reload subjects from database to ensure consistency
+        await loadSubjects();
+        // Notify parent to reload subjects
+        if (onUpdateSubjects) {
+          await onUpdateSubjects();
+        }
         setEditingSubject(null);
         setNewSubject({ name: '', code: '', description: '' });
         alert({ message: 'تم تحديث المادة بنجاح', type: 'success' });
