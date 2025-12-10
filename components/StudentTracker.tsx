@@ -273,27 +273,37 @@ export const StudentTracker: React.FC<StudentTrackerProps> = ({
                   </div>
                   {displayedSessions.length > 0 ? displayedSessions.map(session => {
                       const completed = isSessionCompleted(session.id);
+                      // Determine card colors based on completion status (for teachers)
+                      const cardBgColor = !isAdmin ? (completed ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300') : '';
+                      const cardTextColor = !isAdmin ? (completed ? 'text-green-800' : 'text-red-800') : '';
                       return (
                       <button
                         key={session.id}
                         onClick={() => handleSessionClick(session)}
-                        className={`flex flex-col items-start gap-0.5 md:gap-1 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-xs md:text-sm border flex-shrink-0 ${
+                        className={`flex flex-col items-start gap-0.5 md:gap-1 px-2.5 md:px-4 py-1.5 md:py-2 rounded-lg transition-all text-xs md:text-sm border flex-shrink-0 relative ${
                             selectedSession?.id === session.id 
                             ? 'bg-teal-50 border-teal-500 shadow-md transform scale-105 z-10' 
+                            : !isAdmin && completed
+                            ? 'bg-green-50 border-green-300 hover:bg-green-100'
+                            : !isAdmin && !completed
+                            ? 'bg-red-50 border-red-300 hover:bg-red-100'
                             : 'bg-white border-gray-200 hover:bg-gray-50'
                         }`}
                       >
+                          {!isAdmin && completed && (
+                              <span className="absolute top-0.5 right-0.5 bg-green-600 text-white text-[7px] px-1 py-0.5 rounded-full font-bold">تم الرصد</span>
+                          )}
                           <div className="flex items-center justify-between w-full gap-2 md:gap-3">
-                              <span className={`text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
+                              <span className={`text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 rounded ${selectedSession?.id === session.id ? 'bg-teal-600 text-white' : completed && !isAdmin ? 'bg-green-200 text-green-800' : !completed && !isAdmin ? 'bg-red-200 text-red-800' : 'bg-gray-200 text-gray-600'}`}>حـ {session.period}</span>
                               {isAdmin && (
                                   completed 
                                   ? <CheckCircle size={10} className="md:w-[14px] md:h-[14px] text-green-500 flex-shrink-0" />
                                   : <Hourglass size={10} className="md:w-[14px] md:h-[14px] text-orange-400 flex-shrink-0" />
                               )}
                           </div>
-                          <span className={`font-bold text-[10px] md:text-sm truncate max-w-[100px] md:max-w-none ${selectedSession?.id === session.id ? 'text-teal-900' : 'text-gray-700'}`}>{session.subject}</span>
+                          <span className={`font-bold text-[10px] md:text-sm truncate max-w-[100px] md:max-w-none ${selectedSession?.id === session.id ? 'text-teal-900' : !isAdmin && completed ? 'text-green-900' : !isAdmin && !completed ? 'text-red-900' : 'text-gray-700'}`}>{session.subject}</span>
                           <div className="flex items-center gap-1 w-full">
-                                <span className="text-[9px] md:text-[10px] bg-black/5 px-1 md:px-1.5 rounded truncate">{session.classRoom}</span>
+                                <span className={`text-[9px] md:text-[10px] px-1 md:px-1.5 rounded truncate ${!isAdmin && completed ? 'bg-green-100 text-green-800' : !isAdmin && !completed ? 'bg-red-100 text-red-800' : 'bg-black/5'}`}>{session.classRoom}</span>
                                 {isAdmin && <span className="text-[9px] md:text-[10px] text-gray-500 truncate max-w-[60px] md:max-w-[80px]">{session.teacher}</span>}
                           </div>
                       </button>
