@@ -21,10 +21,10 @@ if (document.fonts && document.fonts.ready) {
   });
 } else {
   // Fallback for browsers that don't support Font Loading API
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+const root = ReactDOM.createRoot(rootElement);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
 }

@@ -73,8 +73,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
               <>
                 <h1 className="font-bold text-xs md:text-lg text-gray-800 text-center px-2 truncate w-full">{settings.name}</h1>
                 <span className="text-[10px] md:text-xs text-gray-500 font-medium bg-gray-100 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full border border-gray-200">
-                  {role === 'admin' ? 'مدير النظام' : role === 'teacher' ? 'حساب المعلم' : 'الموجه الطلابي'}
-                </span>
+              {role === 'admin' ? 'مدير النظام' : role === 'teacher' ? 'حساب المعلم' : 'الموجه الطلابي'}
+            </span>
               </>
             )}
           </div>
@@ -92,21 +92,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
               
               return (
                 <li key={`${item.id}-${item.roles.join('-')}`}>
-                  <button
+                <button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setActiveTab(item.id);
-                      onClose(); // Close sidebar on mobile when item selected
-                    }}
+                    setActiveTab(item.id);
+                    onClose(); // Close sidebar on mobile when item selected
+                  }}
                     className={`w-full flex items-center ${isCollapsed ? 'justify-center' : ''} gap-2 md:gap-3 px-2 md:px-4 py-2 md:py-3 rounded-lg transition-all duration-200 group relative ${
-                      activeTab === item.id
+                    activeTab === item.id
                         ? 'bg-teal-50 text-teal-700 font-bold shadow-sm'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
                     title={isCollapsed ? displayLabel : ''}
-                  >
+                >
                     <item.icon size={16} className={`md:w-5 md:h-5 transition-colors flex-shrink-0 ${activeTab === item.id ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
                     {!isCollapsed && (
                       <span className="text-xs md:text-base truncate flex-1 text-right">{displayLabel}</span>
@@ -119,8 +119,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                         </span>
                       </span>
                     )}
-                  </button>
-                </li>
+                </button>
+              </li>
               );
             })}
           </ul>
@@ -173,7 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
           >
             <LogOut size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
             {!isCollapsed && (
-              <span>تسجيل الخروج</span>
+            <span>تسجيل الخروج</span>
             )}
           </button>
         </div>

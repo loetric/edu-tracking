@@ -178,11 +178,11 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                      {/* Avatar & Name */}
                      <div className="bg-gray-50 p-3 md:p-4 print:p-4 border-b md:border-b-0 print:border-b-0 md:border-l print:border-l border-gray-300 flex flex-row md:flex-col print:flex-col items-center md:justify-center print:justify-center justify-between md:w-32 print:w-32 w-full md:text-center print:text-center">
                          <div className="flex items-center gap-3 md:flex-col print:flex-col">
-                             {student.avatar ? (
+                         {student.avatar ? (
                                  <img src={student.avatar} className="w-12 h-12 md:w-16 md:h-16 print:w-16 print:h-16 rounded-full border-2 border-white shadow-sm object-cover md:mb-2 print:mb-2" />
-                             ) : (
+                         ) : (
                                  <div className="w-12 h-12 md:w-16 md:h-16 print:w-16 print:h-16 rounded-full bg-gray-200 flex items-center justify-center md:mb-2 print:mb-2"><User size={20} className="md:w-6 md:h-6 print:w-6 print:h-6 text-gray-400"/></div>
-                             )}
+                         )}
                              <div className="md:hidden print:hidden">
                                  <p className="text-xs font-bold text-gray-900">{student.name}</p>
                                  <p className="text-[10px] text-gray-500">الفصل: {student.classGrade}</p>
@@ -294,8 +294,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                 
                 <div className="overflow-x-auto -mx-2 md:mx-0 print:mx-0 print:overflow-visible">
                     <table className="w-full border-collapse text-[10px] md:text-xs print:text-xs text-center border border-gray-300 rounded-lg overflow-hidden min-w-full">
-                        <thead className="bg-gray-100 text-gray-700">
-                            <tr>
+                    <thead className="bg-gray-100 text-gray-700">
+                        <tr>
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 w-8 font-bold text-[10px] md:text-xs print:text-xs">م</th>
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-right text-[10px] md:text-xs print:text-xs">المادة</th>
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-right w-1/4 text-[10px] md:text-xs print:text-xs">المعلم</th>
@@ -304,51 +304,51 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">الواجبات</th>
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-16 text-[10px] md:text-xs print:text-xs">السلوك</th>
                                 <th className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold w-1/5 text-[10px] md:text-xs print:text-xs">ملاحظات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dailySchedule.length > 0 ? dailySchedule.map((session, idx) => (
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {dailySchedule.length > 0 ? dailySchedule.map((session, idx) => (
                                 <tr key={idx} className="bg-white hover:bg-gray-50 print:hover:bg-white">
                                     <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold bg-gray-50 text-[10px] md:text-xs print:text-xs">{session.period}</td>
                                     <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 font-bold text-gray-800 text-right text-[10px] md:text-xs print:text-xs">{session.subject}</td>
                                     <td className="border border-gray-300 p-1.5 md:p-2 print:p-2 text-gray-600 font-medium text-right text-[9px] md:text-[10px] print:text-[10px]">{session.teacher}</td>
-                                    
-                                    {/* Status Columns - Populated with Daily Record for Visual Representation */}
+                                
+                                {/* Status Columns - Populated with Daily Record for Visual Representation */}
                                     <td className="border border-gray-300 p-1 print:p-1">
                                         <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 px-1 rounded-sm ${attendanceInfo.bg} ${attendanceInfo.textCol}`}>
-                                            {attendanceInfo.text}
-                                        </div>
-                                    </td>
+                                        {attendanceInfo.text}
+                                    </div>
+                                </td>
                                     <td className="border border-gray-300 p-1 print:p-1">
-                                         {record.attendance === 'present' ? (
+                                     {record.attendance === 'present' ? (
                                             <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${participationInfo.bg} ${participationInfo.textCol}`}>
-                                                {participationInfo.text}
-                                            </div>
+                                            {participationInfo.text}
+                                        </div>
                                          ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
-                                    </td>
+                                </td>
                                     <td className="border border-gray-300 p-1 print:p-1">
-                                        {record.attendance === 'present' ? (
+                                    {record.attendance === 'present' ? (
                                             <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${homeworkInfo.bg} ${homeworkInfo.textCol}`}>
-                                                {homeworkInfo.text}
-                                            </div>
+                                            {homeworkInfo.text}
+                                        </div>
                                         ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
-                                    </td>
+                                </td>
                                     <td className="border border-gray-300 p-1 print:p-1">
-                                        {record.attendance === 'present' ? (
+                                    {record.attendance === 'present' ? (
                                             <div className={`text-[9px] md:text-[10px] print:text-[10px] font-bold py-0.5 md:py-1 print:py-1 rounded-sm ${behaviorInfo.bg} ${behaviorInfo.textCol}`}>
-                                                {behaviorInfo.text}
-                                            </div>
+                                            {behaviorInfo.text}
+                                        </div>
                                         ) : <span className="text-gray-300 text-[9px] print:text-[9px]">-</span>}
-                                    </td>
+                                </td>
                                     <td className="border border-gray-300 p-1 print:p-1 text-[8px] md:text-[9px] print:text-[9px] text-gray-600 leading-relaxed break-words whitespace-pre-wrap max-w-[120px] md:max-w-none print:max-w-none">
                                        {record.notes || '-'}
-                                    </td>
-                                </tr>
-                            )) : (
+                                </td>
+                            </tr>
+                        )) : (
                                 <tr><td colSpan={8} className="p-4 md:p-6 print:p-6 text-center text-gray-400 italic text-xs md:text-sm print:text-sm">لا توجد حصص مسجلة في الجدول لهذا اليوم</td></tr>
-                            )}
-                        </tbody>
-                    </table>
+                        )}
+                    </tbody>
+                </table>
                 </div>
             </section>
 

@@ -351,7 +351,7 @@ const App: React.FC = () => {
         console.log('=== initSystem: Loading settings ===');
         try {
           fetchedSettings = await Promise.race([
-            api.getSettings(),
+          api.getSettings(),
             new Promise<SchoolSettings | null>((resolve) => 
               setTimeout(() => {
                 console.warn("Settings load timeout");
@@ -414,11 +414,11 @@ const App: React.FC = () => {
         if (isMounted) {
           if (fetchedSettings) {
             console.log('=== initSystem: Setting settings state ===', fetchedSettings.name);
-            setSettings(fetchedSettings);
+        setSettings(fetchedSettings);
           } else {
             console.warn('=== initSystem: Settings not loaded, will use fallback ===');
           }
-          setUsers(fetchedUsers);
+        setUsers(fetchedUsers);
         }
       } catch (error: any) {
         console.error("=== initSystem: Failed to load system data ===", error);
@@ -433,7 +433,7 @@ const App: React.FC = () => {
         if (isMounted) {
           // Always clear loading - if user is logged in, onAuthStateChange will handle it
           console.log('=== initSystem: Clearing app loading state ===');
-          setIsAppLoading(false);
+        setIsAppLoading(false);
         }
       }
     };
@@ -730,9 +730,9 @@ const App: React.FC = () => {
             localStorage.removeItem('supabase.auth.token');
           }
       } finally {
-          setCurrentUser(null);
-          setStudents([]); // Clear sensitive data from state
-          setLogs([]);
+      setCurrentUser(null);
+      setStudents([]); // Clear sensitive data from state
+      setLogs([]);
           setIsAppLoading(false);
       }
   };
@@ -997,10 +997,10 @@ const App: React.FC = () => {
   const handleSessionEnter = async (session: ScheduleItem) => {
       // Only log the entry, don't mark as completed until records are saved
       // Session completion is handled in handleSaveRecords after saving attendance
-      if(session.isSubstituted) {
-          handleAddLog('دخول حصة (احتياط)', `قام ${session.teacher} (بديل) بالدخول لحصة ${session.subject} - ${session.classRoom}`);
-      } else {
-          handleAddLog('دخول حصة', `قام ${session.teacher} بالدخول لبدء حصة ${session.subject} - ${session.classRoom}`);
+          if(session.isSubstituted) {
+              handleAddLog('دخول حصة (احتياط)', `قام ${session.teacher} (بديل) بالدخول لحصة ${session.subject} - ${session.classRoom}`);
+          } else {
+              handleAddLog('دخول حصة', `قام ${session.teacher} بالدخول لبدء حصة ${session.subject} - ${session.classRoom}`);
       }
   };
 
@@ -1013,9 +1013,9 @@ const App: React.FC = () => {
 
   const handleUpdateChallenge = async (studentId: string, challenge: ChallengeType) => {
       try {
-          setStudents(prev => prev.map(s => s.id === studentId ? { ...s, challenge } : s)); // Optimistic
-          await api.updateStudentChallenge(studentId, challenge);
-          handleAddLog('تحديث حالة', 'قام الموجه بتحديث حالة طالب');
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, challenge } : s)); // Optimistic
+      await api.updateStudentChallenge(studentId, challenge);
+      handleAddLog('تحديث حالة', 'قام الموجه بتحديث حالة طالب');
           alert({ message: 'تم تحديث حالة الطالب بنجاح', type: 'success' });
       } catch (error) {
           console.error('Error updating student challenge:', error);
@@ -1290,8 +1290,8 @@ const App: React.FC = () => {
       // Create substitution request instead of direct assignment
       try {
           const newRequest = await api.createSubstitutionRequest({
-              date: today,
-              scheduleItemId,
+          date: today,
+          scheduleItemId,
               substituteTeacher: newTeacher,
               requestedBy: currentUser?.name || 'المدير'
           });
@@ -1407,7 +1407,7 @@ const App: React.FC = () => {
       </div>
     );
   }
-  
+
   // If user is logged in but settings not loaded, create temporary settings
   // This prevents white screen while settings load in background
   const effectiveSettings = settings || {
@@ -1435,7 +1435,7 @@ const App: React.FC = () => {
       />
     );
   }
-  
+
   // Filter for the logged-in teacher using their name (case-insensitive, trim whitespace, and normalize)
   const currentSchedule = currentUser.role === 'teacher' 
       ? effectiveSchedule.filter(item => {
@@ -1476,7 +1476,7 @@ const App: React.FC = () => {
                   onSendReminder={(text) => handleSendMessage(text)}
                   role={currentUser.role}
                   completedSessions={completedSessions}
-                  schedule={effectiveSchedule}
+                  schedule={effectiveSchedule} 
                   settings={effectiveSettings}
                   onBulkReport={currentUser.role === 'admin' ? handleBulkReportClick : undefined}
                />;
@@ -1545,14 +1545,14 @@ const App: React.FC = () => {
                 onUpdateSchedule={async (s) => { 
                    try {
                      console.log('App: Updating schedule with', s.length, 'items');
-                     await api.updateSchedule(s);
+                   await api.updateSchedule(s); 
                      
                      // Always reload from database to ensure consistency
                      const freshSchedule = await api.getSchedule();
                      console.log('App: Reloaded schedule from database:', freshSchedule.length, 'items');
                      setSchedule(freshSchedule);
                      
-                     handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام');
+                   handleAddLog('تعديل جدول', 'تم تحديث الجدول الدراسي العام'); 
                      alert({ message: 'تم تحديث الجدول الدراسي بنجاح!', type: 'success' });
                    } catch (error: any) {
                      console.error('App: Error updating schedule:', error);
@@ -1656,7 +1656,7 @@ const App: React.FC = () => {
                 schedule={schedule}
               />
             ) : (
-              <StudentTracker 
+            <StudentTracker 
                 students={students} 
                 role={currentUser.role} 
                 onSave={() => {}} 
@@ -1755,13 +1755,13 @@ const App: React.FC = () => {
 
       {/* Show Internal Chat only on dashboard */}
       {activeTab === 'dashboard' && (
-        <InternalChat 
-            messages={chatMessages} 
-            onSendMessage={handleSendMessage} 
-            role={currentUser.role} 
-            currentUserName={currentUser.name}
+      <InternalChat 
+          messages={chatMessages} 
+          onSendMessage={handleSendMessage} 
+          role={currentUser.role} 
+          currentUserName={currentUser.name}
             onClearChat={handleClearChat}
-        />
+      />
       )}
 
       {/* Main Content Area */}
@@ -1787,17 +1787,17 @@ const App: React.FC = () => {
                   onClick={() => setActiveTab('profile')}
                   className="flex items-center gap-3 md:gap-4 bg-white p-2 md:p-3 rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
-                  <div className="text-left hidden lg:block">
-                      <p className="text-sm font-bold text-gray-800">
-                          {currentUser.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                          {currentUser.role === 'admin' ? 'صلاحيات كاملة' : currentUser.role === 'teacher' ? 'معلم مادة' : 'توجيه وإرشاد'}
-                      </p>
-                  </div>
-                  <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
-                      <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full" />
-                  </div>
+                <div className="text-left hidden lg:block">
+                    <p className="text-sm font-bold text-gray-800">
+                        {currentUser.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        {currentUser.role === 'admin' ? 'صلاحيات كاملة' : currentUser.role === 'teacher' ? 'معلم مادة' : 'توجيه وإرشاد'}
+                    </p>
+                </div>
+                <div className="bg-white p-2 rounded-full shadow-sm border border-gray-100">
+                    <img src={currentUser.avatar} alt="User" className="w-8 h-8 rounded-full" />
+                </div>
                 </button>
             </div>
         </header>
