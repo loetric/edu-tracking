@@ -320,11 +320,13 @@ export async function generatePDFReport(
       color: COLORS.accent,
     });
 
-    // Top Right: Kingdom, Ministry, Region, School (from settings)
+    // ================= HEADER SECTION - All data from settings =================
+    
+    // Top Right: Kingdom, Ministry, Region, School Name (all from settings)
     const kingdomText = 'المملكة العربية السعودية';
-    const ministryText = safeSettings.ministry;
-    const regionText = safeSettings.region;
-    const schoolNameText = safeSettings.name;
+    const ministryText = safeSettings.ministry || 'وزارة التعليم';
+    const regionText = safeSettings.region || 'الإدارة العامة للتعليم';
+    const schoolNameText = safeSettings.name || 'المدرسة';
 
     const kingdomImg = await textToImage(kingdomText, {
       fontSize: 11, color: '#17496D', align: 'right', isBold: true
@@ -353,7 +355,7 @@ export async function generatePDFReport(
     rightY -= 20;
     page.drawImage(sEmb, { x: width - margin - schoolNameImg.width, y: rightY, width: schoolNameImg.width, height: schoolNameImg.height });
 
-    // Top Left: Report Title and Date
+    // Top Left: Report Title, Date, and Slogan (from settings)
     const reportTitle = 'المتابعة اليومي';
     const reportTitleImg = await textToImage(reportTitle, {
       fontSize: 16, color: '#17496D', align: 'left', isBold: true
@@ -361,6 +363,16 @@ export async function generatePDFReport(
     const dateInfoImg = await textToImage(`${dayName} - ${dateStr}`, {
       fontSize: 10, color: '#737373', align: 'left', isBold: false
     });
+    
+    // Add slogan if available (from settings)
+    let sloganImg = null;
+    let sloganEmb = null;
+    if (safeSettings.slogan) {
+      sloganImg = await textToImage(safeSettings.slogan, {
+        fontSize: 10, color: '#0D9488', align: 'left', isBold: true
+      });
+      sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
+    }
 
     const rtEmb = await pdfDoc.embedPng(reportTitleImg.buffer);
     const diEmb = await pdfDoc.embedPng(dateInfoImg.buffer);
@@ -369,8 +381,25 @@ export async function generatePDFReport(
     page.drawImage(rtEmb, { x: margin, y: leftY, width: reportTitleImg.width, height: reportTitleImg.height });
     leftY -= 22;
     page.drawImage(diEmb, { x: margin, y: leftY, width: dateInfoImg.width, height: dateInfoImg.height });
+    
+    // Add slogan below date if available
+    if (sloganEmb && sloganImg) {
+      leftY -= 18;
+      page.drawImage(sloganEmb, { x: margin, y: leftY, width: sloganImg.width, height: sloganImg.height });
+    }
+    
+    // Add WhatsApp phone if available (from settings)
+    if (safeSettings.whatsappPhone) {
+      const phoneText = `ت: ${safeSettings.whatsappPhone}`;
+      const phoneImg = await textToImage(phoneText, {
+        fontSize: 8, color: '#9CA3AF', align: 'left', isBold: false
+      });
+      const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
+      leftY -= 14;
+      page.drawImage(phoneEmb, { x: margin, y: leftY, width: phoneImg.width, height: phoneImg.height });
+    }
 
-    // Center: Logo (from settings)
+    // Center: Logo (from settings.logoUrl)
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
       if (logo) {
@@ -378,6 +407,7 @@ export async function generatePDFReport(
         const logoX = width / 2 - logoSize / 2;
         const logoY = cursorY - 25;
         
+        // Draw subtle background for logo
         page.drawRectangle({
           x: logoX - 3,
           y: logoY - 3,
