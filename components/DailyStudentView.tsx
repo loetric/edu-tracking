@@ -187,7 +187,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
             )}
 
             {/* Class Filter */}
-            <div className="w-[120px] flex-shrink-0">
+            <div className="w-[160px] flex-shrink-0">
               <CustomSelect
                 value={selectedClass}
                 onChange={(value) => setSelectedClass(value)}
