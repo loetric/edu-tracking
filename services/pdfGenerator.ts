@@ -1188,7 +1188,7 @@ export async function generatePDFReport(
       height: affairsTitleImg.height
     });
     
-    // Name below title if available
+    // Name below title if available - fixed position to avoid overlap
     if (safeSettings.educationalAffairsOfficer) {
       const affairsNameImg = await textToImage(safeSettings.educationalAffairsOfficer, {
         fontSize: 9, color: '#6B7280', align: 'center', isBold: false
@@ -1196,7 +1196,7 @@ export async function generatePDFReport(
       const affairsNameEmb = await pdfDoc.embedPng(affairsNameImg.buffer);
       page.drawImage(affairsNameEmb, {
         x: width - margin - 50 - affairsNameImg.width / 2,
-        y: footerY + 20, // Below the title
+        y: footerY + 12, // Below the title (same as manager name)
         width: affairsNameImg.width,
         height: affairsNameImg.height
       });
