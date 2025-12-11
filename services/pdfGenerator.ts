@@ -1176,11 +1176,8 @@ export async function generatePDFReport(
     });
 
     // Left - Educational affairs signature (no "التوقيع" label)
-    // Use name from settings if available, otherwise use title only
-    const affairsTitleText = safeSettings.educationalAffairsOfficer 
-      ? `وكيل الشؤون التعليمية\n${safeSettings.educationalAffairsOfficer}`
-      : 'وكيل الشؤون التعليمية';
-    const affairsTitleImg = await textToImage(affairsTitleText, {
+    // Title first, then name below if available
+    const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
@@ -1190,6 +1187,20 @@ export async function generatePDFReport(
       width: affairsTitleImg.width,
       height: affairsTitleImg.height
     });
+    
+    // Name below title if available
+    if (safeSettings.educationalAffairsOfficer) {
+      const affairsNameImg = await textToImage(safeSettings.educationalAffairsOfficer, {
+        fontSize: 9, color: '#6B7280', align: 'center', isBold: false
+      });
+      const affairsNameEmb = await pdfDoc.embedPng(affairsNameImg.buffer);
+      page.drawImage(affairsNameEmb, {
+        x: margin + 50 - affairsNameImg.width / 2,
+        y: footerY + 20, // Below the title
+        width: affairsNameImg.width,
+        height: affairsNameImg.height
+      });
+    }
     
     // Signature line
     page.drawLine({
@@ -1323,7 +1334,7 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
     
-    // Slogan (moved down 7px)
+    // Slogan (moved down 11px to center in footer)
     if (safeSettings.slogan) {
       const sloganImg = await textToImage(safeSettings.slogan, {
         fontSize: 9, color: '#6B7280', align: 'left', isBold: true
@@ -1331,21 +1342,21 @@ export async function generatePDFReport(
       const sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
       page.drawImage(sloganEmb, {
         x: margin + 10,
-        y: bottomStripY + 19, // Moved down 7px (12 + 7)
+        y: bottomStripY + 30, // Moved down 11px (19 + 11 = 30) to center in footer
         width: sloganImg.width,
         height: sloganImg.height
       });
     }
     
-    // Platform info (moved down 7px)
-    const platformText = `صدر عن: نظام التتبع الذكي${safeSettings.whatsappPhone ? ` | Contact: ${safeSettings.whatsappPhone}` : ''}`;
+    // Platform info (moved down 11px to center in footer)
+    const platformText = `صدر عن: نظام التتبع الذكي${safeSettings.whatsappPhone ? ` | رقم المدرسة: ${safeSettings.whatsappPhone}` : ''}`;
     const platformImg = await textToImage(platformText, {
       fontSize: 8, color: '#6B7280', align: 'right', isBold: false
     });
     const platformEmb = await pdfDoc.embedPng(platformImg.buffer);
     page.drawImage(platformEmb, {
       x: width - margin - platformImg.width - 10,
-      y: bottomStripY + 19, // Moved down 7px (12 + 7)
+      y: bottomStripY + 30, // Moved down 11px (19 + 11 = 30) to center in footer
       width: platformImg.width,
       height: platformImg.height
     });
