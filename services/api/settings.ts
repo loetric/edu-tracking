@@ -107,6 +107,11 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
       // If classGrades is not provided, set it to empty array
       settingsToSave.classGrades = [];
     }
+    
+    // Ensure academicYear is included (can be null/empty)
+    if (!settingsToSave.hasOwnProperty('academicYear')) {
+      settingsToSave.academicYear = settings.academicYear || null;
+    }
 
     if (existingSettings) {
       // Only update fields that exist in the database
@@ -120,10 +125,19 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
         .eq('id', existingSettings.id);
       
       if (error) {
-        // If error is about missing column, try without classGrades
-        if (error.code === 'PGRST204' && error.message?.includes('classGrades')) {
-          console.warn('classGrades column not found, updating without it. Please run migration: sql/add_class_grades_column.sql');
-          delete updateData.classGrades;
+        // If error is about missing column, try without it
+        if (error.code === 'PGRST204') {
+          if (error.message?.includes('classGrades')) {
+            console.warn('classGrades column not found, updating without it. Please run migration: sql/add_class_grades_column.sql');
+            delete updateData.classGrades;
+          } else if (error.message?.includes('academicYear')) {
+            console.warn('academicYear column not found, updating without it. Please run migration: sql/add_academic_year_to_settings.sql');
+            delete updateData.academicYear;
+          } else {
+            console.error('Update settings error:', error);
+            throw error;
+          }
+          
           const { error: retryError } = await supabase
             .from('settings')
             .update(updateData)
@@ -146,10 +160,19 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
         .insert([insertData]);
       
       if (error) {
-        // If error is about missing column, try without classGrades
-        if (error.code === 'PGRST204' && error.message?.includes('classGrades')) {
-          console.warn('classGrades column not found, inserting without it. Please run migration: sql/add_class_grades_column.sql');
-          delete insertData.classGrades;
+        // If error is about missing column, try without it
+        if (error.code === 'PGRST204') {
+          if (error.message?.includes('classGrades')) {
+            console.warn('classGrades column not found, inserting without it. Please run migration: sql/add_class_grades_column.sql');
+            delete insertData.classGrades;
+          } else if (error.message?.includes('academicYear')) {
+            console.warn('academicYear column not found, inserting without it. Please run migration: sql/add_academic_year_to_settings.sql');
+            delete insertData.academicYear;
+          } else {
+            console.error('Insert settings error:', error);
+            throw error;
+          }
+          
           const { error: retryError } = await supabase
             .from('settings')
             .insert([insertData]);

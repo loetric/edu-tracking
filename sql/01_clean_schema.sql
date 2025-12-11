@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
     whatsappPhone text,
     reportGeneralMessage text,
     reportLink text,
+    "academicYear" text, -- العام الدراسي (مثال: 1445-1446)
     created_at timestamptz DEFAULT now() NOT NULL,
     updated_at timestamptz DEFAULT now() NOT NULL
 );
