@@ -199,19 +199,21 @@ async function drawRadarChart(
       ctx.stroke();
 
       // Draw labels (smaller font, further out to avoid overlap) - ALL labels including المشاركة
-      ctx.font = 'bold 9px ' + ARABIC_FONT_STACK;
+      ctx.font = 'bold 8px ' + ARABIC_FONT_STACK;
       ctx.fillStyle = '#6b7280';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       for (let i = 0; i < numPoints; i++) {
         const angle = -Math.PI / 2 + (i * angleStep);
-        const labelRadius = radius + 20; // Further out
+        const labelRadius = radius + 25; // Further out to ensure visibility
         const x = centerX + labelRadius * Math.cos(angle);
         const y = centerY + labelRadius * Math.sin(angle);
         
-        // Always draw label, even if value is 0
-        ctx.fillText(data[i].subject, x, y);
+        // Always draw label, even if value is 0 - ensure all labels are visible
+        if (data[i] && data[i].subject) {
+          ctx.fillText(data[i].subject, x, y);
+        }
       }
 
       // Don't draw performance level text here - it will be drawn below the chart box
@@ -431,10 +433,9 @@ export async function generatePDFReport(
     const headerTextColor = '#2D3748'; // Unified color
     const headerLineSpacing = 18;
     
-    // Center column - Logo (BIGGER and AT THE TOP)
+    // Center column - Logo (BIGGER and ALIGNED with header texts)
     const headerCenterX = width / 2;
     const logoSize = 100; // Even bigger logo
-    const logoTopY = headerY - 5; // At the top of header
     
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
@@ -450,10 +451,10 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
-        // Logo at the top, centered
+        // Logo aligned with header texts (same Y as headerStartY)
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: logoTopY - finalLogoHeight,
+          y: headerStartY - finalLogoHeight, // Aligned with header texts
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
@@ -461,7 +462,7 @@ export async function generatePDFReport(
     }
     
     // Title with underline (below logo, centered)
-    const titleY = logoTopY - logoSize - 15;
+    const titleY = headerStartY - logoSize - 15;
     const titleText = 'تقرير متابعة يومي';
     const titleImg = await textToImage(titleText, {
       fontSize: 16, color: '#1F2937', align: 'center', isBold: true
@@ -596,11 +597,12 @@ export async function generatePDFReport(
     const cellWidth = detailsWidth / 2;
     const cellHeight = cardHeight / 2;
     
+    // Reorder: الاسم الرباعي first from right (col 0), حالة التقرير last from left (col 1, row 1)
     const studentDetails = [
-      { label: 'الاسم الرباعي', value: student.name || '-', row: 0, col: 0, hasBottomBorder: true, hasLeftBorder: true },
+      { label: 'الاسم الرباعي', value: student.name || '-', row: 0, col: 0, hasBottomBorder: true, hasLeftBorder: true }, // First from right
       { label: 'الفصل', value: student.classGrade || '-', row: 0, col: 1, hasBottomBorder: false, hasLeftBorder: true },
       { label: 'جوال ولي الأمر', value: student.parentPhone || '-', row: 1, col: 0, hasBottomBorder: false, hasLeftBorder: true },
-      { label: 'حالة التقرير', value: 'معتمد من المدرسة', row: 1, col: 1, hasBottomBorder: false, hasLeftBorder: false, isSpecial: true }
+      { label: 'حالة التقرير', value: 'معتمد من المدرسة', row: 1, col: 1, hasBottomBorder: false, hasLeftBorder: false, isSpecial: true } // Last from left
     ];
     
     for (const detail of studentDetails) {
@@ -1159,7 +1161,7 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    const footerY = 50; // Moved down to avoid overlap with notes
+    const footerY = 40; // Moved down more to avoid overlap with notes
     const footerHeight = 60;
     
     // Top border
@@ -1170,38 +1172,27 @@ export async function generatePDFReport(
       color: COLORS.gray200
     });
 
-    // Left - Educational affairs signature
+    // Left - Educational affairs signature (no "التوقيع" label)
     const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
     page.drawImage(affairsTitleEmb, {
       x: margin + 50 - affairsTitleImg.width / 2,
-      y: footerY + 40,
+      y: footerY + 33, // Moved down 7px
       width: affairsTitleImg.width,
       height: affairsTitleImg.height
     });
     
     // Signature line
     page.drawLine({
-      start: { x: margin + 20, y: footerY + 20 },
-      end: { x: margin + 80, y: footerY + 20 },
+      start: { x: margin + 20, y: footerY + 13 }, // Moved down 7px
+      end: { x: margin + 80, y: footerY + 13 },
       thickness: 1,
       color: COLORS.gray300
     });
-    
-    const signatureLabelImg = await textToImage('التوقيع', {
-      fontSize: 8, color: '#9CA3AF', align: 'center', isBold: false
-    });
-    const signatureLabelEmb = await pdfDoc.embedPng(signatureLabelImg.buffer);
-    page.drawImage(signatureLabelEmb, {
-      x: margin + 50 - signatureLabelImg.width / 2,
-      y: footerY + 10,
-      width: signatureLabelImg.width,
-      height: signatureLabelImg.height
-    });
 
-    // Center - QR Code or stamp placeholder
+    // Center - QR Code or stamp placeholder (no "ختم المدرسة" label)
     const footerCenterX = width / 2;
     if (safeSettings.reportLink) {
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(safeSettings.reportLink)}`;
@@ -1210,7 +1201,7 @@ export async function generatePDFReport(
         if (qrCode) {
           page.drawImage(qrCode, {
             x: footerCenterX - 30,
-            y: footerY + 20,
+            y: footerY + 13, // Moved down 7px
             width: 60,
             height: 60,
           });
@@ -1222,7 +1213,7 @@ export async function generatePDFReport(
       // Stamp placeholder
       page.drawRectangle({
         x: footerCenterX - 30,
-        y: footerY + 20,
+        y: footerY + 13, // Moved down 7px
         width: 60,
         height: 60,
         borderColor: COLORS.gray300,
@@ -1236,48 +1227,30 @@ export async function generatePDFReport(
       const stampPlaceholderEmb = await pdfDoc.embedPng(stampPlaceholderImg.buffer);
       page.drawImage(stampPlaceholderEmb, {
         x: footerCenterX - stampPlaceholderImg.width / 2,
-        y: footerY + 45,
+        y: footerY + 38, // Moved down 7px
         width: stampPlaceholderImg.width,
         height: stampPlaceholderImg.height
       });
     }
-    
-    const stampLabelImg = await textToImage('ختم المدرسة', {
-      fontSize: 8, color: '#9CA3AF', align: 'center', isBold: false
-    });
-    const stampLabelEmb = await pdfDoc.embedPng(stampLabelImg.buffer);
-    page.drawImage(stampLabelEmb, {
-      x: footerCenterX - stampLabelImg.width / 2,
-      y: footerY + 5,
-      width: stampLabelImg.width,
-      height: stampLabelImg.height
-    });
 
-    // Right - School manager signature
+    // Right - School manager signature (no "التوقيع" label)
     const managerTitleImg = await textToImage('مدير المدرسة', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
     page.drawImage(managerTitleEmb, {
       x: width - margin - 50 - managerTitleImg.width / 2,
-      y: footerY + 40,
+      y: footerY + 33, // Moved down 7px
       width: managerTitleImg.width,
       height: managerTitleImg.height
     });
     
     // Signature line
     page.drawLine({
-      start: { x: width - margin - 80, y: footerY + 20 },
-      end: { x: width - margin - 20, y: footerY + 20 },
+      start: { x: width - margin - 80, y: footerY + 13 }, // Moved down 7px
+      end: { x: width - margin - 20, y: footerY + 13 },
       thickness: 1,
       color: COLORS.gray300
-    });
-    
-    page.drawImage(signatureLabelEmb, {
-      x: width - margin - 50 - signatureLabelImg.width / 2,
-      y: footerY + 10,
-      width: signatureLabelImg.width,
-      height: signatureLabelImg.height
     });
 
     // Bottom strip
@@ -1292,7 +1265,7 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
     
-    // Slogan (moved down to avoid border overlap)
+    // Slogan (moved down 7px)
     if (safeSettings.slogan) {
       const sloganImg = await textToImage(safeSettings.slogan, {
         fontSize: 9, color: '#6B7280', align: 'left', isBold: true
@@ -1300,13 +1273,13 @@ export async function generatePDFReport(
       const sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
       page.drawImage(sloganEmb, {
         x: margin + 10,
-        y: bottomStripY + 12, // Moved down
+        y: bottomStripY + 19, // Moved down 7px (12 + 7)
         width: sloganImg.width,
         height: sloganImg.height
       });
     }
     
-    // Platform info (moved down to avoid border overlap)
+    // Platform info (moved down 7px)
     const platformText = `صدر عن: نظام التتبع الذكي${safeSettings.whatsappPhone ? ` | Contact: ${safeSettings.whatsappPhone}` : ''}`;
     const platformImg = await textToImage(platformText, {
       fontSize: 8, color: '#6B7280', align: 'right', isBold: false
@@ -1314,7 +1287,7 @@ export async function generatePDFReport(
     const platformEmb = await pdfDoc.embedPng(platformImg.buffer);
     page.drawImage(platformEmb, {
       x: width - margin - platformImg.width - 10,
-      y: bottomStripY + 12, // Moved down
+      y: bottomStripY + 19, // Moved down 7px (12 + 7)
       width: platformImg.width,
       height: platformImg.height
     });
