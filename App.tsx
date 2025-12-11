@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { StudentTracker } from './components/StudentTracker';
 import { DashboardStats } from './components/DashboardStats';
@@ -1341,7 +1341,8 @@ const App: React.FC = () => {
 
   // --- Data Processing for View ---
 
-  const getEffectiveSchedule = () => {
+  // Use useMemo to recalculate effective schedule when schedule or substitutions change
+  const effectiveSchedule = React.useMemo(() => {
       const today = new Date().toISOString().split('T')[0];
       return schedule.map(item => {
           const sub = substitutions.find(s => s.scheduleItemId === item.id && s.date === today);
@@ -1349,13 +1350,18 @@ const App: React.FC = () => {
               return { 
                   ...item, 
                   teacher: sub.substituteTeacher, 
-                  originalTeacher: item.teacher, 
+                  originalTeacher: item.teacher || item.originalTeacher, 
                   isSubstituted: true 
               };
           }
-          return item;
+          // Clear substitution flags if no substitution exists
+          return {
+              ...item,
+              isSubstituted: false,
+              originalTeacher: item.originalTeacher || item.teacher
+          };
       });
-  };
+  }, [schedule, substitutions]);
 
   // Loading Screen - only show if we're loading and user is not logged in
   // Once user is logged in, allow app to continue even if some data is still loading
@@ -1396,8 +1402,6 @@ const App: React.FC = () => {
       />
     );
   }
-
-  const effectiveSchedule = getEffectiveSchedule();
   
   // Filter for the logged-in teacher using their name (case-insensitive, trim whitespace, and normalize)
   const currentSchedule = currentUser.role === 'teacher' 
