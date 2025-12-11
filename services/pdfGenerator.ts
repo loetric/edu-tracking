@@ -375,6 +375,15 @@ export async function generatePDFReport(
       height: 140,
       color: COLORS.white,
     });
+    
+    // Green line under header (at the bottom of header section)
+    page.drawRectangle({
+      x: 0,
+      y: height - 140,
+      width: width,
+      height: 4,
+      color: COLORS.titleUnderline,
+    });
 
     // Right side - Kingdom info (all from settings) - Unified font size and spacing
     const headerTexts = [
@@ -512,17 +521,18 @@ export async function generatePDFReport(
     });
 
     // Student info - Right side (all from student object)
-    // Format: "الاسم الرباعي: [value]" to ensure proper display
+    // Format: "Label: Value" to ensure proper display
+    // Removed "رقم الملف" as requested
     const studentInfoTexts = [
       { label: 'الاسم الرباعي', value: student.name || '-' },
       { label: 'الفصل', value: student.classGrade || '-' },
-      { label: 'جوال ولي الأمر', value: student.parentPhone || '-' },
-      { label: 'رقم الملف', value: student.studentNumber || '-' }
+      { label: 'جوال ولي الأمر', value: student.parentPhone || '-' }
     ];
 
-    let infoY = cursorY - 18;
+    // Lower the student name position to align better with background
+    let infoY = cursorY - 25; // Lowered from -18 to -25
     const infoRightX = width - margin - 15;
-    const infoSpacing = 21; // Unified spacing between lines
+    const infoSpacing = 24; // Slightly increased spacing for better alignment
     
     for (const info of studentInfoTexts) {
       // Create combined text: "Label: Value"
