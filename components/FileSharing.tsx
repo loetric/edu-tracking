@@ -347,7 +347,6 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
       <div className="bg-white p-3 md:p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-gray-800">التعاميم</h2>
-          <p className="text-sm text-gray-500 mt-1">استعراض التعاميم والملفات المهمة</p>
         </div>
         {isAdmin && (
           <button
@@ -414,13 +413,19 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
           <div className="flex-1 overflow-y-auto">
             {sortedFiles.length > 0 ? (
               <div className="divide-y divide-gray-100">
-                {sortedFiles.map(file => (
+                {sortedFiles.map(file => {
+                  const isUnread = !file.is_read_by_current_user;
+                  const isSelected = previewFile?.id === file.id;
+                  
+                  return (
                   <button
                     key={file.id}
                     onClick={() => handleFileClick(file)}
                     className={`w-full text-right p-4 hover:bg-gray-50 transition-colors border-r-4 ${
-                      previewFile?.id === file.id 
+                      isSelected
                         ? 'bg-teal-50 border-r-teal-500' 
+                        : isUnread
+                        ? 'bg-blue-50/50 border-r-blue-500 border-l-2 border-l-blue-400'
                         : 'border-r-transparent'
                     }`}
                   >
@@ -465,7 +470,8 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
                       </div>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400">
