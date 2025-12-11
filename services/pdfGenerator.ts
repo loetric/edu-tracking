@@ -10,7 +10,7 @@ async function textToImage(
   fontSize: number = 12, 
   isBold: boolean = false,
   textColor: string = '#000000',
-  width?: number
+  maxWidth?: number
 ): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     try {
@@ -30,10 +30,31 @@ async function textToImage(
       ctx.textBaseline = 'middle';
       ctx.fillStyle = textColor;
 
-      // Measure text
-      const metrics = ctx.measureText(text);
-      const textWidth = width || Math.max(metrics.width, 10);
-      const textHeight = fontSize * 1.5;
+      // Simple word-wrapping
+      const words = text.replace(/\n/g, ' \n ').split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+      const limit = maxWidth ? maxWidth - 30 : undefined; // padding accounted
+      for (const word of words) {
+        if (word === '\n') {
+          lines.push(currentLine.trim());
+          currentLine = '';
+          continue;
+        }
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const testWidth = ctx.measureText(testLine).width;
+        if (limit && testWidth > limit) {
+          lines.push(currentLine.trim());
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine.trim()) lines.push(currentLine.trim());
+
+      const textWidth = maxWidth || Math.max(...lines.map(l => ctx.measureText(l).width), 10);
+      const lineHeight = fontSize * 1.5;
+      const textHeight = lines.length * lineHeight;
 
       // Set canvas size with padding
       canvas.width = Math.ceil(textWidth) + 30;
@@ -46,8 +67,11 @@ async function textToImage(
       ctx.textBaseline = 'middle';
       ctx.fillStyle = textColor;
 
-      // Draw text centered
-      ctx.fillText(text, canvas.width - 15, canvas.height / 2);
+      // Draw wrapped text
+      lines.forEach((line, idx) => {
+        const y = (canvas.height - textHeight) / 2 + idx * lineHeight + lineHeight / 2;
+        ctx.fillText(line, canvas.width - 15, y);
+      });
 
       // Convert to blob then to array buffer
       canvas.toBlob((blob) => {
@@ -89,8 +113,10 @@ async function drawArabicText(
     let xPos = x;
     if (align === 'center' && width) {
       xPos = x + (width - image.width) / 2;
-    } else if (align === 'right' && width) {
-      xPos = x + width - image.width;
+    } else if (align === 'right') {
+      xPos = width ? x + width - image.width : x - image.width;
+    } else if (align === 'center' && !width) {
+      xPos = x - image.width / 2;
     }
     
     page.drawImage(image, {
@@ -167,19 +193,20 @@ async function drawText(
   } else {
     const font = isBold ? boldFont : regularFont;
     const pdfY = pageHeight - y;
+    const textWidth = font.widthOfTextAtSize(text, fontSize);
     
     // Calculate x position based on alignment
     let xPos = x;
-    if (align === 'center' && width) {
-      xPos = x + width / 2;
-    } else if (align === 'right' && width) {
-      xPos = x + width;
+    if (align === 'center') {
+      xPos = width ? x + (width - textWidth) / 2 : x - textWidth / 2;
+    } else if (align === 'right') {
+      xPos = width ? x + width - textWidth : x - textWidth;
     }
     
     try {
       page.drawText(text, {
         x: xPos,
-        y: pdfY,
+        y: pdfY - fontSize * 0.8,
         size: fontSize,
         font: font,
         color: color,
