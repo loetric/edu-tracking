@@ -1326,7 +1326,7 @@ export async function generatePDFReport(
       const sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
       page.drawImage(sloganEmb, {
         x: margin + 10,
-        y: bottomStripY + 30, // Moved down 11px (19 + 11 = 30) to center in footer
+        y: bottomStripY + 15, // Centered in footer (adjusted for new bottomStripY)
         width: sloganImg.width,
         height: sloganImg.height
       });
@@ -1338,12 +1338,12 @@ export async function generatePDFReport(
       fontSize: 8, color: '#6B7280', align: 'right', isBold: false
     });
     const platformEmb = await pdfDoc.embedPng(platformImg.buffer);
-    page.drawImage(platformEmb, {
-      x: width - margin - platformImg.width - 10,
-      y: bottomStripY + 30, // Moved down 11px (19 + 11 = 30) to center in footer
-      width: platformImg.width,
-      height: platformImg.height
-    });
+      page.drawImage(platformEmb, {
+        x: width - margin - platformImg.width - 10,
+        y: bottomStripY + 15, // Centered in footer (adjusted for new bottomStripY)
+        width: platformImg.width,
+        height: platformImg.height
+      });
 
     return await pdfDoc.save();
   } catch (error) {
