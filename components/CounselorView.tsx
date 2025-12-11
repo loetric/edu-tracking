@@ -401,24 +401,32 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
 
       {/* Edit Challenge Modal */}
       {selectedStudentForEdit && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:hidden">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-in zoom-in-95 duration-200 overflow-visible">
-                  <div className="bg-teal-600 p-6 text-white flex justify-between items-start">
-                      <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 overflow-y-auto print:hidden"
+            onClick={(e) => e.target === e.currentTarget && setSelectedStudentForEdit(null)}
+            style={{ touchAction: 'none' }}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+              <div 
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg my-auto animate-in zoom-in-95 duration-200 overflow-visible"
+                onClick={(e) => e.stopPropagation()}
+              >
+                  <div className="bg-teal-600 p-4 md:p-6 text-white flex justify-between items-start flex-shrink-0">
+                      <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white p-1 shadow-lg flex-shrink-0">
                               <img src={selectedStudentForEdit.avatar} className="w-full h-full rounded-full object-cover" />
                           </div>
-                          <div>
-                              <h3 className="text-xl font-bold">{selectedStudentForEdit.name}</h3>
-                              <p className="text-teal-100 text-sm opacity-90">{selectedStudentForEdit.classGrade}</p>
+                          <div className="min-w-0">
+                              <h3 className="text-base md:text-xl font-bold truncate">{selectedStudentForEdit.name}</h3>
+                              <p className="text-teal-100 text-xs md:text-sm opacity-90">{selectedStudentForEdit.classGrade}</p>
                           </div>
                       </div>
-                      <button onClick={() => setSelectedStudentForEdit(null)} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors">
-                          <X size={20} />
+                      <button onClick={() => setSelectedStudentForEdit(null)} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors flex-shrink-0">
+                          <X size={18} className="md:w-5 md:h-5" />
                       </button>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-4 md:p-6">
                       <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                           <ShieldAlert size={18} className="text-teal-600" />
                           تحديد حالة الطالب / التحدي:

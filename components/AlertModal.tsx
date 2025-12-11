@@ -58,14 +58,14 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   const Icon = styles.icon;
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 flex justify-center" dir="rtl">
+    <div className="fixed top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 z-50 flex justify-center" dir="rtl">
       <div className={`bg-white rounded-lg shadow-2xl border-2 ${styles.border} max-w-md w-full transform transition-all animate-in slide-in-from-top-5`}>
-        <div className="p-4 flex items-start gap-3">
-          <div className={`flex-shrink-0 w-10 h-10 rounded-full ${styles.iconBg} flex items-center justify-center`}>
-            <Icon size={20} className={styles.iconColor} />
+        <div className="p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+          <div className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full ${styles.iconBg} flex items-center justify-center`}>
+            <Icon size={18} className={`sm:w-5 sm:h-5 ${styles.iconColor}`} />
           </div>
-          <div className="flex-1">
-            <div className="text-gray-800 whitespace-pre-line text-sm leading-relaxed">
+          <div className="flex-1 min-w-0">
+            <div className="text-gray-800 whitespace-pre-line text-xs sm:text-sm leading-relaxed">
               {message}
             </div>
           </div>
@@ -73,7 +73,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             onClick={onClose}
             className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <X size={18} className="text-gray-400" />
+            <X size={16} className="sm:w-[18px] sm:h-[18px] text-gray-400" />
           </button>
         </div>
       </div>

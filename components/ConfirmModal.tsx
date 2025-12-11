@@ -49,16 +49,28 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const Icon = styles.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" dir="rtl">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
-        <div className="p-6">
-          <div className="flex items-start gap-4">
-            <div className={`flex-shrink-0 w-12 h-12 rounded-full ${styles.iconBg} flex items-center justify-center`}>
-              <Icon size={24} className={styles.iconColor} />
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-4" 
+      dir="rtl"
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
+      style={{ touchAction: 'none' }}
+      onTouchMove={(e) => {
+        // Prevent background scroll when modal is open
+        e.stopPropagation();
+      }}
+    >
+      <div 
+        className="bg-white rounded-xl shadow-2xl max-w-md w-full my-auto transform transition-all"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 md:p-6">
+          <div className="flex items-start gap-3 md:gap-4">
+            <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-full ${styles.iconBg} flex items-center justify-center`}>
+              <Icon size={20} className={`md:w-6 md:h-6 ${styles.iconColor}`} />
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">{title}</h3>
-              <div className="text-gray-600 whitespace-pre-line text-sm leading-relaxed">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base md:text-lg font-bold text-gray-800 mb-2">{title}</h3>
+              <div className="text-gray-600 whitespace-pre-line text-xs md:text-sm leading-relaxed">
                 {message}
               </div>
             </div>
@@ -66,20 +78,20 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               onClick={onCancel}
               className="flex-shrink-0 p-1 hover:bg-gray-100 rounded-lg transition-colors"
             >
-              <X size={20} className="text-gray-400" />
+              <X size={18} className="md:w-5 md:h-5 text-gray-400" />
             </button>
           </div>
         </div>
-        <div className="px-6 py-4 bg-gray-50 rounded-b-xl flex gap-3 justify-end">
+        <div className="px-4 md:px-6 py-3 md:py-4 bg-gray-50 rounded-b-xl flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-bold"
+            className="px-4 py-2 text-sm md:text-base text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-bold order-2 sm:order-1"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-white rounded-lg transition-colors font-bold ${styles.button}`}
+            className={`px-4 py-2 text-sm md:text-base text-white rounded-lg transition-colors font-bold order-1 sm:order-2 ${styles.button}`}
           >
             {confirmText}
           </button>

@@ -99,28 +99,36 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       
       {/* Substitute Modal */}
       {selectedSessionForSub && onAssignSubstitute && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <div className="bg-white rounded-xl shadow-2xl p-6 w-96 animate-in zoom-in-95">
-                  <div className="flex justify-between items-start mb-4">
-                      <div>
-                          <h3 className="font-bold text-lg text-gray-800">إسناد حصة احتياط</h3>
-                          <p className="text-sm text-gray-500 mt-1">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 md:p-4 overflow-y-auto"
+            onClick={(e) => e.target === e.currentTarget && setSelectedSessionForSub(null)}
+            style={{ touchAction: 'none' }}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+              <div 
+                className="bg-white rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-md my-auto animate-in zoom-in-95"
+                onClick={(e) => e.stopPropagation()}
+              >
+                  <div className="flex justify-between items-start mb-3 md:mb-4">
+                      <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-base md:text-lg text-gray-800">إسناد حصة احتياط</h3>
+                          <p className="text-xs md:text-sm text-gray-500 mt-1 truncate">
                               الحصة {selectedSessionForSub.period} - {selectedSessionForSub.subject} ({selectedSessionForSub.classRoom})
                           </p>
                       </div>
-                      <button onClick={() => setSelectedSessionForSub(null)} className="text-gray-400 hover:text-red-500">
-                          <X size={20} />
+                      <button onClick={() => setSelectedSessionForSub(null)} className="text-gray-400 hover:text-red-500 flex-shrink-0 p-1">
+                          <X size={18} className="md:w-5 md:h-5" />
                       </button>
                   </div>
 
-                  <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm">
+                  <div className="mb-3 md:mb-4 bg-gray-50 p-2.5 md:p-3 rounded-lg border border-gray-200 text-xs md:text-sm">
                       <p className="font-bold text-gray-600 mb-1">المعلم الأساسي:</p>
-                      <p className="text-red-600 font-bold">{selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher}</p>
+                      <p className="text-red-600 font-bold truncate">{selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher}</p>
                   </div>
 
-                  <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">اختر المعلم البديل (المكلف):</label>
-                      <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                  <div className="mb-4 md:mb-6">
+                      <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">اختر المعلم البديل (المكلف):</label>
+                      <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                           {(() => {
                               // Filter teachers: exclude the original teacher and check availability
                               const originalTeacher = selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher;
@@ -146,7 +154,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                     onAssignSubstitute(selectedSessionForSub.id, teacher);
                                     setSelectedSessionForSub(null);
                                 }}
-                                className="text-right px-4 py-2 rounded-lg border border-gray-200 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors text-sm font-bold flex items-center justify-between group"
+                                className="text-right px-3 md:px-4 py-2 rounded-lg border border-gray-200 hover:bg-teal-50 hover:border-teal-500 hover:text-teal-700 transition-colors text-xs md:text-sm font-bold flex items-center justify-between group"
                               >
                                   {teacher}
                                   <UserPlus size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />

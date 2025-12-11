@@ -230,7 +230,7 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
           {/* Filter Type */}
           <div className="flex-1">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">نوع الفلتر</label>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-7 gap-1.5 sm:gap-2">
               {filterOptions.map(option => {
                 const Icon = option.icon;
                 const isActive = filterType === option.value;
@@ -238,14 +238,14 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
                   <button
                     key={option.value}
                     onClick={() => setFilterType(option.value as AbsenceFilterType)}
-                    className={`flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-lg border-2 transition-all ${
+                    className={`flex flex-col items-center justify-center gap-1 p-1.5 sm:p-2 md:p-3 rounded-lg border-2 transition-all ${
                       isActive
                         ? 'bg-teal-50 border-teal-500 text-teal-700 shadow-sm'
                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                   >
-                    <Icon size={18} className="md:w-5 md:h-5" />
-                    <span className="text-[10px] md:text-xs font-medium text-center">{option.label}</span>
+                    <Icon size={16} className="sm:w-4 sm:h-4 md:w-5 md:h-5 flex-shrink-0" />
+                    <span className="text-[9px] sm:text-[10px] md:text-xs font-medium text-center leading-tight">{option.label}</span>
                   </button>
                 );
               })}
@@ -253,29 +253,30 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-3 md:gap-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4">
           {/* Class Filter */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">الفصل</label>
             <CustomSelect
               value={selectedClass}
               onChange={setSelectedClass}
               options={uniqueClasses.map(c => ({ value: c, label: c === 'all' ? 'جميع الفصول' : c }))}
               placeholder="اختر الفصل"
+              className="text-xs md:text-sm"
             />
           </div>
 
           {/* Search */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">بحث</label>
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ابحث بالاسم أو الرقم..."
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                className="w-full pr-8 sm:pr-10 pl-3 sm:pl-4 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-xs sm:text-sm"
               />
             </div>
           </div>

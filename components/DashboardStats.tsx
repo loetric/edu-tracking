@@ -641,25 +641,33 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
 
         {/* Behavior Alerts Modal */}
         {showBehaviorAlerts && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-              <div className="bg-orange-600 p-4 md:p-6 text-white flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <AlertTriangle size={24} />
-                  <div>
-                    <h3 className="text-lg md:text-xl font-bold">تنبيهات السلوك</h3>
-                    <p className="text-sm text-orange-100 mt-1">{behaviorAlertsCount} طالب</p>
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-2 md:p-4 overflow-y-auto"
+            onClick={(e) => e.target === e.currentTarget && setShowBehaviorAlerts(false)}
+            style={{ touchAction: 'none' }}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            <div 
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] my-auto overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-orange-600 p-4 md:p-6 text-white flex justify-between items-center flex-shrink-0">
+                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <AlertTriangle size={20} className="md:w-6 md:h-6 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <h3 className="text-base md:text-xl font-bold">تنبيهات السلوك</h3>
+                    <p className="text-xs md:text-sm text-orange-100 mt-1">{behaviorAlertsCount} طالب</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowBehaviorAlerts(false)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  className="p-1.5 md:p-2 hover:bg-white/20 rounded-lg transition-colors flex-shrink-0"
                 >
-                  <X size={20} />
+                  <X size={18} className="md:w-5 md:h-5" />
                 </button>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="flex-1 overflow-y-auto p-3 md:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {students.filter(s => s.challenge && s.challenge !== 'none').length > 0 ? (
                   <div className="space-y-2">
                     {students

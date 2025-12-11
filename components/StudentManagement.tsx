@@ -309,9 +309,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 setShowAddForm(!showAddForm);
                 setShowImportForm(false);
               }}
-              className="flex items-center gap-1 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial justify-center"
+              className="flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial"
             >
-              <UserPlus size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+              <UserPlus size={16} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
               <span>إضافة طالب</span>
             </button>
             
@@ -320,9 +320,9 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 setShowImportForm(!showImportForm);
                 setShowAddForm(false);
               }}
-              className="flex items-center gap-1 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial justify-center"
+              className="flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-bold shadow-sm text-xs md:text-sm flex-1 md:flex-initial"
             >
-              <Upload size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+              <Upload size={16} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
               <span>استيراد من Excel</span>
             </button>
           </div>
@@ -581,15 +581,15 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
 
       {/* Filters */}
       <div className="bg-white p-2 md:p-3 rounded-lg shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
-          {/* Filter Icon & Label */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Filter size={12} className="text-gray-500 flex-shrink-0" />
-            <span className="font-medium text-gray-600 text-[10px] md:text-xs">الفلاتر:</span>
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-3">
+          {/* Filter Icon & Label - Hidden on mobile, shown on desktop */}
+          <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+            <Filter size={14} className="text-gray-500 flex-shrink-0" />
+            <span className="font-medium text-gray-600 text-xs">الفلاتر:</span>
           </div>
           
           {/* Class Room Filter (الفصول) - First */}
-          <div className="w-[120px] md:w-[150px] flex-shrink-0">
+          <div className="flex-1 md:flex-initial md:w-[150px] min-w-[100px]">
             <CustomSelect
               value={filterClassRoom}
               onChange={(value) => {
@@ -603,28 +603,28 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 { value: '', label: 'لا توجد فصول - يرجى تعريف الفصول في الإعدادات' }
               ]}
               placeholder={uniqueClassRooms.length > 0 ? "جميع الفصول" : "لا توجد فصول"}
-              className="w-full text-[10px] md:text-xs"
+              className="w-full text-[11px] md:text-xs"
               disabled={false}
             />
           </div>
 
           {/* Search */}
-          <div className="flex-1 min-w-[120px] md:min-w-[200px]">
+          <div className="flex-1 md:flex-initial md:min-w-[200px] min-w-[100px]">
             <div className="relative">
-              <Search size={12} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+              <Search size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="بحث..."
-                className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
+                className="w-full pr-7 pl-2 py-1.5 text-[11px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
           {/* Challenge Filter */}
           {role !== 'admin' && (
-            <div className="w-[120px] md:w-[150px] flex-shrink-0">
+            <div className="flex-1 md:flex-initial md:w-[150px] min-w-[100px]">
               <CustomSelect
                 value={filterChallenge}
                 onChange={(value) => setFilterChallenge(value)}
@@ -636,7 +636,7 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                   }))
                 ]}
                 placeholder="جميع الحالات"
-                className="w-full text-[10px] md:text-xs"
+                className="w-full text-[11px] md:text-xs"
               />
             </div>
           )}
