@@ -28,7 +28,14 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedClass, setSelectedClass] = useState<string>(initialClassFilter || 'all');
+  // Set initial class to first class if no initialClassFilter is provided
+  const [selectedClass, setSelectedClass] = useState<string>(() => {
+    if (initialClassFilter) return initialClassFilter;
+    const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
+      ? settings.classGrades
+      : [];
+    return classesFromSettings.length > 0 ? classesFromSettings.sort()[0] : '';
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<Student | null>(null);
@@ -38,15 +45,18 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   useEffect(() => {
     if (initialClassFilter) {
       setSelectedClass(initialClassFilter);
+    } else if (uniqueClasses.length > 0 && !selectedClass) {
+      // Auto-select first class if no initial filter and no class selected
+      setSelectedClass(uniqueClasses[0]);
     }
-  }, [initialClassFilter]);
+  }, [initialClassFilter, uniqueClasses]);
 
-  // Get unique classes from settings only (not from student data)
+  // Get unique classes from settings only (not from student data) - without 'all' option
   const uniqueClasses = useMemo(() => {
     const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
       ? settings.classGrades
       : [];
-    return ['all', ...classesFromSettings.sort()];
+    return classesFromSettings.sort();
   }, [settings]);
 
   // Filter records by date range
@@ -85,8 +95,8 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   const filteredStudents = useMemo(() => {
     let filtered = students;
 
-    // Filter by class
-    if (selectedClass !== 'all') {
+    // Filter by class (always filter, no 'all' option)
+    if (selectedClass) {
       filtered = filtered.filter(s => s.classGrade === selectedClass);
     }
 
@@ -148,18 +158,20 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
               <span className="font-medium text-gray-700 text-xs">الفلاتر:</span>
             </div>
 
-            {/* Class Filter - First filter as requested */}
-            <div className="w-[160px] flex-shrink-0">
-              <CustomSelect
-                value={selectedClass}
-                onChange={(value) => setSelectedClass(value)}
-                options={uniqueClasses.map(c => ({ 
-                  value: c, 
-                  label: c === 'all' ? 'جميع الفصول' : c 
-                }))}
-                className="w-full text-xs"
-              />
-            </div>
+            {/* Class Filter - First filter, no 'all' option */}
+            {uniqueClasses.length > 0 && (
+              <div className="w-[160px] flex-shrink-0">
+                <CustomSelect
+                  value={selectedClass || uniqueClasses[0]}
+                  onChange={(value) => setSelectedClass(value)}
+                  options={uniqueClasses.map(c => ({ 
+                    value: c, 
+                    label: c 
+                  }))}
+                  className="w-full text-xs"
+                />
+              </div>
+            )}
 
             {/* Date Range */}
             <div className="w-[150px] flex-shrink-0">
