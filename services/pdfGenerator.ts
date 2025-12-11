@@ -1126,7 +1126,7 @@ export async function generatePDFReport(
     }
 
     // Counselor message
-    if (safeSettings.reportGeneralMessage) {
+    if (safeSettings.reportGeneralMessage && safeSettings.reportGeneralMessage.trim() !== '') {
       const messageBoxHeight = 50;
       page.drawRectangle({
         x: margin,
@@ -1204,11 +1204,14 @@ export async function generatePDFReport(
 
     // Center - QR Code or stamp (use stampUrl from settings if available, otherwise QR code or placeholder)
     const footerCenterX = width / 2;
-    if (safeSettings.stampUrl) {
+    const stampUrl = safeSettings.stampUrl?.trim();
+    if (stampUrl && stampUrl !== '') {
       // Use stamp image from settings
       try {
-        const stamp = await loadImage(pdfDoc, safeSettings.stampUrl);
+        console.log('Attempting to load stamp from URL:', stampUrl);
+        const stamp = await loadImage(pdfDoc, stampUrl);
         if (stamp) {
+          console.log('Stamp loaded successfully');
           const stampDims = stamp.scale(1);
           const stampAspectRatio = stampDims.width / stampDims.height;
           let stampWidth = 60;
@@ -1226,9 +1229,21 @@ export async function generatePDFReport(
             width: stampWidth,
             height: stampHeight,
           });
+        } else {
+          console.warn('Stamp image is null, falling back to placeholder');
+          // Fallback to placeholder
+          page.drawRectangle({
+            x: footerCenterX - 30,
+            y: footerY + 13,
+            width: 60,
+            height: 60,
+            borderColor: COLORS.gray300,
+            borderWidth: 2,
+            borderDashArray: [3, 3],
+          });
         }
       } catch (e) {
-        console.warn('Could not load stamp image:', e);
+        console.error('Could not load stamp image:', e);
         // Fallback to placeholder
         page.drawRectangle({
           x: footerCenterX - 30,
