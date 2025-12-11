@@ -1164,7 +1164,7 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    const footerY = 33; // Moved down 7px more (40 - 7 = 33)
+    const footerY = 50; // Moved up to avoid overlap with bottom strip (was 33)
     const footerHeight = 60;
     
     // Top border
@@ -1306,8 +1306,8 @@ export async function generatePDFReport(
       });
     }
 
-    // Bottom strip
-    const bottomStripY = 20;
+    // Bottom strip (moved up to avoid overlap with signatures)
+    const bottomStripY = 5;
     page.drawRectangle({
       x: margin,
       y: bottomStripY,
