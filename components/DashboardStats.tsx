@@ -353,16 +353,21 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 {item.isReady && (
                                                     <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">تم الرصد</span>
                                                 )}
-                                                <span className="text-[10px] text-gray-500 font-normal flex items-center gap-1">
-                                                    {item.teachers.map((teacherInfo, idx) => (
-                                                        <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
-                                                            {idx > 0 && <span className="mx-0.5">•</span>}
-                                                            <User size={10} className="flex-shrink-0 text-gray-400" />
-                                                            {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
-                                                                ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
-                                                                : teacherInfo.name}
-                                                        </span>
-                                                    ))}
+                                                <span className="text-[10px] font-normal flex items-center gap-1">
+                                                    {item.teachers.map((teacherInfo, idx) => {
+                                                        // Determine color based on role: original teacher = gray, substitute = purple
+                                                        const isSubstitute = teacherInfo.isSubstituted;
+                                                        const textColor = isSubstitute ? 'text-purple-700' : 'text-gray-600';
+                                                        const fontWeight = isSubstitute ? 'font-medium' : 'font-normal';
+                                                        
+                                                        return (
+                                                            <span key={idx} className={`flex items-center gap-0.5 ${textColor} ${fontWeight}`}>
+                                                                {idx > 0 && <span className="mx-0.5">•</span>}
+                                                                <User size={10} className={`flex-shrink-0 ${isSubstitute ? 'text-purple-500' : 'text-gray-400'}`} />
+                                                                {teacherInfo.name}
+                                                            </span>
+                                                        );
+                                                    })}
                                                 </span>
                                             </div>
                                         </td>
@@ -441,16 +446,21 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1 mb-1.5 text-[10px] text-gray-500 flex-wrap">
-                                    {item.teachers.map((teacherInfo, idx) => (
-                                        <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
-                                            {idx > 0 && <span className="mx-0.5">•</span>}
-                                            <User size={9} className="flex-shrink-0 text-gray-400" />
-                                            {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
-                                                ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
-                                                : teacherInfo.name}
-                                        </span>
-                                    ))}
+                                <div className="flex items-center gap-1 mb-1.5 text-[10px] flex-wrap">
+                                    {item.teachers.map((teacherInfo, idx) => {
+                                        // Determine color based on role: original teacher = gray, substitute = purple
+                                        const isSubstitute = teacherInfo.isSubstituted;
+                                        const textColor = isSubstitute ? 'text-purple-700' : 'text-gray-600';
+                                        const fontWeight = isSubstitute ? 'font-medium' : 'font-normal';
+                                        
+                                        return (
+                                            <span key={idx} className={`flex items-center gap-0.5 ${textColor} ${fontWeight}`}>
+                                                {idx > 0 && <span className="mx-0.5">•</span>}
+                                                <User size={9} className={`flex-shrink-0 ${isSubstitute ? 'text-purple-500' : 'text-gray-400'}`} />
+                                                {teacherInfo.name}
+                                            </span>
+                                        );
+                                    })}
                                 </div>
                                 <div className="flex items-center gap-1.5 mb-1.5">
                                     <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
