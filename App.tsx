@@ -1245,6 +1245,23 @@ const App: React.FC = () => {
           return;
       }
       
+      // Check if session is already assigned to a substitute
+      if (scheduleItem.isSubstituted) {
+          alert({ message: 'هذه الحصة مسندة بالفعل لمعلم بديل. يجب إلغاء الإسناد الحالي أولاً قبل إسنادها لمعلم بديل آخر.', type: 'error' });
+          return;
+      }
+      
+      // Check if there's already a substitution in the database for this session
+      const today = new Date().toISOString().split('T')[0];
+      const existingSub = substitutions.find(sub => 
+          sub.scheduleItemId === scheduleItemId && 
+          sub.date === today
+      );
+      if (existingSub) {
+          alert({ message: 'هذه الحصة مسندة بالفعل لمعلم بديل. يجب إلغاء الإسناد الحالي أولاً قبل إسنادها لمعلم بديل آخر.', type: 'error' });
+          return;
+      }
+      
       // Get the original teacher
       const originalTeacher = scheduleItem.originalTeacher || scheduleItem.teacher;
       
@@ -1253,8 +1270,6 @@ const App: React.FC = () => {
           alert({ message: 'لا يمكن إسناد الحصة للمعلم الأساسي نفسه. يرجى اختيار معلم بديل آخر.', type: 'error' });
           return;
       }
-      
-      const today = new Date().toISOString().split('T')[0];
       const newSub: Substitution = {
           id: Date.now().toString(),
           date: today,

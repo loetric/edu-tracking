@@ -69,6 +69,10 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
   const handleSessionClick = (session: ScheduleItem) => {
       if (role === 'admin' && onAssignSubstitute) {
+          // Prevent assigning if already substituted
+          if (session.isSubstituted) {
+              return; // Don't open modal if already assigned
+          }
           setSelectedSessionForSub(session);
       } else if (role === 'teacher' && onSessionEnter) {
           // Teacher clicks to enter session tracking
