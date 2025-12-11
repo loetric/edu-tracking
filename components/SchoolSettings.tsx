@@ -58,11 +58,18 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
   
   // Load subjects on mount and when tab changes
+  // Also use propSubjects immediately if available
   useEffect(() => {
     if (activeTab === 'academic' && academicSubTab === 'subjects') {
-      loadSubjects();
+      // If propSubjects are available, use them immediately, otherwise load
+      if (propSubjects && propSubjects.length > 0) {
+        setSubjects(propSubjects);
+        setIsLoadingSubjects(false);
+      } else {
+        loadSubjects();
+      }
     }
-  }, [activeTab, academicSubTab]);
+  }, [activeTab, academicSubTab, propSubjects]);
 
   // Use propSubjects if available, otherwise use local subjects state
   const availableSubjects = propSubjects.length > 0 ? propSubjects : subjects;
@@ -1347,7 +1354,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                 <div className="p-12 text-center text-gray-400">
                   <p>جاري التحميل...</p>
                 </div>
-              ) : subjects.length > 0 ? (
+              ) : (subjects.length > 0 || (propSubjects && propSubjects.length > 0)) ? (
                 <>
                   <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-right">
@@ -1360,7 +1367,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {subjects.map((subject) => (
+                        {(subjects.length > 0 ? subjects : propSubjects || []).map((subject) => (
                           <tr key={subject.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4 text-sm font-medium text-gray-800">{subject.name}</td>
                             <td className="px-6 py-4 text-sm text-gray-600">{subject.code || '-'}</td>
@@ -1389,7 +1396,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                     </table>
                   </div>
                   <div className="md:hidden divide-y divide-gray-100">
-                    {subjects.map((subject) => (
+                    {(subjects.length > 0 ? subjects : propSubjects || []).map((subject) => (
                       <div key={subject.id} className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Student, DailyRecord, Role, ScheduleItem, SchoolSettings } from '../types';
-import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText, UserX, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Send, TrendingUp, Users, CalendarCheck, Clock, Check, FileText, UserX, X, User } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
 import { getChallengeLabel, getChallengeColor } from '../constants';
@@ -335,28 +335,29 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     
                     {/* Desktop Table */}
                     <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-right text-xs border border-gray-200">
-                            <thead className="bg-gray-50 text-gray-500 border-b border-gray-200">
+                        <table className="w-full text-right text-xs border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-600 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">الفصل</th>
-                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">نسبة الإنجاز</th>
-                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">حالة التقرير</th>
-                                    <th className="px-3 py-2 font-bold text-[10px]">إجراء</th>
+                                    <th className="px-3 py-2.5 font-bold text-[10px] border-r border-gray-200 first:rounded-tr-lg">الفصل</th>
+                                    <th className="px-3 py-2.5 font-bold text-[10px] border-r border-gray-200">نسبة الإنجاز</th>
+                                    <th className="px-3 py-2.5 font-bold text-[10px] border-r border-gray-200">حالة التقرير</th>
+                                    <th className="px-3 py-2.5 font-bold text-[10px] last:rounded-tl-lg">إجراء</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {classStatus.length > 0 ? classStatus.map((item) => (
-                                    <tr key={item.className} className={`transition-colors border-b border-gray-100 ${item.isReady ? 'bg-green-50/30' : 'hover:bg-gray-50'}`}>
-                                        <td className="px-3 py-2 font-bold text-gray-800 border-r border-gray-200">
+                                {classStatus.length > 0 ? classStatus.map((item, index) => (
+                                    <tr key={item.className} className={`transition-all duration-200 border-b border-gray-100 last:border-b-0 ${item.isReady ? 'bg-green-50/30 hover:bg-green-50/50' : 'hover:bg-gray-50/80'}`}>
+                                        <td className="px-3 py-2.5 font-bold text-gray-800 border-r border-gray-200">
                                             <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                                <span className="text-[11px]">{item.className}</span>
+                                                <span className="text-[11px] font-semibold">{item.className}</span>
                                                 {item.isReady && (
-                                                    <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded whitespace-nowrap">تم الرصد</span>
+                                                    <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">تم الرصد</span>
                                                 )}
-                                                <span className="text-[9px] text-gray-400 font-normal">
+                                                <span className="text-[9px] text-gray-500 font-normal flex items-center gap-1">
                                                     {item.teachers.map((teacherInfo, idx) => (
-                                                        <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
-                                                            {idx > 0 && ' • '}
+                                                        <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
+                                                            {idx > 0 && <span className="mx-0.5">•</span>}
+                                                            <User size={9} className="flex-shrink-0 text-gray-400" />
                                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                                 : teacherInfo.name}
@@ -365,9 +366,9 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-2 border-r border-gray-200">
+                                        <td className="px-3 py-2.5 border-r border-gray-200">
                                             <div className="flex items-center gap-1.5">
-                                                <div className="flex-1 h-1.5 bg-gray-200 rounded-full max-w-[60px] overflow-hidden">
+                                                <div className="flex-1 h-2 bg-gray-200 rounded-full max-w-[60px] overflow-hidden shadow-inner">
                                                     <div 
                                                         className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
                                                         style={{ width: `${(item.progress / item.total) * 100}%` }}
@@ -378,23 +379,23 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-2 border-r border-gray-200">
+                                        <td className="px-3 py-2.5 border-r border-gray-200">
                                             {item.isReady ? (
-                                                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full w-fit whitespace-nowrap shadow-sm border border-green-200">
                                                     <CheckCircle size={10} className="flex-shrink-0" />
                                                     <span className="font-bold text-[9px]">جاهز للإرسال</span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-1 bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                                <div className="flex items-center gap-1 bg-gray-100 text-gray-500 px-2 py-1 rounded-full w-fit whitespace-nowrap shadow-sm border border-gray-200">
                                                     <Clock size={10} className="flex-shrink-0" />
                                                     <span className="font-bold text-[9px]">جاري الرصد...</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-3 py-2">
+                                        <td className="px-3 py-2.5">
                                             {item.isReady ? (
                                                 <button 
-                                                    className="flex items-center gap-1 text-white bg-teal-600 hover:bg-teal-700 px-2 py-1 rounded text-[9px] font-bold transition-colors shadow-sm whitespace-nowrap"
+                                                    className="flex items-center gap-1 text-white bg-teal-600 hover:bg-teal-700 px-2.5 py-1.5 rounded-lg text-[9px] font-bold transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
                                                     onClick={() => {
                                                         if (onBulkReport) {
                                                             // Navigate to reports page with class filter
@@ -410,7 +411,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                             ) : (
                                                  <button 
                                                     onClick={() => handleReminderClick(getFirstTeacherName(item.teachers), item.className)}
-                                                    className="flex items-center gap-1 text-orange-600 hover:text-white hover:bg-orange-500 px-2 py-1 rounded text-[9px] font-bold transition-colors border border-orange-200 whitespace-nowrap"
+                                                    className="flex items-center gap-1 text-orange-600 hover:text-white hover:bg-orange-500 px-2.5 py-1.5 rounded-lg text-[9px] font-bold transition-all duration-200 border border-orange-200 shadow-sm hover:shadow-md whitespace-nowrap"
                                                 >
                                                     <Send size={10} className="rtl:rotate-180 flex-shrink-0"/>
                                                     <span>استعجال المعلمين</span>
@@ -430,7 +431,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-2 p-3">
                         {classStatus.length > 0 ? classStatus.map((item) => (
-                            <div key={item.className} className={`bg-white border rounded-lg p-2.5 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+                            <div key={item.className} className={`bg-white border rounded-xl p-3 shadow-sm transition-all duration-200 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200 hover:shadow-md'}`}>
                                 <div className="flex items-center justify-between mb-1.5 gap-2">
                                     <p className="font-bold text-gray-800 text-xs truncate flex-1">{item.className}</p>
                                     {item.isReady && (
@@ -440,10 +441,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1 mb-1.5 text-[9px] text-gray-500">
+                                <div className="flex items-center gap-1 mb-1.5 text-[9px] text-gray-500 flex-wrap">
                                     {item.teachers.map((teacherInfo, idx) => (
-                                        <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
-                                            {idx > 0 && ' • '}
+                                        <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
+                                            {idx > 0 && <span className="mx-0.5">•</span>}
+                                            <User size={8} className="flex-shrink-0 text-gray-400" />
                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                 : teacherInfo.name}
@@ -466,7 +468,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 onBulkReport(item.className);
                                             }
                                         }}
-                                        className="w-full bg-teal-600 text-white py-1 rounded text-[9px] font-bold hover:bg-teal-700 flex items-center justify-center gap-1 whitespace-nowrap"
+                                        className="w-full bg-teal-600 text-white py-1.5 rounded-lg text-[9px] font-bold hover:bg-teal-700 transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-1 whitespace-nowrap"
                                     >
                                         <Send size={9} className="rtl:rotate-180 flex-shrink-0" />
                                         <span>إرسال التقارير</span>
