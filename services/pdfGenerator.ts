@@ -427,40 +427,19 @@ export async function generatePDFReport(
     }
 
     // ================= HEADER SECTION (3 columns like PDFReport.tsx) =================
-    const headerSectionHeight = 120;
+    const headerSectionHeight = 130;
     const headerY = cursorY;
+    const headerStartY = headerY; // Unified starting Y position for all header elements
     
-    // Right column - Kingdom info
-    const rightColX = width - margin;
-    let rightY = headerY;
-    const rightTexts = [
-      { text: 'المملكة العربية السعودية', fontSize: 10, color: '#6B7280', bold: false },
-      { text: safeSettings.ministry, fontSize: 11, color: '#1F2937', bold: true },
-      { text: safeSettings.region, fontSize: 11, color: '#1F2937', bold: true },
-      { text: safeSettings.name, fontSize: 13, color: '#0D9488', bold: true }
-    ];
+    // Unified font size and color for all header texts
+    const headerFontSize = 10;
+    const headerTextColor = '#2D3748'; // Unified color
+    const headerLineSpacing = 18;
     
-    for (const item of rightTexts) {
-      const img = await textToImage(item.text, {
-        fontSize: item.fontSize,
-        color: item.color,
-        align: 'right',
-        isBold: item.bold
-      });
-      const emb = await pdfDoc.embedPng(img.buffer);
-      page.drawImage(emb, {
-        x: rightColX - img.width,
-        y: rightY,
-        width: img.width,
-        height: img.height
-      });
-      rightY -= 18;
-    }
-
-    // Center column - Logo and title
+    // Center column - Logo (BIGGER and CENTERED)
     const headerCenterX = width / 2;
-    const logoSize = 60;
-    const logoY = headerY - 10;
+    const logoSize = 85; // Bigger logo
+    const logoY = headerStartY - 5; // Centered vertically in header
     
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
@@ -476,20 +455,22 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
+        // Center logo vertically in header
+        const logoCenterY = headerStartY - (headerSectionHeight / 2);
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: logoY - finalLogoHeight,
+          y: logoCenterY - finalLogoHeight / 2,
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
       }
     }
     
-    // Title with underline
-    const titleY = logoY - logoSize - 15;
+    // Title with underline (below logo, centered)
+    const titleY = headerStartY - headerSectionHeight + 20;
     const titleText = 'تقرير متابعة يومي';
     const titleImg = await textToImage(titleText, {
-      fontSize: 18, color: '#1F2937', align: 'center', isBold: true
+      fontSize: 16, color: '#1F2937', align: 'center', isBold: true
     });
     const titleEmb = await pdfDoc.embedPng(titleImg.buffer);
     page.drawImage(titleEmb, {
@@ -506,15 +487,42 @@ export async function generatePDFReport(
       thickness: 2,
       color: COLORS.teal600
     });
+    
+    // Right column - Kingdom info (unified font size and color, same starting Y)
+    const rightColX = width - margin;
+    let rightY = headerStartY;
+    const rightTexts = [
+      { text: 'المملكة العربية السعودية', bold: false },
+      { text: safeSettings.ministry, bold: true },
+      { text: safeSettings.region, bold: true },
+      { text: safeSettings.name, bold: true }
+    ];
+    
+    for (const item of rightTexts) {
+      const img = await textToImage(item.text, {
+        fontSize: headerFontSize,
+        color: headerTextColor,
+        align: 'right',
+        isBold: item.bold
+      });
+      const emb = await pdfDoc.embedPng(img.buffer);
+      page.drawImage(emb, {
+        x: rightColX - img.width,
+        y: rightY,
+        width: img.width,
+        height: img.height
+      });
+      rightY -= headerLineSpacing;
+    }
 
-    // Left column - Date and phone (text aligned right but positioned on left side)
+    // Left column - Date and phone (unified font size and color, same starting Y)
     const leftColX = margin;
     const leftColWidth = (width - margin * 2) / 3; // 1/3 of content width
     const leftColRightX = leftColX + leftColWidth;
-    let leftY = headerY;
+    let leftY = headerStartY;
     
     const dateLabelImg = await textToImage('تاريخ التقرير', {
-      fontSize: 9, color: '#6B7280', align: 'right', isBold: false
+      fontSize: headerFontSize, color: headerTextColor, align: 'right', isBold: false
     });
     const dateLabelEmb = await pdfDoc.embedPng(dateLabelImg.buffer);
     page.drawImage(dateLabelEmb, {
@@ -524,9 +532,9 @@ export async function generatePDFReport(
       height: dateLabelImg.height
     });
     
-    leftY -= 16;
+    leftY -= headerLineSpacing;
     const dateValueImg = await textToImage(dateStr, {
-      fontSize: 11, color: '#1F2937', align: 'right', isBold: true
+      fontSize: headerFontSize, color: headerTextColor, align: 'right', isBold: true
     });
     const dateValueEmb = await pdfDoc.embedPng(dateValueImg.buffer);
     page.drawImage(dateValueEmb, {
@@ -536,9 +544,9 @@ export async function generatePDFReport(
       height: dateValueImg.height
     });
     
-    leftY -= 16;
+    leftY -= headerLineSpacing;
     const dayImg = await textToImage(dayName, {
-      fontSize: 9, color: '#6B7280', align: 'right', isBold: false
+      fontSize: headerFontSize, color: headerTextColor, align: 'right', isBold: false
     });
     const dayEmb = await pdfDoc.embedPng(dayImg.buffer);
     page.drawImage(dayEmb, {
@@ -549,10 +557,10 @@ export async function generatePDFReport(
     });
     
     if (safeSettings.whatsappPhone) {
-      leftY -= 20;
+      leftY -= headerLineSpacing;
       const phoneText = safeSettings.whatsappPhone;
       const phoneImg = await textToImage(phoneText, {
-        fontSize: 9, color: '#4B5563', align: 'right', isBold: false
+        fontSize: headerFontSize, color: headerTextColor, align: 'right', isBold: false
       });
       const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
       page.drawImage(phoneEmb, {
@@ -564,7 +572,7 @@ export async function generatePDFReport(
     }
 
     // Border line under header
-    cursorY = titleY - 20;
+    cursorY = headerStartY - headerSectionHeight - 5;
     page.drawLine({
       start: { x: margin, y: cursorY },
       end: { x: width - margin, y: cursorY },
