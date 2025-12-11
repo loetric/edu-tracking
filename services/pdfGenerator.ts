@@ -1226,8 +1226,20 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    const footerY = 50; // Moved up to avoid overlap with bottom strip (was 33)
+    // Calculate footerY dynamically based on cursorY, ensuring it's at least 80px from bottom
+    // Footer should be at least 80px tall (60px for content + 20px for bottom strip)
+    const minFooterY = 80;
+    const calculatedFooterY = Math.max(minFooterY, cursorY - 80);
+    const footerY = calculatedFooterY;
     const footerHeight = 60;
+    
+    console.log('Footer positioning:', {
+      cursorY: cursorY,
+      calculatedFooterY: calculatedFooterY,
+      footerY: footerY,
+      pageHeight: height,
+      spaceFromBottom: footerY
+    });
     
     // Top border
     page.drawLine({
