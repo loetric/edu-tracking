@@ -296,7 +296,7 @@ export async function generatePDFReport(
     const behaviorInfo = getStatusDisplay(record.behavior, 'academic');
 
     // ================= HEADER SECTION (3 columns like PDFReport.tsx) =================
-    const headerHeight = 120;
+    const headerSectionHeight = 120;
     const headerY = cursorY;
     
     // Right column - Kingdom info
@@ -327,7 +327,7 @@ export async function generatePDFReport(
     }
 
     // Center column - Logo and title
-    const centerX = width / 2;
+    const headerCenterX = width / 2;
     const logoSize = 60;
     const logoY = headerY - 10;
     
@@ -346,7 +346,7 @@ export async function generatePDFReport(
         }
         
         page.drawImage(logo, {
-          x: centerX - finalLogoWidth / 2,
+          x: headerCenterX - finalLogoWidth / 2,
           y: logoY - finalLogoHeight,
           width: finalLogoWidth,
           height: finalLogoHeight,
@@ -362,7 +362,7 @@ export async function generatePDFReport(
     });
     const titleEmb = await pdfDoc.embedPng(titleImg.buffer);
     page.drawImage(titleEmb, {
-      x: centerX - titleImg.width / 2,
+      x: headerCenterX - titleImg.width / 2,
       y: titleY,
       width: titleImg.width,
       height: titleImg.height
@@ -370,8 +370,8 @@ export async function generatePDFReport(
     
     // Underline
     page.drawLine({
-      start: { x: centerX - titleImg.width / 2 - 10, y: titleY - 3 },
-      end: { x: centerX + titleImg.width / 2 + 10, y: titleY - 3 },
+      start: { x: headerCenterX - titleImg.width / 2 - 10, y: titleY - 3 },
+      end: { x: headerCenterX + titleImg.width / 2 + 10, y: titleY - 3 },
       thickness: 2,
       color: COLORS.teal600
     });
@@ -553,9 +553,9 @@ export async function generatePDFReport(
         });
         
         // Value
-        const valueColor = detail.isSpecial ? COLORS.teal700 : COLORS.gray800;
+        const valueColorStr = detail.isSpecial ? '#0D9488' : '#1F2937';
         const valueImg = await textToImage(detail.value, {
-          fontSize: 11, color: `rgb(${Math.round(valueColor.r * 255)}, ${Math.round(valueColor.g * 255)}, ${Math.round(valueColor.b * 255)})`, 
+          fontSize: 11, color: valueColorStr, 
           align: 'right', isBold: true, maxWidth: cellWidth - 20
         });
         const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
@@ -575,7 +575,7 @@ export async function generatePDFReport(
     
     // Section title
     const summaryTitleImg = await textToImage('ملخص الأداء والمستوى اليومي', {
-      fontSize: 12, color: COLORS.teal700, align: 'right', isBold: true
+      fontSize: 12, color: '#0D9488', align: 'right', isBold: true
     });
     const summaryTitleEmb = await pdfDoc.embedPng(summaryTitleImg.buffer);
     page.drawImage(summaryTitleEmb, {
@@ -705,7 +705,7 @@ export async function generatePDFReport(
     
     // Table title
     const tableTitleImg = await textToImage('كشف المتابعة والحصص الدراسية', {
-      fontSize: 12, color: COLORS.teal700, align: 'right', isBold: true
+      fontSize: 12, color: '#0D9488', align: 'right', isBold: true
     });
     const tableTitleEmb = await pdfDoc.embedPng(tableTitleImg.buffer);
     page.drawImage(tableTitleEmb, {
@@ -728,7 +728,7 @@ export async function generatePDFReport(
     
     const tableY = cursorY;
     const rowHeight = 30;
-    const headerHeight = 35;
+    const tableHeaderHeight = 35;
     const numRows = Math.min(dailySchedule.length, 7);
     
     // Column widths (8 columns)
@@ -761,9 +761,9 @@ export async function generatePDFReport(
       
       page.drawRectangle({
         x: headerLeftX,
-        y: tableY - headerHeight,
+        y: tableY - tableHeaderHeight,
         width: header.width,
-        height: headerHeight,
+        height: tableHeaderHeight,
         color: COLORS.gray100,
       });
       
@@ -778,7 +778,7 @@ export async function generatePDFReport(
       
       page.drawImage(hEmb, {
         x: headerLeftX + header.width / 2 - hImg.width / 2,
-        y: tableY - headerHeight / 2 - hImg.height / 2,
+        y: tableY - tableHeaderHeight / 2 - hImg.height / 2,
         width: hImg.width,
         height: hImg.height
       });
@@ -787,7 +787,7 @@ export async function generatePDFReport(
       if (headerX < width - margin) {
         page.drawLine({
           start: { x: headerLeftX, y: tableY },
-          end: { x: headerLeftX, y: tableY - headerHeight },
+          end: { x: headerLeftX, y: tableY - tableHeaderHeight },
           thickness: 1,
           color: COLORS.gray300
         });
@@ -798,14 +798,14 @@ export async function generatePDFReport(
 
     // Bottom border of header
     page.drawLine({
-      start: { x: margin, y: tableY - headerHeight },
-      end: { x: width - margin, y: tableY - headerHeight },
+      start: { x: margin, y: tableY - tableHeaderHeight },
+      end: { x: width - margin, y: tableY - tableHeaderHeight },
       thickness: 1.5,
       color: COLORS.gray300
     });
 
     // Draw rows
-    let rowY = tableY - headerHeight;
+    let rowY = tableY - tableHeaderHeight;
     for (let i = 0; i < numRows; i++) {
       const session = dailySchedule[i];
       const isEven = i % 2 === 0;
@@ -962,7 +962,7 @@ export async function generatePDFReport(
       });
       
       const notesTitleImg = await textToImage('الملاحظات العامة على اليوم الدراسي', {
-        fontSize: 10, color: COLORS.teal700, align: 'right', isBold: true
+        fontSize: 10, color: '#0D9488', align: 'right', isBold: true
       });
       const notesTitleEmb = await pdfDoc.embedPng(notesTitleImg.buffer);
       page.drawImage(notesTitleEmb, {
@@ -1068,14 +1068,14 @@ export async function generatePDFReport(
     });
 
     // Center - QR Code or stamp placeholder
-    const centerX = width / 2;
+    const footerCenterX = width / 2;
     if (safeSettings.reportLink) {
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(safeSettings.reportLink)}`;
       try {
         const qrCode = await loadImage(pdfDoc, qrCodeUrl);
         if (qrCode) {
           page.drawImage(qrCode, {
-            x: centerX - 30,
+            x: footerCenterX - 30,
             y: footerY + 20,
             width: 60,
             height: 60,
@@ -1087,7 +1087,7 @@ export async function generatePDFReport(
     } else {
       // Stamp placeholder
       page.drawRectangle({
-        x: centerX - 30,
+        x: footerCenterX - 30,
         y: footerY + 20,
         width: 60,
         height: 60,
@@ -1101,7 +1101,7 @@ export async function generatePDFReport(
       });
       const stampPlaceholderEmb = await pdfDoc.embedPng(stampPlaceholderImg.buffer);
       page.drawImage(stampPlaceholderEmb, {
-        x: centerX - stampPlaceholderImg.width / 2,
+        x: footerCenterX - stampPlaceholderImg.width / 2,
         y: footerY + 45,
         width: stampPlaceholderImg.width,
         height: stampPlaceholderImg.height
@@ -1113,7 +1113,7 @@ export async function generatePDFReport(
     });
     const stampLabelEmb = await pdfDoc.embedPng(stampLabelImg.buffer);
     page.drawImage(stampLabelEmb, {
-      x: centerX - stampLabelImg.width / 2,
+      x: footerCenterX - stampLabelImg.width / 2,
       y: footerY + 5,
       width: stampLabelImg.width,
       height: stampLabelImg.height
