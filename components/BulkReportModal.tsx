@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
-import { X, Send, Check, Users, Loader, FileText } from 'lucide-react';
+import { X, Send, Check, Users, Loader, FileText, Eye } from 'lucide-react';
 import { getStatusLabel, getAttendanceLabel } from '../constants';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
@@ -67,6 +67,36 @@ export const BulkReportModal: React.FC<BulkReportModalProps> = ({
 
 ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
     `.trim();
+  };
+
+  const previewReport = async (student: Student) => {
+    try {
+      const record = records[student.id];
+      if (!record) {
+        alert({ message: `لا توجد بيانات مرصودة للطالب ${student.name}`, type: 'warning' });
+        return;
+      }
+
+      // Generate PDF report
+      setGeneratingPdf(student.id);
+      const pdfBytes = await generatePDFReport(student, record, settings, schedule);
+      
+      // Create blob and open in new window for preview
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const pdfUrl = URL.createObjectURL(blob);
+      
+      // Open PDF in new window/tab for preview
+      window.open(pdfUrl, '_blank');
+      
+      setGeneratingPdf(null);
+    } catch (error) {
+      console.error('Error generating PDF for preview:', error);
+      setGeneratingPdf(null);
+      alert({ 
+        message: `حدث خطأ أثناء توليد تقرير ${student.name}. يرجى المحاولة مرة أخرى.`, 
+        type: 'error' 
+      });
+    }
   };
 
   const sendReport = async (student: Student) => {
@@ -235,25 +265,43 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
                                </div>
                            </div>
                        </div>
-                       <button 
-                         onClick={() => sendReport(student)}
-                         disabled={isSent || isSendingAll || isGenerating}
-                         className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded text-xs sm:text-sm font-bold transition-colors w-full sm:w-auto ${
-                             isSent 
-                             ? 'bg-transparent text-green-600 cursor-default' 
-                             : isGenerating
-                             ? 'bg-yellow-100 text-yellow-700 cursor-wait'
-                             : 'bg-teal-600 text-white hover:bg-teal-700'
-                         }`}
-                       >
-                           {isGenerating ? (
-                             <><Loader className="animate-spin" size={14} /> <span>جاري التوليد...</span></>
-                           ) : isSent ? (
-                             <><Check size={14} className="sm:w-4 sm:h-4"/> <span>تم الإرسال</span></>
-                           ) : (
-                             <><Send size={14} className="sm:w-4 sm:h-4 rtl:rotate-180"/> <span>إرسال</span></>
-                           )}
-                       </button>
+                       <div className="flex items-center gap-2 w-full sm:w-auto">
+                           <button 
+                             onClick={() => previewReport(student)}
+                             disabled={isGenerating}
+                             className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded text-xs sm:text-sm font-bold transition-colors ${
+                                 isGenerating
+                                 ? 'bg-gray-100 text-gray-400 cursor-wait'
+                                 : 'bg-blue-600 text-white hover:bg-blue-700'
+                             }`}
+                             title="معاينة التقرير"
+                           >
+                               {isGenerating ? (
+                                 <><Loader className="animate-spin" size={14} /></>
+                               ) : (
+                                 <><Eye size={14} className="sm:w-4 sm:h-4"/> <span className="hidden sm:inline">معاينة</span></>
+                               )}
+                           </button>
+                           <button 
+                             onClick={() => sendReport(student)}
+                             disabled={isSent || isSendingAll || isGenerating}
+                             className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded text-xs sm:text-sm font-bold transition-colors flex-1 sm:flex-initial ${
+                                 isSent 
+                                 ? 'bg-transparent text-green-600 cursor-default' 
+                                 : isGenerating
+                                 ? 'bg-yellow-100 text-yellow-700 cursor-wait'
+                                 : 'bg-teal-600 text-white hover:bg-teal-700'
+                             }`}
+                           >
+                               {isGenerating ? (
+                                 <><Loader className="animate-spin" size={14} /> <span>جاري التوليد...</span></>
+                               ) : isSent ? (
+                                 <><Check size={14} className="sm:w-4 sm:h-4"/> <span>تم الإرسال</span></>
+                               ) : (
+                                 <><Send size={14} className="sm:w-4 sm:h-4 rtl:rotate-180"/> <span>إرسال</span></>
+                               )}
+                           </button>
+                       </div>
                    </div>
                );
              })

@@ -2,6 +2,112 @@ import { PDFDocument, rgb, StandardFonts, PDFFont, PDFPage } from 'pdf-lib';
 import { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
 import { getStatusLabel } from '../constants';
 
+/**
+ * Convert Arabic text to image using Canvas
+ * This is needed because pdf-lib doesn't support Arabic fonts by default
+ */
+async function textToImage(text: string, fontSize: number = 12, isBold: boolean = false): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+
+      // Set font - use system fonts that support Arabic
+      const fontFamily = 'Arial, "Segoe UI", "Tahoma", "Arabic Typesetting", sans-serif';
+      const fontWeight = isBold ? 'bold' : 'normal';
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#000000';
+
+      // Measure text
+      const metrics = ctx.measureText(text);
+      const textWidth = Math.max(metrics.width, 10); // Ensure minimum width
+      const textHeight = fontSize * 1.5; // Add some padding for line height
+
+      // Set canvas size with padding
+      canvas.width = Math.ceil(textWidth) + 20; // Add padding
+      canvas.height = Math.ceil(textHeight) + 10;
+
+      // Clear and redraw with correct size
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = '#000000';
+
+      // Draw text
+      ctx.fillText(text, canvas.width - 10, 5);
+
+      // Convert to blob then to array buffer
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Failed to create blob'));
+          return;
+        }
+        blob.arrayBuffer().then(buffer => {
+          resolve(new Uint8Array(buffer));
+        }).catch(reject);
+      }, 'image/png');
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/**
+ * Embed text as image in PDF (for Arabic support)
+ */
+async function drawArabicText(
+  page: PDFPage,
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number = 12,
+  isBold: boolean = false,
+  pageHeight: number
+): Promise<void> {
+  try {
+    // Convert text to image
+    const imageBytes = await textToImage(text, fontSize, isBold);
+    
+    // Embed image in PDF
+    const image = await page.doc.embedPng(imageBytes);
+    
+    // Calculate position (y is from top, convert to bottom)
+    const pdfY = pageHeight - y;
+    
+    // Draw image
+    page.drawImage(image, {
+      x: x,
+      y: pdfY - image.height * 0.75, // Adjust for text baseline
+      width: image.width,
+      height: image.height,
+    });
+  } catch (error) {
+    console.warn(`Error drawing Arabic text "${text}":`, error);
+    // Fallback: try to draw as regular text (may not work for Arabic)
+    try {
+      const helveticaFont = await page.doc.embedFont(StandardFonts.Helvetica);
+      const pdfY = pageHeight - y;
+      page.drawText(text, {
+        x: x,
+        y: pdfY,
+        size: fontSize,
+        font: helveticaFont,
+        color: rgb(0, 0, 0),
+      });
+    } catch (fallbackError) {
+      console.error('Fallback text drawing also failed:', fallbackError);
+    }
+  }
+}
+
 // Load PDF template
 const TEMPLATE_PATH = '/templates/pdf/student_report_template.pdf';
 
@@ -135,36 +241,52 @@ async function loadTemplate(): Promise<PDFDocument> {
 }
 
 /**
- * Draw text on PDF page with field configuration
+ * Check if text contains Arabic characters
  */
-function drawField(
+function containsArabic(text: string): boolean {
+  const arabicRegex = /[\u0600-\u06FF]/;
+  return arabicRegex.test(text);
+}
+
+/**
+ * Draw text on PDF page with field configuration
+ * Uses image embedding for Arabic text since pdf-lib doesn't support Arabic fonts
+ */
+async function drawField(
   page: PDFPage,
   text: string,
   field: FieldPosition,
   regularFont: PDFFont,
   boldFont: PDFFont,
   pageHeight: number
-): void {
+): Promise<void> {
   if (!field || !text) return;
   
-  const font = field.font === 'bold' ? boldFont : regularFont;
   const fontSize = field.fontSize || 12;
-  const color = field.color ? rgb(field.color.r, field.color.g, field.color.b) : rgb(0, 0, 0);
+  const isBold = field.font === 'bold';
   
-  // PDF coordinates: y=0 is at bottom, so we need to convert from top-based to bottom-based
-  const y = pageHeight - field.y;
-  
-  try {
-    page.drawText(text, {
-      x: field.x,
-      y: y,
-      size: fontSize,
-      font: font,
-      color: color,
-      maxWidth: field.width,
-    });
-  } catch (error) {
-    console.warn(`Error drawing field "${text}":`, error);
+  // Check if text contains Arabic characters
+  if (containsArabic(text)) {
+    // Use image embedding for Arabic text
+    await drawArabicText(page, text, field.x, field.y, fontSize, isBold, pageHeight);
+  } else {
+    // Use regular text drawing for non-Arabic text
+    const font = isBold ? boldFont : regularFont;
+    const color = field.color ? rgb(field.color.r, field.color.g, field.color.b) : rgb(0, 0, 0);
+    const y = pageHeight - field.y;
+    
+    try {
+      page.drawText(text, {
+        x: field.x,
+        y: y,
+        size: fontSize,
+        font: font,
+        color: color,
+        maxWidth: field.width,
+      });
+    } catch (error) {
+      console.warn(`Error drawing field "${text}":`, error);
+    }
   }
 }
 
@@ -179,9 +301,26 @@ export async function generatePDFReport(
   customFields?: Partial<TemplateFields>
 ): Promise<Uint8Array> {
   try {
+    // Validate inputs
+    if (!student || !student.name) {
+      throw new Error('Student data is missing or invalid');
+    }
+    if (!record) {
+      throw new Error('Record data is missing');
+    }
+    if (!settings) {
+      throw new Error('Settings data is missing');
+    }
+    if (!Array.isArray(schedule)) {
+      throw new Error('Schedule data is missing or invalid');
+    }
+
     // Load template
     const pdfDoc = await loadTemplate();
     const pages = pdfDoc.getPages();
+    if (pages.length === 0) {
+      throw new Error('PDF template has no pages');
+    }
     const firstPage = pages[0];
     const { width, height } = firstPage.getSize();
 
@@ -215,76 +354,77 @@ export async function generatePDFReport(
       }
     };
 
-    // Fill in fields
+    // Fill in fields (all async to support Arabic text)
     if (fields.studentName) {
-      drawField(firstPage, student.name, fields.studentName, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, student.name, fields.studentName, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.studentClass) {
-      drawField(firstPage, student.classGrade || '', fields.studentClass, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, student.classGrade || '', fields.studentClass, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.studentId) {
-      drawField(firstPage, student.id, fields.studentId, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, student.id, fields.studentId, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.parentPhone) {
-      drawField(firstPage, student.parentPhone || '', fields.parentPhone, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, student.parentPhone || '', fields.parentPhone, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.reportDate) {
-      drawField(firstPage, dateStr, fields.reportDate, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, dateStr, fields.reportDate, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.dayName) {
-      drawField(firstPage, dayName, fields.dayName, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, dayName, fields.dayName, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.schoolName) {
-      drawField(firstPage, settings.name || '', fields.schoolName, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, settings.name || '', fields.schoolName, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.ministry) {
-      drawField(firstPage, settings.ministry || '', fields.ministry, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, settings.ministry || '', fields.ministry, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.region) {
-      drawField(firstPage, settings.region || '', fields.region, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, settings.region || '', fields.region, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.schoolPhone && settings.whatsappPhone) {
-      drawField(firstPage, settings.whatsappPhone, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, settings.whatsappPhone, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.attendance) {
-      drawField(firstPage, getStatusText(record.attendance, 'attendance'), fields.attendance, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, getStatusText(record.attendance, 'attendance'), fields.attendance, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.participation) {
-      drawField(firstPage, getStatusText(record.participation, 'academic'), fields.participation, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, getStatusText(record.participation, 'academic'), fields.participation, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.homework) {
-      drawField(firstPage, getStatusText(record.homework, 'academic'), fields.homework, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, getStatusText(record.homework, 'academic'), fields.homework, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.behavior) {
-      drawField(firstPage, getStatusText(record.behavior, 'academic'), fields.behavior, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, getStatusText(record.behavior, 'academic'), fields.behavior, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.notes) {
-      drawField(firstPage, record.notes || '', fields.notes, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, record.notes || '', fields.notes, helveticaFont, helveticaBoldFont, height);
     }
     
     // Schedule (if multiple positions)
     if (fields.schedule && fields.schedule.length > 0) {
       const dailySchedule = schedule.filter(s => s.day === dayName).sort((a, b) => a.period - b.period);
-      dailySchedule.forEach((session, index) => {
+      for (let index = 0; index < dailySchedule.length; index++) {
+        const session = dailySchedule[index];
         if (fields.schedule && fields.schedule[index]) {
           const scheduleText = `${session.period} - ${session.subject} (${session.classRoom})`;
-          drawField(firstPage, scheduleText, fields.schedule[index], helveticaFont, helveticaBoldFont, height);
+          await drawField(firstPage, scheduleText, fields.schedule[index], helveticaFont, helveticaBoldFont, height);
         }
-      });
+      }
     }
 
     // Save PDF
