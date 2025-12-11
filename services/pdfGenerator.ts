@@ -1126,7 +1126,14 @@ export async function generatePDFReport(
     }
 
     // Counselor message
-    if (safeSettings.reportGeneralMessage && safeSettings.reportGeneralMessage.trim() !== '') {
+    const counselorMessage = safeSettings.reportGeneralMessage?.trim();
+    console.log('Checking counselor message:', { 
+      exists: !!safeSettings.reportGeneralMessage, 
+      trimmed: counselorMessage,
+      length: counselorMessage?.length 
+    });
+    if (counselorMessage && counselorMessage !== '') {
+      console.log('Drawing counselor message:', counselorMessage);
       const messageBoxHeight = 50;
       page.drawRectangle({
         x: margin,
