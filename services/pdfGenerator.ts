@@ -1280,19 +1280,19 @@ export async function generatePDFReport(
     }
 
     // Left - School manager signature (no signature line)
-    // Title first, then name below if available
+    // Title first, then name below if available - moved down 8px
     const managerTitleImg = await textToImage('مدير المدرسة', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
     page.drawImage(managerTitleEmb, {
       x: margin + 50 - managerTitleImg.width / 2,
-      y: footerY + 33, // Moved down 7px
+      y: footerY + 25, // Moved down 8px (33 - 8 = 25)
       width: managerTitleImg.width,
       height: managerTitleImg.height
     });
     
-    // Name below title if available
+    // Name below title if available - moved down 8px
     if (safeSettings.principalName) {
       const managerNameImg = await textToImage(safeSettings.principalName, {
         fontSize: 9, color: '#6B7280', align: 'center', isBold: false
@@ -1300,7 +1300,7 @@ export async function generatePDFReport(
       const managerNameEmb = await pdfDoc.embedPng(managerNameImg.buffer);
       page.drawImage(managerNameEmb, {
         x: margin + 50 - managerNameImg.width / 2,
-        y: footerY + 20, // Below the title
+        y: footerY + 12, // Moved down 8px (20 - 8 = 12)
         width: managerNameImg.width,
         height: managerNameImg.height
       });
@@ -1308,42 +1308,45 @@ export async function generatePDFReport(
 
     // Bottom strip (moved up to avoid overlap with signatures)
     const bottomStripY = 5;
+    const bottomStripHeight = 25;
     page.drawRectangle({
       x: margin,
       y: bottomStripY,
       width: contentWidth,
-      height: 25,
+      height: bottomStripHeight,
       color: COLORS.gray100,
       borderColor: COLORS.gray200,
       borderWidth: 1,
     });
     
-    // Slogan (moved down 11px to center in footer)
+    // Slogan (positioned at bottom of footer strip)
     if (safeSettings.slogan) {
       const sloganImg = await textToImage(safeSettings.slogan, {
         fontSize: 9, color: '#6B7280', align: 'left', isBold: true
       });
       const sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
+      // Position text at bottom of footer strip
       page.drawImage(sloganEmb, {
         x: margin + 10,
-        y: bottomStripY + 15, // Centered in footer (adjusted for new bottomStripY)
+        y: bottomStripY + 8, // At bottom of footer strip (aligned properly)
         width: sloganImg.width,
         height: sloganImg.height
       });
     }
     
-    // Platform info (moved down 11px to center in footer)
+    // Platform info (positioned at bottom of footer strip)
     const platformText = `صدر عن: نظام التتبع الذكي${safeSettings.whatsappPhone ? ` | رقم المدرسة: ${safeSettings.whatsappPhone}` : ''}`;
     const platformImg = await textToImage(platformText, {
       fontSize: 8, color: '#6B7280', align: 'right', isBold: false
     });
     const platformEmb = await pdfDoc.embedPng(platformImg.buffer);
-      page.drawImage(platformEmb, {
-        x: width - margin - platformImg.width - 10,
-        y: bottomStripY + 15, // Centered in footer (adjusted for new bottomStripY)
-        width: platformImg.width,
-        height: platformImg.height
-      });
+    // Position text at bottom of footer strip
+    page.drawImage(platformEmb, {
+      x: width - margin - platformImg.width - 10,
+      y: bottomStripY + 9, // At bottom of footer strip (aligned with slogan)
+      width: platformImg.width,
+      height: platformImg.height
+    });
 
     return await pdfDoc.save();
   } catch (error) {
