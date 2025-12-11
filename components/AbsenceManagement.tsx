@@ -192,7 +192,7 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
     { value: 'week', label: 'أسبوع', icon: Clock },
     { value: 'repeated', label: 'متكررون (3+ مرات)', icon: AlertTriangle },
     { value: 'excused', label: 'مسأذنون', icon: CheckCircle },
-    { value: 'unexcused', label: 'غير مسأذنين', icon: XCircle },
+    { value: 'unexcused', label: 'غائب', icon: XCircle },
     { value: 'all', label: 'الكل', icon: Users },
   ];
 

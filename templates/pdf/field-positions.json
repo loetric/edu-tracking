@@ -1,0 +1,173 @@
+{
+  "pageWidth": 595,
+  "pageHeight": 842,
+  "fields": {
+    "studentName": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 14,
+      "font": "bold",
+      "description": "اسم الطالب - حدد الموضع من الأعلى (y) ومن اليسار (x)"
+    },
+    "studentClass": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "الفصل الدراسي"
+    },
+    "studentId": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 11,
+      "font": "regular",
+      "description": "رقم الملف/الطالب"
+    },
+    "parentPhone": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 11,
+      "font": "regular",
+      "description": "جوال ولي الأمر"
+    },
+    "reportDate": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "تاريخ التقرير"
+    },
+    "dayName": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 11,
+      "font": "regular",
+      "description": "اسم اليوم"
+    },
+    "schoolName": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 14,
+      "font": "bold",
+      "description": "اسم المدرسة"
+    },
+    "ministry": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "الوزارة"
+    },
+    "region": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "الإدارة التعليمية"
+    },
+    "schoolPhone": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 11,
+      "font": "regular",
+      "description": "رقم واتساب المدرسة"
+    },
+    "attendance": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "الحضور (حاضر/غائب/مستأذن)"
+    },
+    "participation": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "المشاركة"
+    },
+    "homework": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "الواجبات"
+    },
+    "behavior": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 12,
+      "font": "regular",
+      "description": "السلوك"
+    },
+    "notes": {
+      "x": 0,
+      "y": 0,
+      "fontSize": 11,
+      "font": "regular",
+      "width": 400,
+      "description": "الملاحظات (يمكن أن يكون نص طويل)"
+    },
+    "schedule": [
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة الأولى"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة الثانية"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة الثالثة"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة الرابعة"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة الخامسة"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة السادسة"
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "fontSize": 10,
+        "font": "regular",
+        "description": "الحصة السابعة"
+      }
+    ]
+  },
+  "instructions": {
+    "step1": "افتح ملف PDF القالب في برنامج مثل Adobe Acrobat أو PDF Editor",
+    "step2": "استخدم أداة القياس أو أدوات التعليقات لتحديد موضع كل حقل",
+    "step3": "في PDF، الإحداثيات تبدأ من الزاوية السفلية اليسرى (0, 0)",
+    "step4": "الوحدة المستخدمة هي النقاط (Points) حيث 1 بوصة = 72 نقطة",
+    "step5": "x = المسافة من اليسار، y = المسافة من الأعلى (سيتم تحويلها تلقائياً)",
+    "step6": "املأ قيم x و y لكل حقل في هذا الملف",
+    "step7": "بعد ملء جميع المواضع، سيتم استخدامها تلقائياً في النظام"
+  }
+}
+

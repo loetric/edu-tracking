@@ -101,3 +101,20 @@ export const assignSubstitute = async (substitution: Substitution): Promise<void
   }
 };
 
+/**
+ * Remove substitute teacher assignment
+ */
+export const removeSubstitute = async (substitutionId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('substitutions')
+      .delete()
+      .eq('id', substitutionId);
+    
+    if (error) throw error;
+  } catch (error) {
+    console.error('Remove substitute error:', error);
+    throw error;
+  }
+};
+

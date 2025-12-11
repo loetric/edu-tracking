@@ -8,6 +8,7 @@ interface TeacherScheduleProps {
   schedule: ScheduleItem[];
   completedSessions?: string[]; 
   onAssignSubstitute?: (scheduleId: string, teacher: string) => void;
+  onRemoveSubstitute?: (scheduleId: string) => void; // Function to remove substitute assignment
   role?: Role;
   availableTeachers?: string[]; // Dynamic list of teachers
   subjects?: Subject[]; // List of subjects for filtering
@@ -16,7 +17,7 @@ interface TeacherScheduleProps {
   onSessionEnter?: (session: ScheduleItem) => void; // For teacher to enter session tracking
 }
 
-export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter }) => {
+export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, onRemoveSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6, 7];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
@@ -452,6 +453,22 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                                 <div className="bg-gray-800 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer">بديل</div>
                                             </div>
                                         )}
+                                        {role === 'admin' && session.isSubstituted && session.originalTeacher && onRemoveSubstitute && (
+                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (onRemoveSubstitute) {
+                                                            onRemoveSubstitute(session.id);
+                                                        }
+                                                    }}
+                                                    className="bg-red-600 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer hover:bg-red-700 transition-colors"
+                                                    title="التراجع عن الإسناد"
+                                                >
+                                                    إلغاء
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -493,9 +510,25 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                       {session.isSubstituted && session.originalTeacher ? (
                         <div className="mt-1 space-y-0.5">
                           <p className="text-[10px] md:text-xs text-gray-700 font-bold">المعلم: {session.originalTeacher}</p>
-                          <div className="flex items-center gap-1">
-                            <RefreshCw size={10} className="text-purple-600" />
-                            <p className="text-[10px] md:text-xs text-purple-700 font-medium">احتياط: {session.teacher}</p>
+                          <div className="flex items-center justify-between gap-1">
+                            <div className="flex items-center gap-1">
+                              <RefreshCw size={10} className="text-purple-600" />
+                              <p className="text-[10px] md:text-xs text-purple-700 font-medium">احتياط: {session.teacher}</p>
+                            </div>
+                            {role === 'admin' && onRemoveSubstitute && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onRemoveSubstitute) {
+                                    onRemoveSubstitute(session.id);
+                                  }
+                                }}
+                                className="text-red-600 hover:text-red-700 text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded border border-red-300 hover:bg-red-50 transition-colors"
+                                title="التراجع عن الإسناد"
+                              >
+                                إلغاء
+                              </button>
+                            )}
                           </div>
                         </div>
                       ) : (

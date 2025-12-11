@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       },
+      publicDir: 'public',
       build: {
         // Add hash to filenames for cache busting
         rollupOptions: {

@@ -1246,6 +1246,39 @@ const App: React.FC = () => {
       setSubstitutions(prev => [...prev, newSub]); // Optimistic
       await api.assignSubstitute(newSub);
       handleAddLog('إسناد احتياط', `تم إسناد حصة احتياط للمعلم ${newTeacher}`);
+      
+      // Update schedule to reflect substitution
+      const updatedSchedule = schedule.map(s => 
+          s.id === scheduleItemId 
+              ? { ...s, teacher: newTeacher, originalTeacher: s.teacher || s.originalTeacher, isSubstituted: true }
+              : s
+      );
+      setSchedule(updatedSchedule);
+  };
+
+  const handleRemoveSubstitute = async (scheduleItemId: string) => {
+      try {
+          // Find the substitution to remove
+          const substitution = substitutions.find(sub => sub.scheduleItemId === scheduleItemId);
+          if (substitution) {
+              await api.removeSubstitute(substitution.id);
+              setSubstitutions(prev => prev.filter(sub => sub.id !== substitution.id));
+              handleAddLog('إلغاء احتياط', 'تم إلغاء إسناد حصة احتياط');
+          }
+          
+          // Update schedule to remove substitution
+          const updatedSchedule = schedule.map(s => 
+              s.id === scheduleItemId 
+                  ? { ...s, teacher: s.originalTeacher || s.teacher, originalTeacher: undefined, isSubstituted: false }
+                  : s
+          );
+          setSchedule(updatedSchedule);
+          
+          alert({ message: 'تم إلغاء إسناد المعلم الاحتياطي بنجاح', type: 'success' });
+      } catch (error) {
+          console.error('Error removing substitute:', error);
+          alert({ message: 'فشل في إلغاء إسناد المعلم الاحتياطي', type: 'error' });
+      }
   };
 
   // --- Data Processing for View ---
@@ -1350,6 +1383,7 @@ const App: React.FC = () => {
                   completedSessions={completedSessions}
                   schedule={effectiveSchedule}
                   settings={effectiveSettings}
+                  onBulkReport={currentUser.role === 'admin' ? handleBulkReportClick : undefined}
                />;
       case 'tracking':
         return (
@@ -1444,6 +1478,7 @@ const App: React.FC = () => {
                 schedule={currentUser.role === 'admin' ? effectiveSchedule : currentSchedule} 
                 completedSessions={completedSessions} 
                 onAssignSubstitute={currentUser.role === 'admin' ? handleAssignSubstitute : undefined}
+                onRemoveSubstitute={currentUser.role === 'admin' ? handleRemoveSubstitute : undefined}
                 role={currentUser.role}
                 subjects={subjects || []}
                 onUpdateSchedule={currentUser.role === 'admin' ? handleUpdateSchedule : undefined}
@@ -1582,6 +1617,8 @@ const App: React.FC = () => {
           records={currentRecords}
           schoolName={effectiveSettings.name}
           schoolPhone={effectiveSettings.whatsappPhone}
+          settings={effectiveSettings}
+          schedule={schedule}
       />
 
       {/* Show Internal Chat only on dashboard */}

@@ -14,9 +14,10 @@ interface DashboardStatsProps {
   completedSessions?: string[];
   schedule: ScheduleItem[]; // Prop is required now
   settings?: SchoolSettings; // Settings to get classGrades from
+  onBulkReport?: (records: Record<string, DailyRecord>) => void; // Function to open bulk report modal
 }
 
-export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule, settings }) => {
+export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule, settings, onBulkReport }) => {
   const { alert, alertModal } = useModal();
   const [showAbsentStudents, setShowAbsentStudents] = useState(false);
   const [showBehaviorAlerts, setShowBehaviorAlerts] = useState(false);
@@ -395,7 +396,25 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                             {item.isReady ? (
                                                 <button 
                                                     className="flex items-center gap-1.5 md:gap-2 text-white bg-teal-600 hover:bg-teal-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-sm"
-                                                    onClick={() => alert({ message: `سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`, type: 'info' })}
+                                                    onClick={() => {
+                                                        if (onBulkReport) {
+                                                            // Filter records for students in this class for today
+                                                            const today = new Date().toISOString().split('T')[0];
+                                                            const classRecords: Record<string, DailyRecord> = {};
+                                                            const classStudents = students.filter(s => s.classGrade === item.className);
+                                                            classStudents.forEach(student => {
+                                                                const record = Object.values(records).find(r => 
+                                                                    r.studentId === student.id && r.date === today
+                                                                );
+                                                                if (record) {
+                                                                    classRecords[student.id] = record;
+                                                                }
+                                                            });
+                                                            onBulkReport(classRecords);
+                                                        } else {
+                                                            alert({ message: `سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`, type: 'info' });
+                                                        }
+                                                    }}
                                                 >
                                                     <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
                                                     <span className="hidden sm:inline">إرسال التقارير</span>

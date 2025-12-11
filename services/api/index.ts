@@ -50,6 +50,7 @@ export const api = {
   updateSchedule: schedule.updateSchedule,
   getSubstitutions: schedule.getSubstitutions,
   assignSubstitute: schedule.assignSubstitute,
+  removeSubstitute: schedule.removeSubstitute,
 
   // Daily records
   getDailyRecords: records.getDailyRecords,
