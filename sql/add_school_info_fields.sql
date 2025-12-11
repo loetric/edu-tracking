@@ -20,13 +20,6 @@ BEGIN
         ALTER TABLE settings ADD COLUMN "educationalAffairsOfficer" text;
     END IF;
 
-    -- Add schoolNumber (رقم المدرسة)
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'settings' AND column_name = 'schoolNumber'
-    ) THEN
-        ALTER TABLE settings ADD COLUMN "schoolNumber" text;
-    END IF;
 
     -- Add stampUrl (ختم المدرسة)
     IF NOT EXISTS (

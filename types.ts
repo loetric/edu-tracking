@@ -25,7 +25,6 @@ export interface SchoolSettings {
   academicYear?: string; // العام الدراسي (مثال: 1445-1446)
   principalName?: string; // اسم مدير المدرسة
   educationalAffairsOfficer?: string; // وكيل الشؤون التعليمية
-  schoolNumber?: string; // رقم المدرسة
   stampUrl?: string; // ختم المدرسة (صورة)
 }
 

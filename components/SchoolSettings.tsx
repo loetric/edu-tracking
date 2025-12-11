@@ -813,14 +813,18 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">رقم المدرسة</label>
-                <input
-                  type="text"
-                  value={formData.schoolNumber || ''}
-                  onChange={e => setFormData({...formData, schoolNumber: e.target.value})}
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
-                  placeholder="مثال: 12345"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">رقم واتساب المدرسة (للتواصل)</label>
+                <div className="relative">
+                    <Phone size={16} className="absolute top-3 right-3 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="966500000000"
+                      value={formData.whatsappPhone || ''}
+                      onChange={e => setFormData({...formData, whatsappPhone: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 pr-10 border"
+                    />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">يستخدم هذا الرقم في تذييل التقارير كمرجع لولي الأمر</p>
               </div>
 
               <div>
@@ -1521,20 +1525,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                     />
                   </div>
 
-                  <div className="mt-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">رقم واتساب المدرسة (للتواصل)</label>
-                      <div className="relative">
-                          <Phone size={16} className="absolute top-3 right-3 text-gray-400" />
-                          <input
-                            type="text"
-                            placeholder="966500000000"
-                            value={formData.whatsappPhone || ''}
-                            onChange={e => setFormData({...formData, whatsappPhone: e.target.value})}
-                            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 pr-10 border"
-                          />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">يستخدم هذا الرقم في تذييل التقارير كمرجع لولي الأمر</p>
-                  </div>
 
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">الشعار</label>
