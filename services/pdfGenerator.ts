@@ -438,7 +438,7 @@ export async function generatePDFReport(
     
     // Center column - Logo (BIGGER and ALIGNED with header texts)
     const headerCenterX = width / 2;
-    const logoSize = 100; // Even bigger logo
+    const logoSize = 110; // Bigger logo (increased from 100)
     
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
@@ -454,10 +454,10 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
-        // Logo aligned with header texts (same Y as headerStartY) - raised 14px
+        // Logo aligned with header texts (same Y as headerStartY) - raised 21px (14 + 7)
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: headerStartY - finalLogoHeight + 14, // Raised 14px
+          y: headerStartY - finalLogoHeight + 21, // Raised 21px (14 + 7)
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
@@ -735,14 +735,14 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
     
-    // Chart title (top right of chart box)
+    // Chart title (top right of chart box) - moved down 5px
     const chartTitleImg = await textToImage('مؤشر الأداء', {
       fontSize: 9, color: '#9CA3AF', align: 'right', isBold: true
     });
     const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
     page.drawImage(chartTitleEmb, {
       x: chartX + chartWidth - chartTitleImg.width - chartPadding,
-      y: chartY - 12,
+      y: chartY - 17, // Moved down 5px (from 12 to 17)
       width: chartTitleImg.width,
       height: chartTitleImg.height
     });
@@ -1277,11 +1277,8 @@ export async function generatePDFReport(
     }
 
     // Right - School manager signature (no "التوقيع" label)
-    // Use name from settings if available, otherwise use title only
-    const managerTitleText = safeSettings.principalName 
-      ? `مدير المدرسة\n${safeSettings.principalName}`
-      : 'مدير المدرسة';
-    const managerTitleImg = await textToImage(managerTitleText, {
+    // Title first, then name below if available
+    const managerTitleImg = await textToImage('مدير المدرسة', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
@@ -1291,6 +1288,20 @@ export async function generatePDFReport(
       width: managerTitleImg.width,
       height: managerTitleImg.height
     });
+    
+    // Name below title if available
+    if (safeSettings.principalName) {
+      const managerNameImg = await textToImage(safeSettings.principalName, {
+        fontSize: 9, color: '#6B7280', align: 'center', isBold: false
+      });
+      const managerNameEmb = await pdfDoc.embedPng(managerNameImg.buffer);
+      page.drawImage(managerNameEmb, {
+        x: width - margin - 50 - managerNameImg.width / 2,
+        y: footerY + 20, // Below the title
+        width: managerNameImg.width,
+        height: managerNameImg.height
+      });
+    }
     
     // Signature line
     page.drawLine({

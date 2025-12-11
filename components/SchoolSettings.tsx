@@ -813,7 +813,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">رقم واتساب المدرسة (للتواصل)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">رقم المدرسة</label>
                 <div className="relative">
                     <Phone size={16} className="absolute top-3 right-3 text-gray-400" />
                     <input

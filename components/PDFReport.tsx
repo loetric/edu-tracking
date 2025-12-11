@@ -410,7 +410,7 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
                     <span className="font-bold">{settings.slogan}</span>
                     <div className="flex gap-4">
                         <span>صدر عن: نظام التتبع الذكي</span>
-                        {settings.whatsappPhone && <span dir="ltr">Contact: {settings.whatsappPhone}</span>}
+                        {settings.whatsappPhone && <span dir="ltr">رقم المدرسة: {settings.whatsappPhone}</span>}
                     </div>
                 </div>
             </footer>
