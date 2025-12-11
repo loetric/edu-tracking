@@ -397,48 +397,40 @@ export async function generatePDFReport(
     });
     const dayName = reportDate.toLocaleDateString('ar-SA', { weekday: 'long' });
 
-    // Colors - Professional palette
-    const primaryColor = { r: 0.05, g: 0.4, b: 0.5 }; // Teal-800
-    const secondaryColor = { r: 0.15, g: 0.15, b: 0.15 }; // Gray-900
-    const accentColor = { r: 0.1, g: 0.6, b: 0.7 }; // Teal-600
-    const lightGray = { r: 0.96, g: 0.96, b: 0.96 };
-    const borderGray = { r: 0.75, g: 0.75, b: 0.75 };
-    const textGray = { r: 0.3, g: 0.3, b: 0.3 };
+    // Colors - Modern palette
+    const primaryColor = { r: 0.07, g: 0.45, b: 0.62 }; // teal/blue
+    const secondaryColor = { r: 0.12, g: 0.14, b: 0.18 }; // dark text
+    const accentColor = { r: 0.88, g: 0.95, b: 0.99 }; // light sky
+    const lightGray = { r: 0.97, g: 0.97, b: 0.98 };
+    const borderGray = { r: 0.82, g: 0.84, b: 0.86 };
+    const textGray = { r: 0.42, g: 0.45, b: 0.5 };
+
+    // Layout helpers
+    const margin = 45;
+    const contentWidth = width - margin * 2;
+
+    // Page background
+    drawRectangle(page, 0, height, width, height, { r: 0.985, g: 0.99, b: 0.995 }, height);
 
     // ============================================
-    // HEADER SECTION - Professional Design
+    // HEADER SECTION - Modern hero
     // ============================================
-    const headerY = height - 20;
-    const headerHeight = 110;
-    
-    // Header background with gradient effect
-    drawRectangle(page, 0, headerY, width, headerHeight,
-      { r: 0.98, g: 0.99, b: 1.0 }, height);
-    
-    // Top decorative line
-    page.drawLine({
-      start: { x: 0, y: headerY },
-      end: { x: width, y: headerY },
-      thickness: 4,
-      color: rgb(primaryColor.r, primaryColor.g, primaryColor.b),
-    });
+    const headerY = height - margin;
+    const headerHeight = 140;
 
-    // Bottom border of header
-    page.drawLine({
-      start: { x: 50, y: headerY - headerHeight },
-      end: { x: width - 50, y: headerY - headerHeight },
-      thickness: 1.5,
-      color: rgb(borderGray.r, borderGray.g, borderGray.b),
-    });
+    // Hero background
+    drawRectangle(page, margin, headerY, contentWidth, headerHeight, { r: 0.92, g: 0.96, b: 0.99 }, height, borderGray, 2);
+    // Accent bar
+    drawRectangle(page, margin, headerY, contentWidth, 10, { r: 0.07, g: 0.45, b: 0.62 }, height);
 
-    // Load and draw logo (center)
+    // Logo (centered)
     if (safeSettings.logoUrl) {
       try {
         const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
         if (logo) {
-          const logoSize = 50;
-          const logoX = width / 2 - logoSize / 2;
-          const logoY = headerY - 30;
+          const logoSize = 58;
+          const logoX = margin + contentWidth / 2 - logoSize / 2;
+          const logoY = headerY - 18;
           page.drawImage(logo, {
             x: logoX,
             y: height - logoY - logoSize,
@@ -451,43 +443,33 @@ export async function generatePDFReport(
       }
     }
 
-    // Kingdom of Saudi Arabia (top right)
-    await drawText(page, 'المملكة العربية السعودية', width - 60, headerY - 25, 9, true, height,
-      textGray, helveticaFont, helveticaBoldFont);
-
-    // Ministry (right side)
-    await drawText(page, safeSettings.ministry, width - 60, headerY - 40, 10, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
-
-    // Region (right side, below ministry)
-    await drawText(page, safeSettings.region, width - 60, headerY - 55, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-
-    // School name (center, large and prominent)
-    await drawText(page, safeSettings.name, width / 2, headerY - 50, 20, true, height,
+    // School name & title
+    await drawText(page, safeSettings.name, margin + contentWidth / 2, headerY - 30, 20, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
-
-    // Report title (center, below school name)
-    await drawText(page, 'تقرير متابعة يومي', width / 2, headerY - 75, 16, true, height,
+    await drawText(page, 'تقرير متابعة يومي', margin + contentWidth / 2, headerY - 52, 15, true, height,
       secondaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
 
-    // Date section (left side)
-    await drawText(page, 'تاريخ التقرير', 60, headerY - 25, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-    await drawText(page, dateStr, 60, headerY - 40, 11, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
-    await drawText(page, dayName, 60, headerY - 55, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
+    // Right column (ministry/region)
+    await drawText(page, 'المملكة العربية السعودية', margin + contentWidth - 10, headerY - 20, 9, true, height,
+      textGray, helveticaFont, helveticaBoldFont, undefined, 'right');
+    await drawText(page, safeSettings.ministry, margin + contentWidth - 10, headerY - 36, 10, true, height,
+      secondaryColor, helveticaFont, helveticaBoldFont, undefined, 'right');
+    await drawText(page, safeSettings.region, margin + contentWidth - 10, headerY - 52, 9, false, height,
+      textGray, helveticaFont, helveticaBoldFont, undefined, 'right');
 
-    // Academic year (if available)
+    // Left column (date)
+    await drawText(page, 'تاريخ التقرير', margin + 12, headerY - 18, 9, false, height,
+      textGray, helveticaFont, helveticaBoldFont);
+    await drawText(page, dateStr, margin + 12, headerY - 36, 11, true, height,
+      secondaryColor, helveticaFont, helveticaBoldFont);
+    await drawText(page, dayName, margin + 12, headerY - 52, 9, false, height,
+      textGray, helveticaFont, helveticaBoldFont);
     if (safeSettings.academicYear) {
-      await drawText(page, `العام الدراسي: ${safeSettings.academicYear}`, 60, headerY - 70, 9, false, height,
+      await drawText(page, `العام الدراسي: ${safeSettings.academicYear}`, margin + 12, headerY - 68, 9, false, height,
         textGray, helveticaFont, helveticaBoldFont);
     }
-
-    // School WhatsApp (if available, left side)
     if (safeSettings.whatsappPhone) {
-      await drawText(page, `واتساب: ${safeSettings.whatsappPhone}`, 60, headerY - 85, 8, false, height,
+      await drawText(page, `واتساب: ${safeSettings.whatsappPhone}`, margin + 12, headerY - 84, 9, false, height,
         textGray, helveticaFont, helveticaBoldFont);
     }
 
@@ -495,192 +477,136 @@ export async function generatePDFReport(
     // STUDENT INFORMATION SECTION
     // ============================================
     const studentSectionY = headerY - headerHeight - 25;
-    
-    // Section title with underline
-    await drawText(page, 'معلومات الطالب', width / 2, studentSectionY, 15, true, height,
+    await drawText(page, 'بيانات الطالب', margin + contentWidth / 2, studentSectionY, 15, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
-    
-    // Underline for section title
     page.drawLine({
-      start: { x: width / 2 - 60, y: studentSectionY - 5 },
-      end: { x: width / 2 + 60, y: studentSectionY - 5 },
+      start: { x: margin + contentWidth / 2 - 70, y: studentSectionY - 6 },
+      end: { x: margin + contentWidth / 2 + 70, y: studentSectionY - 6 },
       thickness: 2,
       color: rgb(primaryColor.r, primaryColor.g, primaryColor.b),
     });
 
-    // Student info box
-    const studentBoxY = studentSectionY - 25;
-    const studentBoxHeight = 90;
-    const studentBoxPadding = 15;
-    
-    // Background box with border
-    drawRectangle(page, 50, studentBoxY, width - 100, studentBoxHeight,
-      { r: 1.0, g: 1.0, b: 1.0 }, height, { r: 0.2, g: 0.2, b: 0.2 }, 2);
-
-    // Inner light background
-    drawRectangle(page, 52, studentBoxY - 2, width - 104, studentBoxHeight - 4,
+    const studentBoxY = studentSectionY - 24;
+    const studentBoxHeight = 110;
+    drawRectangle(page, margin, studentBoxY, contentWidth, studentBoxHeight,
+      { r: 1, g: 1, b: 1 }, height, borderGray, 2);
+    drawRectangle(page, margin + 2, studentBoxY - 2, contentWidth - 4, studentBoxHeight - 4,
       lightGray, height);
 
-    // Student name (right side, top)
-    await drawText(page, 'الاسم الرباعي:', width - 70, studentBoxY + 65, 10, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-    await drawText(page, student.name, width - 70, studentBoxY + 50, 13, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
+    // Two-column layout
+    const colWidth = contentWidth / 2;
+    const rightX = margin + contentWidth - 14;
+    const leftX = margin + 14;
+    const row1Y = studentBoxY + 78;
+    const row2Y = studentBoxY + 54;
+    const row3Y = studentBoxY + 30;
 
-    // Class (right side, middle)
-    await drawText(page, 'الفصل:', width - 70, studentBoxY + 30, 10, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-    await drawText(page, student.classGrade || 'غير محدد', width - 70, studentBoxY + 15, 11, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
+    // Right column: name / class / id
+    await drawText(page, 'الاسم', rightX, row1Y, 10, false, height, textGray, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
+    await drawText(page, student.name, rightX, row1Y - 12, 13, true, height, secondaryColor, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
+    await drawText(page, 'الفصل', rightX, row2Y, 10, false, height, textGray, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
+    await drawText(page, student.classGrade || 'غير محدد', rightX, row2Y - 12, 11, true, height, secondaryColor, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
+    await drawText(page, 'رقم الملف', rightX, row3Y, 10, false, height, textGray, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
+    await drawText(page, student.id, rightX, row3Y - 12, 10, true, height, secondaryColor, helveticaFont, helveticaBoldFont, colWidth - 20, 'right');
 
-    // Student ID (right side, bottom)
-    await drawText(page, 'رقم الملف:', width - 70, studentBoxY - 5, 10, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-    await drawText(page, student.id, width - 70, studentBoxY - 20, 10, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
-
-    // Parent phone (left side, top)
-    await drawText(page, 'جوال ولي الأمر:', 70, studentBoxY + 65, 10, false, height,
-      textGray, helveticaFont, helveticaBoldFont);
-    await drawText(page, student.parentPhone || 'غير متوفر', 70, studentBoxY + 50, 11, true, height,
-      secondaryColor, helveticaFont, helveticaBoldFont);
-
-    // Status badge (left side, middle)
-    const badgeY = studentBoxY + 25;
-    const badgeWidth = 120;
-    const badgeHeight = 25;
-    drawRectangle(page, 70, badgeY, badgeWidth, badgeHeight,
-      { r: 0.9, g: 0.98, b: 0.95 }, height, { r: 0.1, g: 0.5, b: 0.3 }, 1.5);
-    await drawText(page, 'معتمد من المدرسة', 70 + badgeWidth / 2, badgeY + badgeHeight / 2, 9, true, height,
-      { r: 0.05, g: 0.5, b: 0.3 }, helveticaFont, helveticaBoldFont, badgeWidth, 'center');
+    // Left column: parent phone, whatsapp, badge
+    await drawText(page, 'جوال ولي الأمر', leftX, row1Y, 10, false, height, textGray, helveticaFont, helveticaBoldFont, colWidth - 20, 'left');
+    await drawText(page, student.parentPhone || 'غير متوفر', leftX, row1Y - 12, 11, true, height, secondaryColor, helveticaFont, helveticaBoldFont, colWidth - 20, 'left');
+    if (safeSettings.whatsappPhone) {
+      await drawText(page, 'واتساب المدرسة', leftX, row2Y, 10, false, height, textGray, helveticaFont, helveticaBoldFont, colWidth - 20, 'left');
+      await drawText(page, safeSettings.whatsappPhone, leftX, row2Y - 12, 10, true, height, secondaryColor, helveticaFont, helveticaBoldFont, colWidth - 20, 'left');
+    }
+    const badgeY = studentBoxY + 14;
+    drawRectangle(page, leftX, badgeY, 140, 26, { r: 0.9, g: 0.98, b: 0.95 }, height, { r: 0.12, g: 0.6, b: 0.4 }, 1.5);
+    await drawText(page, 'معتمد من المدرسة', leftX + 70, badgeY + 13, 10, true, height,
+      { r: 0.1, g: 0.5, b: 0.35 }, helveticaFont, helveticaBoldFont, 140, 'center');
 
     // ============================================
     // PERFORMANCE INDICATORS SECTION
     // ============================================
-    const performanceSectionY = studentBoxY - studentBoxHeight - 25;
-    
-    // Section title
-    await drawText(page, 'ملخص الأداء والمستوى اليومي', width / 2, performanceSectionY, 15, true, height,
+    const performanceSectionY = studentBoxY - 140;
+    await drawText(page, 'ملخص الأداء والمستوى اليومي', margin + contentWidth / 2, performanceSectionY, 15, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
-    
-    // Underline
     page.drawLine({
-      start: { x: width / 2 - 80, y: performanceSectionY - 5 },
-      end: { x: width / 2 + 80, y: performanceSectionY - 5 },
+      start: { x: margin + contentWidth / 2 - 90, y: performanceSectionY - 6 },
+      end: { x: margin + contentWidth / 2 + 90, y: performanceSectionY - 6 },
       thickness: 2,
       color: rgb(primaryColor.r, primaryColor.g, primaryColor.b),
     });
 
-    // Performance cards
-    const cardY = performanceSectionY - 30;
-    const cardWidth = 115;
-    const cardHeight = 60;
-    const cardSpacing = 12;
-    const totalCardsWidth = (cardWidth * 4) + (cardSpacing * 3);
-    const startX = (width - totalCardsWidth) / 2 + totalCardsWidth;
+    const cardWidth = (contentWidth - 30) / 2;
+    const cardHeight = 70;
+    const cardStartY = performanceSectionY - 30;
+    const cardRowGap = 12;
 
-    // Attendance card
-    const attendanceColors = getStatusColors(record.attendance, 'attendance');
-    drawRectangle(page, startX - cardWidth, cardY, cardWidth, cardHeight,
-      attendanceColors.bg, height, attendanceColors.border, 2);
-    await drawText(page, 'الحضور', startX - cardWidth / 2, cardY + 45, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-    await drawText(page, getStatusText(record.attendance, 'attendance'),
-      startX - cardWidth / 2, cardY + 25, 14, true, height, attendanceColors.text, helveticaFont, helveticaBoldFont, cardWidth, 'center');
+    const cards = [
+      { label: 'الحضور', value: getStatusText(record.attendance, 'attendance'), colors: getStatusColors(record.attendance, 'attendance') },
+      { label: 'المشاركة', value: getStatusText(record.participation, 'academic'), colors: getStatusColors(record.participation, 'academic') },
+      { label: 'الواجبات', value: getStatusText(record.homework, 'academic'), colors: getStatusColors(record.homework, 'academic') },
+      { label: 'السلوك', value: getStatusText(record.behavior, 'academic'), colors: getStatusColors(record.behavior, 'academic') },
+    ];
 
-    // Participation card
-    const participationColors = getStatusColors(record.participation, 'academic');
-    drawRectangle(page, startX - cardWidth * 2 - cardSpacing, cardY, cardWidth, cardHeight,
-      participationColors.bg, height, participationColors.border, 2);
-    await drawText(page, 'المشاركة', startX - cardWidth * 1.5 - cardSpacing, cardY + 45, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-    await drawText(page, getStatusText(record.participation, 'academic'),
-      startX - cardWidth * 1.5 - cardSpacing, cardY + 25, 14, true, height, participationColors.text, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-
-    // Homework card
-    const homeworkColors = getStatusColors(record.homework, 'academic');
-    drawRectangle(page, startX - cardWidth * 3 - cardSpacing * 2, cardY, cardWidth, cardHeight,
-      homeworkColors.bg, height, homeworkColors.border, 2);
-    await drawText(page, 'الواجبات', startX - cardWidth * 2.5 - cardSpacing * 2, cardY + 45, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-    await drawText(page, getStatusText(record.homework, 'academic'),
-      startX - cardWidth * 2.5 - cardSpacing * 2, cardY + 25, 14, true, height, homeworkColors.text, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-
-    // Behavior card
-    const behaviorColors = getStatusColors(record.behavior, 'academic');
-    drawRectangle(page, startX - cardWidth * 4 - cardSpacing * 3, cardY, cardWidth, cardHeight,
-      behaviorColors.bg, height, behaviorColors.border, 2);
-    await drawText(page, 'السلوك', startX - cardWidth * 3.5 - cardSpacing * 3, cardY + 45, 9, false, height,
-      textGray, helveticaFont, helveticaBoldFont, cardWidth, 'center');
-    await drawText(page, getStatusText(record.behavior, 'academic'),
-      startX - cardWidth * 3.5 - cardSpacing * 3, cardY + 25, 14, true, height, behaviorColors.text, helveticaFont, helveticaBoldFont, cardWidth, 'center');
+    for (let i = 0; i < cards.length; i++) {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const x = margin + col * (cardWidth + 10);
+      const y = cardStartY - row * (cardHeight + cardRowGap);
+      drawRectangle(page, x, y, cardWidth, cardHeight, cards[i].colors.bg, height, cards[i].colors.border, 2);
+      await drawText(page, cards[i].label, x + cardWidth / 2, y + cardHeight - 20, 10, false, height,
+        textGray, helveticaFont, helveticaBoldFont, cardWidth, 'center');
+      await drawText(page, cards[i].value, x + cardWidth / 2, y + cardHeight - 40, 14, true, height,
+        cards[i].colors.text, helveticaFont, helveticaBoldFont, cardWidth, 'center');
+    }
 
     // ============================================
     // SCHEDULE SECTION
     // ============================================
-    const scheduleSectionY = cardY - cardHeight - 30;
-    
-    // Section title
-    await drawText(page, 'كشف المتابعة والحصص الدراسية', width / 2, scheduleSectionY, 15, true, height,
+    const scheduleSectionY = cardStartY - (cardHeight + cardRowGap) * 2 - 30;
+    await drawText(page, 'كشف المتابعة والحصص الدراسية', margin + contentWidth / 2, scheduleSectionY, 15, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
-    
-    // Underline
     page.drawLine({
-      start: { x: width / 2 - 100, y: scheduleSectionY - 5 },
-      end: { x: width / 2 + 100, y: scheduleSectionY - 5 },
+      start: { x: margin + contentWidth / 2 - 110, y: scheduleSectionY - 6 },
+      end: { x: margin + contentWidth / 2 + 110, y: scheduleSectionY - 6 },
       thickness: 2,
       color: rgb(primaryColor.r, primaryColor.g, primaryColor.b),
     });
 
-    // Filter schedule for the day
     const dailySchedule = schedule.filter(s => s.day === dayName).sort((a, b) => a.period - b.period);
 
     if (dailySchedule.length > 0) {
-      const tableY = scheduleSectionY - 25;
-      const rowHeight = 28;
-      const headerHeight = 32;
-      const tableWidth = width - 100;
-      
-      // Table header background
-      drawRectangle(page, 50, tableY - headerHeight, tableWidth, headerHeight,
-        { r: 0.15, g: 0.4, b: 0.5 }, height, { r: 0.1, g: 0.3, b: 0.4 }, 2);
+      const tableY = scheduleSectionY - 24;
+      const rowHeight = 30;
+      const headerHeight = 34;
+      const tableWidth = contentWidth;
 
-      // Header text (white)
-      const headerTextColor = { r: 1.0, g: 1.0, b: 1.0 };
+      // Header
+      drawRectangle(page, margin, tableY - headerHeight, tableWidth, headerHeight,
+        { r: 0.1, g: 0.5, b: 0.65 }, height, { r: 0.08, g: 0.42, b: 0.55 }, 2);
+      const headerTextColor = { r: 1, g: 1, b: 1 };
       const colWidth = tableWidth / 4;
-      await drawText(page, 'م', 50 + colWidth * 0.5, tableY - 20, 11, true, height,
+      await drawText(page, 'م', margin + colWidth * 0.5, tableY - 20, 11, true, height,
         headerTextColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
-      await drawText(page, 'المادة', 50 + colWidth * 1.5, tableY - 20, 11, true, height,
+      await drawText(page, 'المادة', margin + colWidth * 1.5, tableY - 20, 11, true, height,
         headerTextColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
-      await drawText(page, 'المعلم', 50 + colWidth * 2.5, tableY - 20, 11, true, height,
+      await drawText(page, 'المعلم', margin + colWidth * 2.5, tableY - 20, 11, true, height,
         headerTextColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
-      await drawText(page, 'الفصل', 50 + colWidth * 3.5, tableY - 20, 11, true, height,
+      await drawText(page, 'الفصل', margin + colWidth * 3.5, tableY - 20, 11, true, height,
         headerTextColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
 
-      // Table rows
+      // Rows
       for (let i = 0; i < Math.min(dailySchedule.length, 7); i++) {
         const session = dailySchedule[i];
         const rowY = tableY - headerHeight - (i + 1) * rowHeight;
-        
-        // Row background (alternating)
-        const rowBg = i % 2 === 0 ? { r: 1.0, g: 1.0, b: 1.0 } : lightGray;
-        drawRectangle(page, 50, rowY, tableWidth, rowHeight,
-          rowBg, height, borderGray, 1);
+        const rowBg = i % 2 === 0 ? { r: 1, g: 1, b: 1 } : { r: 0.97, g: 0.98, b: 0.985 };
+        drawRectangle(page, margin, rowY, tableWidth, rowHeight, rowBg, height, borderGray, 1);
 
-        // Period number (centered)
-        await drawText(page, String(session.period), 50 + colWidth * 0.5, rowY + rowHeight / 2, 11, true, height,
+        await drawText(page, String(session.period), margin + colWidth * 0.5, rowY + rowHeight / 2 + 4, 11, true, height,
           secondaryColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
-        
-        // Subject (centered)
-        await drawText(page, session.subject || '-', 50 + colWidth * 1.5, rowY + rowHeight / 2, 10, false, height,
+        await drawText(page, session.subject || '-', margin + colWidth * 1.5, rowY + rowHeight / 2 + 4, 10, false, height,
           secondaryColor, helveticaFont, helveticaBoldFont, colWidth, 'center');
-        
-        // Teacher (centered)
-        await drawText(page, session.teacher || '-', 50 + colWidth * 2.5, rowY + rowHeight / 2, 10, false, height,
+        await drawText(page, session.teacher || '-', margin + colWidth * 2.5, rowY + rowHeight / 2 + 4, 10, false, height,
           textGray, helveticaFont, helveticaBoldFont, colWidth, 'center');
-        
-        // Classroom (centered)
-        await drawText(page, session.classRoom || '-', 50 + colWidth * 3.5, rowY + rowHeight / 2, 10, false, height,
+        await drawText(page, session.classRoom || '-', margin + colWidth * 3.5, rowY + rowHeight / 2 + 4, 10, false, height,
           textGray, helveticaFont, helveticaBoldFont, colWidth, 'center');
       }
     }
@@ -688,73 +614,54 @@ export async function generatePDFReport(
     // ============================================
     // NOTES SECTION
     // ============================================
-    const notesY = scheduleSectionY - (dailySchedule.length > 0 ? 250 : 50);
-    
-    // Section title
-    await drawText(page, 'ملاحظات', width / 2, notesY, 15, true, height,
+    const notesY = scheduleSectionY - (dailySchedule.length > 0 ? 240 : 60);
+    await drawText(page, 'ملاحظات', margin + contentWidth / 2, notesY, 15, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
-    
-    // Underline
     page.drawLine({
-      start: { x: width / 2 - 40, y: notesY - 5 },
-      end: { x: width / 2 + 40, y: notesY - 5 },
+      start: { x: margin + contentWidth / 2 - 50, y: notesY - 6 },
+      end: { x: margin + contentWidth / 2 + 50, y: notesY - 6 },
       thickness: 2,
       color: rgb(primaryColor.r, primaryColor.g, primaryColor.b),
     });
 
-    // Notes box
-    const notesBoxY = notesY - 25;
-    const notesBoxHeight = 70;
-    
-    drawRectangle(page, 50, notesBoxY, width - 100, notesBoxHeight,
-      { r: 1.0, g: 1.0, b: 1.0 }, height, { r: 0.2, g: 0.2, b: 0.2 }, 2);
-
-    // Inner background
-    drawRectangle(page, 52, notesBoxY - 2, width - 104, notesBoxHeight - 4,
+    const notesBoxY = notesY - 26;
+    const notesBoxHeight = 80;
+    drawRectangle(page, margin, notesBoxY, contentWidth, notesBoxHeight,
+      { r: 1, g: 1, b: 1 }, height, borderGray, 2);
+    drawRectangle(page, margin + 2, notesBoxY - 2, contentWidth - 4, notesBoxHeight - 4,
       lightGray, height);
 
-    if (record.notes) {
-      await drawText(page, record.notes, width / 2, notesBoxY + notesBoxHeight / 2, 11, false, height,
-        secondaryColor, helveticaFont, helveticaBoldFont, width - 120, 'center');
-    } else {
-      await drawText(page, 'لا توجد ملاحظات', width / 2, notesBoxY + notesBoxHeight / 2, 11, false, height,
-        textGray, helveticaFont, helveticaBoldFont, width - 120, 'center');
-    }
+    const notesText = record.notes || 'لا توجد ملاحظات';
+    await drawText(page, notesText, margin + contentWidth / 2, notesBoxY + notesBoxHeight / 2, 11, false, height,
+      secondaryColor, helveticaFont, helveticaBoldFont, contentWidth - 40, 'center');
 
     // ============================================
     // GENERAL MESSAGE SECTION (if available)
     // ============================================
     if (safeSettings.reportGeneralMessage) {
       const messageY = notesBoxY - notesBoxHeight - 25;
-      
-      await drawText(page, 'رسالة الموجه', width / 2, messageY, 13, true, height,
+      await drawText(page, 'رسالة الموجه', margin + contentWidth / 2, messageY, 13, true, height,
         primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
 
-      const messageBoxY = messageY - 25;
+      const messageBoxY = messageY - 24;
       const messageBoxHeight = 50;
-      
-      drawRectangle(page, 50, messageBoxY, width - 100, messageBoxHeight,
-        { r: 0.95, g: 0.97, b: 1.0 }, height, { r: 0.1, g: 0.5, b: 0.8 }, 2);
-
-      await drawText(page, safeSettings.reportGeneralMessage, width / 2, messageBoxY + messageBoxHeight / 2, 10, false, height,
-        { r: 0.05, g: 0.4, b: 0.7 }, helveticaFont, helveticaBoldFont, width - 120, 'center');
+      drawRectangle(page, margin, messageBoxY, contentWidth, messageBoxHeight,
+        accentColor, height, { r: 0.14, g: 0.55, b: 0.72 }, 2);
+      await drawText(page, safeSettings.reportGeneralMessage, margin + contentWidth / 2, messageBoxY + messageBoxHeight / 2, 10, false, height,
+        { r: 0.05, g: 0.35, b: 0.55 }, helveticaFont, helveticaBoldFont, contentWidth - 30, 'center');
     }
 
     // ============================================
     // FOOTER
     // ============================================
-    const footerY = 50;
-    
-    // Footer line
+    const footerY = 60;
     page.drawLine({
-      start: { x: 50, y: footerY + 25 },
-      end: { x: width - 50, y: footerY + 25 },
+      start: { x: margin, y: footerY + 18 },
+      end: { x: margin + contentWidth, y: footerY + 18 },
       thickness: 1.5,
       color: rgb(borderGray.r, borderGray.g, borderGray.b),
     });
-
-    // Footer text
-    await drawText(page, 'هذا التقرير معتمد من المدرسة', width / 2, footerY + 10, 10, true, height,
+    await drawText(page, 'هذا التقرير معتمد من المدرسة', margin + contentWidth / 2, footerY, 10, true, height,
       primaryColor, helveticaFont, helveticaBoldFont, undefined, 'center');
 
     // Save PDF
