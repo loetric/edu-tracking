@@ -376,19 +376,20 @@ export async function generatePDFReport(
       color: COLORS.white,
     });
 
-    // Right side - Kingdom info (all from settings)
+    // Right side - Kingdom info (all from settings) - Unified font size and spacing
     const headerTexts = [
-      { text: 'المملكة العربية السعودية', bold: false },
-      { text: safeSettings.ministry, bold: false },
-      { text: safeSettings.region, bold: false },
-      { text: safeSettings.name, bold: true }
+      { text: 'المملكة العربية السعودية', bold: false, fontSize: 10 },
+      { text: safeSettings.ministry, bold: false, fontSize: 10 },
+      { text: safeSettings.region, bold: false, fontSize: 10 },
+      { text: safeSettings.name, bold: true, fontSize: 11 }
     ];
 
     let rightY = cursorY;
+    const headerLineSpacing = 19; // Unified spacing
     for (let i = 0; i < headerTexts.length; i++) {
       const item = headerTexts[i];
       const img = await textToImage(item.text, {
-        fontSize: i === 3 ? 11 : 10,
+        fontSize: item.fontSize,
         color: i === 3 ? '#2D3748' : '#718096',
         align: 'right',
         isBold: item.bold
@@ -400,7 +401,7 @@ export async function generatePDFReport(
         width: img.width,
         height: img.height
       });
-      rightY -= 18;
+      rightY -= headerLineSpacing;
     }
 
     // Left side - Report info and date
@@ -412,22 +413,23 @@ export async function generatePDFReport(
     let leftY = cursorY;
     page.drawImage(reportTitleEmb, {
       x: margin,
-      y: leftY + 5,
+      y: leftY,
       width: reportTitleImg.width,
       height: reportTitleImg.height
     });
     
-    // Draw underline for title
+    // Draw underline for title (below the text)
+    const underlineY = leftY - 3;
     page.drawLine({
-      start: { x: margin, y: leftY + 3 },
-      end: { x: margin + reportTitleImg.width, y: leftY + 3 },
+      start: { x: margin, y: underlineY },
+      end: { x: margin + reportTitleImg.width, y: underlineY },
       thickness: 3,
       color: COLORS.titleUnderline
     });
 
-    // Date info - Top Left
-    leftY -= 30;
-    const dateInfoImg = await textToImage(`${dayName}\n${dateStr}`, {
+    // Date info - Below title
+    leftY -= 28;
+    const dateInfoImg = await textToImage(`${dayName} - ${dateStr}`, {
       fontSize: 10, color: '#718096', align: 'left', isBold: false
     });
     const dateInfoEmb = await pdfDoc.embedPng(dateInfoImg.buffer);
@@ -438,10 +440,11 @@ export async function generatePDFReport(
       height: dateInfoImg.height
     });
     
-    // Phone - Bottom Left (from settings)
+    // Phone - Below date (from settings)
     if (safeSettings.whatsappPhone) {
-      leftY -= 25;
-      const phoneImg = await textToImage(`📞 ${safeSettings.whatsappPhone}`, {
+      leftY -= 22;
+      const phoneText = `📞 ${safeSettings.whatsappPhone}`;
+      const phoneImg = await textToImage(phoneText, {
         fontSize: 9, color: '#A0AEC0', align: 'left', isBold: false
       });
       const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
@@ -453,13 +456,13 @@ export async function generatePDFReport(
       });
     }
 
-    // Center - Logo (from settings)
+    // Center - Logo (from settings) - Centered vertically and horizontally
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
       if (logo) {
         const logoSize = 65;
         const logoX = width / 2 - logoSize / 2;
-        const logoY = cursorY - 15;
+        const logoY = cursorY - 20; // Better vertical centering
         
         const logoDims = logo.scale(1);
         const logoAspectRatio = logoDims.width / logoDims.height;
@@ -509,41 +512,34 @@ export async function generatePDFReport(
     });
 
     // Student info - Right side (all from student object)
+    // Format: "الاسم الرباعي: [value]" to ensure proper display
     const studentInfoTexts = [
-      { label: 'الاسم الرباعي', value: student.name },
+      { label: 'الاسم الرباعي', value: student.name || '-' },
       { label: 'الفصل', value: student.classGrade || '-' },
       { label: 'جوال ولي الأمر', value: student.parentPhone || '-' },
       { label: 'رقم الملف', value: student.studentNumber || '-' }
     ];
 
-    let infoY = cursorY - 15;
+    let infoY = cursorY - 18;
+    const infoRightX = width - margin - 15;
+    const infoSpacing = 21; // Unified spacing between lines
+    
     for (const info of studentInfoTexts) {
-      const labelImg = await textToImage(info.label, {
-        fontSize: 10, color: '#718096', align: 'right', isBold: false
+      // Create combined text: "Label: Value"
+      const combinedText = `${info.label}: ${info.value}`;
+      const combinedImg = await textToImage(combinedText, {
+        fontSize: 11, color: '#2D3748', align: 'right', isBold: true, maxWidth: contentWidth - 100
       });
-      const valueImg = await textToImage(info.value, {
-        fontSize: 11, color: '#2D3748', align: 'right', isBold: true
-      });
+      const combinedEmb = await pdfDoc.embedPng(combinedImg.buffer);
       
-      const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
-      const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
-      
-      const infoRightX = width - margin - 15;
-      page.drawImage(labelEmb, {
-        x: infoRightX - labelImg.width,
+      page.drawImage(combinedEmb, {
+        x: infoRightX - combinedImg.width,
         y: infoY,
-        width: labelImg.width,
-        height: labelImg.height
+        width: combinedImg.width,
+        height: combinedImg.height
       });
       
-      page.drawImage(valueEmb, {
-        x: infoRightX - labelImg.width - valueImg.width - 10,
-        y: infoY,
-        width: valueImg.width,
-        height: valueImg.height
-      });
-      
-      infoY -= 20;
+      infoY -= infoSpacing;
     }
 
     // Left side - Status badge with icon (from record)
@@ -692,17 +688,22 @@ export async function generatePDFReport(
       { text: 'السلوك', width: colWidths.behavior },
     ];
 
-    // Draw table header
+    // Draw table header - Fixed positioning
     let headerX = width - margin;
-    for (const header of headers) {
+    for (let i = 0; i < headers.length; i++) {
+      const header = headers[i];
+      const headerLeftX = headerX - header.width;
+      
+      // Draw header background
       page.drawRectangle({
-        x: headerX - header.width,
+        x: headerLeftX,
         y: tableY - headerHeight,
         width: header.width,
         height: headerHeight,
         color: COLORS.tableHeaderBg,
       });
       
+      // Draw header text
       const hImg = await textToImage(header.text, {
         fontSize: 11,
         color: '#4A5568',
@@ -712,17 +713,22 @@ export async function generatePDFReport(
       });
       const hEmb = await pdfDoc.embedPng(hImg.buffer);
       
+      // Center text in header cell
+      const headerCenterX = headerLeftX + header.width / 2;
+      const headerCenterY = tableY - headerHeight / 2;
+      
       page.drawImage(hEmb, {
-        x: headerX - header.width / 2 - hImg.width / 2,
-        y: tableY - headerHeight / 2 - hImg.height / 2,
+        x: headerCenterX - hImg.width / 2,
+        y: headerCenterY - hImg.height / 2,
         width: hImg.width,
         height: hImg.height
       });
       
-      if (headerX < width - margin) {
+      // Draw vertical border (except for first column)
+      if (i < headers.length - 1) {
         page.drawLine({
-          start: { x: headerX, y: tableY },
-          end: { x: headerX, y: tableY - headerHeight },
+          start: { x: headerLeftX, y: tableY },
+          end: { x: headerLeftX, y: tableY - headerHeight },
           thickness: 1,
           color: COLORS.tableBorder
         });
