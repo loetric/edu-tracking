@@ -394,7 +394,7 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           <XCircle size={12} />
-                          غير مسأذن
+                          بدون عذر
                         </span>
                       )}
                     </td>
