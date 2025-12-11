@@ -13,6 +13,7 @@ import * as logs from './logs';
 import * as data from './data';
 import * as subjects from './subjects';
 import * as files from './files';
+import * as substitutionRequests from './substitutionRequests';
 
 // Export all functions as a single api object (backward compatible)
 export const api = {
@@ -88,9 +89,17 @@ export const api = {
   updateFile: files.updateFile,
   deleteFile: files.deleteFile,
   markFileAsRead: files.markFileAsRead,
-  getFileReaders: files.getFileReaders
+  getFileReaders: files.getFileReaders,
+
+  // Substitution requests
+  getSubstitutionRequests: substitutionRequests.getSubstitutionRequests,
+  getPendingRequestsForTeacher: substitutionRequests.getPendingRequestsForTeacher,
+  createSubstitutionRequest: substitutionRequests.createSubstitutionRequest,
+  acceptSubstitutionRequest: substitutionRequests.acceptSubstitutionRequest,
+  rejectSubstitutionRequest: substitutionRequests.rejectSubstitutionRequest,
+  deleteSubstitutionRequest: substitutionRequests.deleteSubstitutionRequest
 };
 
 // Also export individual modules for direct imports if needed
-export { auth, users, settings, students, schedule, records, chat, logs, data, subjects, files };
+export { auth, users, settings, students, schedule, records, chat, logs, data, subjects, files, substitutionRequests };
 

@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { ScheduleItem, Role, Subject, SchoolSettings } from '../types';
-import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle, Printer } from 'lucide-react';
+import { ScheduleItem, Role, Subject, SchoolSettings, SubstitutionRequest } from '../types';
+import { Calendar, Clock, Check, AlertTriangle, Lock, UserPlus, X, RefreshCw, Filter, ChevronDown, User, BookOpen, CheckCircle, Printer, Bell } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
+import { SubstitutionRequestsPanel } from './SubstitutionRequestsPanel';
+import { SubstitutionRequestsAdmin } from './SubstitutionRequestsAdmin';
 
 interface TeacherScheduleProps {
   schedule: ScheduleItem[];
@@ -17,10 +19,11 @@ interface TeacherScheduleProps {
   onSessionEnter?: (session: ScheduleItem) => void; // For teacher to enter session tracking
 }
 
-export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, onRemoveSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter }) => {
+export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, completedSessions = [], onAssignSubstitute, onRemoveSubstitute, role, availableTeachers = [], subjects = [], onUpdateSchedule, settings, onSessionEnter, currentUser, substitutionRequests = [], onRequestAccepted, onRequestUpdate }) => {
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6, 7];
   const [selectedSessionForSub, setSelectedSessionForSub] = useState<ScheduleItem | null>(null);
+  const [showAdminRequestsPanel, setShowAdminRequestsPanel] = useState(false);
   
   // Filters for Admin
   const [filterType, setFilterType] = useState<'all' | 'teacher' | 'class' | 'subject'>('all');
@@ -99,7 +102,42 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
     );
   }
 
+  // Show substitution requests panel for teachers
+  const pendingRequestsForTeacher = role === 'teacher' && currentUser 
+    ? substitutionRequests.filter(r => r.substituteTeacher === currentUser.name && r.status === 'pending')
+    : [];
+
   return (
+    <div className="space-y-4">
+      {/* Substitution Requests Panel for Teachers */}
+      {pendingRequestsForTeacher.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <Bell size={18} className="text-orange-600" />
+            <h3 className="text-sm font-bold text-orange-800">طلبات الإسناد المعلقة</h3>
+            <span className="bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              {pendingRequestsForTeacher.length}
+            </span>
+          </div>
+          <SubstitutionRequestsPanel
+            teacherName={currentUser!.name}
+            schedule={schedule}
+            onRequestUpdate={onRequestUpdate || (() => {})}
+            onAccept={onRequestAccepted || (() => {})}
+          />
+        </div>
+      )}
+
+      {/* Substitution Requests Admin Panel */}
+      {role === 'admin' && showAdminRequestsPanel && (
+        <div>
+          <SubstitutionRequestsAdmin
+            schedule={schedule}
+            onRequestUpdate={onRequestUpdate}
+          />
+        </div>
+      )}
+
     <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-3 md:p-6 lg:p-8 animate-in fade-in relative">
       
       {/* Substitute Modal */}
@@ -244,11 +282,11 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
       <div className="flex flex-col gap-6 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
                 <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
                     <Calendar size={28} />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h2 className="text-2xl font-bold text-gray-800">
                         {role === 'admin' && filterType === 'teacher' && filterValue
                             ? `جدول ${filterValue}`
@@ -273,6 +311,20 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                         )}
                 </div>
             </div>
+            {role === 'admin' && (
+                <button
+                    onClick={() => setShowAdminRequestsPanel(!showAdminRequestsPanel)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shadow-sm flex-shrink-0"
+                >
+                    <Bell size={16} />
+                    <span>طلبات الإسناد</span>
+                    {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
+                        <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            {substitutionRequests.filter(r => r.status === 'pending').length}
+                        </span>
+                    )}
+                </button>
+            )}
             
             {/* Print Button & Legend */}
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
@@ -601,6 +653,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           );
         })}
       </div>
+    </div>
     </div>
   );
 };

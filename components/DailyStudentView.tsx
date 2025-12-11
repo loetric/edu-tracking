@@ -81,10 +81,9 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
     });
   }, [records, dateRange, startDate, endDate]);
 
-  // Get students with records
-  const studentsWithRecords = useMemo(() => {
-    const studentIds = new Set(filteredRecords.map(r => r.studentId));
-    let filtered = students.filter(s => studentIds.has(s.id));
+  // Get all students in the selected class (not just those with records)
+  const filteredStudents = useMemo(() => {
+    let filtered = students;
 
     // Filter by class
     if (selectedClass !== 'all') {
@@ -101,16 +100,16 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
     }
 
     return filtered;
-  }, [students, filteredRecords, selectedClass, searchQuery]);
+  }, [students, selectedClass, searchQuery]);
 
   // Group records by student
   const studentRecordsMap = useMemo(() => {
     const map: Record<string, DailyRecord[]> = {};
-    studentsWithRecords.forEach(student => {
+    filteredStudents.forEach(student => {
       map[student.id] = filteredRecords.filter(r => r.studentId === student.id);
     });
     return map;
-  }, [studentsWithRecords, filteredRecords]);
+  }, [filteredStudents, filteredRecords]);
 
   const handlePrint = () => {
     window.print();
@@ -118,7 +117,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
 
   const handleSendAll = () => {
     const recordsToSend: Record<string, DailyRecord> = {};
-    studentsWithRecords.forEach(student => {
+    filteredStudents.forEach(student => {
       const latestRecord = studentRecordsMap[student.id]?.[studentRecordsMap[student.id].length - 1];
       if (latestRecord) {
         recordsToSend[student.id] = latestRecord;
@@ -234,7 +233,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
               <button
                 onClick={handleSendAll}
                 className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs print:hidden"
-                disabled={studentsWithRecords.length === 0}
+                disabled={filteredStudents.length === 0}
               >
                 <Send size={16} />
                 <span>إرسال الكل</span>
@@ -246,7 +245,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
 
       {/* Students List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {studentsWithRecords.length > 0 ? (
+        {filteredStudents.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-right print:border-2 print:border-gray-800">
               <thead className="bg-gray-50 print:bg-gray-200">
@@ -259,7 +258,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {studentsWithRecords.map((student) => {
+                {filteredStudents.map((student) => {
                   const studentRecords = studentRecordsMap[student.id] || [];
                   const latestRecord = studentRecords[studentRecords.length - 1];
 
@@ -381,13 +380,13 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
           }}
           students={selectedStudentForReport 
             ? [selectedStudentForReport] 
-            : studentsWithRecords}
+            : filteredStudents}
           records={selectedStudentForReport && studentRecordsMap[selectedStudentForReport.id]
             ? {
                 [selectedStudentForReport.id]: studentRecordsMap[selectedStudentForReport.id][studentRecordsMap[selectedStudentForReport.id].length - 1]
               }
             : Object.fromEntries(
-                studentsWithRecords.map(student => {
+                filteredStudents.map(student => {
                   const latestRecord = studentRecordsMap[student.id]?.[studentRecordsMap[student.id].length - 1];
                   return [student.id, latestRecord || {} as DailyRecord];
                 }).filter(([_, record]) => Object.keys(record).length > 0)

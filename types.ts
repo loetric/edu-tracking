@@ -96,6 +96,20 @@ export interface Substitution {
   reason?: string;
 }
 
+export type SubstitutionRequestStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface SubstitutionRequest {
+  id: string;
+  date: string; // YYYY-MM-DD
+  scheduleItemId: string;
+  substituteTeacher: string;
+  status: SubstitutionRequestStatus;
+  rejectionReason?: string;
+  requestedAt: string; // ISO timestamp
+  respondedAt?: string; // ISO timestamp
+  requestedBy?: string; // Admin who requested
+}
+
 export interface ChatMessage {
   id: string;
   sender: string;

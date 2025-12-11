@@ -18,7 +18,7 @@ import { AbsenceManagement } from './components/AbsenceManagement';
 import { BulkReportModal } from './components/BulkReportModal';
 import { UserProfile } from './components/UserProfile';
 import { FileSharing } from './components/FileSharing';
-import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, User, Subject } from './types';
+import { Student, DailyRecord, LogEntry, Role, SchoolSettings, ChallengeType, ChatMessage, ScheduleItem, Substitution, SubstitutionRequest, User, Subject } from './types';
 import { AVAILABLE_TEACHERS } from './constants';
 import { CONFIG } from './config';
 import { MessageCircle, Menu, Bell, Loader2 } from 'lucide-react';
@@ -66,6 +66,7 @@ const App: React.FC = () => {
   const [currentRecords, setCurrentRecords] = useState<Record<string, DailyRecord>>({});
   const [completedSessions, setCompletedSessions] = useState<string[]>([]);
   const [substitutions, setSubstitutions] = useState<Substitution[]>([]);
+  const [substitutionRequests, setSubstitutionRequests] = useState<SubstitutionRequest[]>([]);
   const [unreadFilesCount, setUnreadFilesCount] = useState<number>(0);
 
   // UI State
@@ -509,7 +510,8 @@ const App: React.FC = () => {
             fetchedMessages,
             fetchedCompleted,
             fetchedSubs,
-            fetchedSubjects
+            fetchedSubjects,
+            fetchedRequests
           ] = await Promise.all([
             api.getStudents(),
             api.getSchedule(),
@@ -518,7 +520,8 @@ const App: React.FC = () => {
             api.getMessages(),
             api.getCompletedSessions(),
             api.getSubstitutions(),
-            api.getSubjects()
+            api.getSubjects(),
+            api.getSubstitutionRequests()
           ]);
 
           setStudents(fetchedStudents);
@@ -529,6 +532,7 @@ const App: React.FC = () => {
           setCompletedSessions(fetchedCompleted);
           setSubstitutions(fetchedSubs);
           setSubjects(fetchedSubjects);
+          setSubstitutionRequests(fetchedRequests);
         } catch (error) {
           console.error("Error loading dashboard data", error);
           // Set empty arrays on error to allow app to continue
@@ -540,6 +544,7 @@ const App: React.FC = () => {
           setCompletedSessions([]);
           setSubstitutions([]);
           setSubjects([]);
+          setSubstitutionRequests([]);
         } finally {
           setIsDataLoading(false);
         }
@@ -1270,23 +1275,41 @@ const App: React.FC = () => {
           alert({ message: 'لا يمكن إسناد الحصة للمعلم الأساسي نفسه. يرجى اختيار معلم بديل آخر.', type: 'error' });
           return;
       }
-      const newSub: Substitution = {
-          id: Date.now().toString(),
-          date: today,
-          scheduleItemId,
-          substituteTeacher: newTeacher
-      };
-      setSubstitutions(prev => [...prev, newSub]); // Optimistic
-      await api.assignSubstitute(newSub);
-      handleAddLog('إسناد احتياط', `تم إسناد حصة احتياط للمعلم ${newTeacher}`);
       
-      // Update schedule to reflect substitution
-      const updatedSchedule = schedule.map(s => 
-          s.id === scheduleItemId 
-              ? { ...s, teacher: newTeacher, originalTeacher: s.teacher || s.originalTeacher, isSubstituted: true }
-              : s
+      // Check if there's already a pending request for this session
+      const existingRequest = substitutionRequests.find(req => 
+          req.scheduleItemId === scheduleItemId && 
+          req.date === today &&
+          req.status === 'pending'
       );
-      setSchedule(updatedSchedule);
+      if (existingRequest) {
+          alert({ message: 'يوجد طلب إسناد قائم لهذه الحصة. يرجى انتظار رد المعلم.', type: 'warning' });
+          return;
+      }
+      
+      // Create substitution request instead of direct assignment
+      try {
+          const newRequest = await api.createSubstitutionRequest({
+              date: today,
+              scheduleItemId,
+              substituteTeacher: newTeacher,
+              requestedBy: currentUser?.name || 'المدير'
+          });
+          
+          setSubstitutionRequests(prev => [...prev, newRequest]);
+          
+          // Send notification to teacher via internal chat
+          const notificationMessage = `طلب إسناد حصة: تم إرسال طلب إسناد حصة ${scheduleItem.subject} للفصل ${scheduleItem.classRoom} في ${scheduleItem.day} الحصة ${scheduleItem.period}. يرجى الرد على الطلب من صفحة الجدول الدراسي.`;
+          // Note: The notification will be visible to all users in the internal chat
+          // The teacher can see their pending requests in the schedule page
+          await handleSendMessage(notificationMessage);
+          
+          handleAddLog('طلب إسناد احتياط', `تم إرسال طلب إسناد حصة احتياط للمعلم ${newTeacher}`);
+          alert({ message: `تم إرسال طلب إسناد للمعلم ${newTeacher}. سيتم تطبيق الإسناد بعد موافقته.`, type: 'success' });
+      } catch (error) {
+          console.error('Error creating substitution request:', error);
+          alert({ message: 'فشل في إرسال طلب الإسناد. يرجى المحاولة مرة أخرى.', type: 'error' });
+      }
   };
 
   const handleRemoveSubstitute = async (scheduleItemId: string) => {
@@ -1341,15 +1364,25 @@ const App: React.FC = () => {
 
   // --- Data Processing for View ---
 
-  // Use useMemo to recalculate effective schedule when schedule or substitutions change
+  // Use useMemo to recalculate effective schedule when schedule, substitutions, or accepted requests change
   const effectiveSchedule = React.useMemo(() => {
       const today = new Date().toISOString().split('T')[0];
       return schedule.map(item => {
+          // Check for accepted substitution request first
+          const acceptedRequest = substitutionRequests.find(r => 
+              r.scheduleItemId === item.id && 
+              r.date === today && 
+              r.status === 'accepted'
+          );
+          
+          // Check for actual substitution
           const sub = substitutions.find(s => s.scheduleItemId === item.id && s.date === today);
-          if (sub) {
+          
+          if (acceptedRequest || sub) {
+              const substituteTeacher = acceptedRequest ? acceptedRequest.substituteTeacher : sub!.substituteTeacher;
               return { 
                   ...item, 
-                  teacher: sub.substituteTeacher, 
+                  teacher: substituteTeacher, 
                   originalTeacher: item.teacher || item.originalTeacher, 
                   isSubstituted: true 
               };
@@ -1361,7 +1394,7 @@ const App: React.FC = () => {
               originalTeacher: item.originalTeacher || item.teacher
           };
       });
-  }, [schedule, substitutions]);
+  }, [schedule, substitutions, substitutionRequests]);
 
   // Loading Screen - only show if we're loading and user is not logged in
   // Once user is logged in, allow app to continue even if some data is still loading
@@ -1551,6 +1584,37 @@ const App: React.FC = () => {
                 availableTeachers={allTeachers}
                 settings={effectiveSettings}
                 onSessionEnter={currentUser.role === 'teacher' ? handleSessionEnter : undefined}
+                currentUser={currentUser}
+                substitutionRequests={substitutionRequests}
+                onRequestAccepted={async (request) => {
+                    // When teacher accepts, create actual substitution
+                    const newSub: Substitution = {
+                        id: Date.now().toString(),
+                        date: request.date,
+                        scheduleItemId: request.scheduleItemId,
+                        substituteTeacher: request.substituteTeacher
+                    };
+                    setSubstitutions(prev => [...prev, newSub]);
+                    await api.assignSubstitute(newSub);
+                    
+                    // Update schedule
+                    const updatedSchedule = schedule.map(s => 
+                        s.id === request.scheduleItemId 
+                            ? { ...s, teacher: request.substituteTeacher, originalTeacher: s.teacher || s.originalTeacher, isSubstituted: true }
+                            : s
+                    );
+                    setSchedule(updatedSchedule);
+                    
+                    // Reload requests
+                    const freshRequests = await api.getSubstitutionRequests();
+                    setSubstitutionRequests(freshRequests);
+                    
+                    handleAddLog('قبول إسناد', `تم قبول طلب إسناد من قبل ${request.substituteTeacher}`);
+                }}
+                onRequestUpdate={async () => {
+                    const freshRequests = await api.getSubstitutionRequests();
+                    setSubstitutionRequests(freshRequests);
+                }}
             />
         );
       case 'reports':
