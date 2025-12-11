@@ -376,16 +376,18 @@ export async function generatePDFReport(
       color: COLORS.teal600
     });
 
-    // Left column - Date and phone
+    // Left column - Date and phone (text aligned right but positioned on left side)
     const leftColX = margin;
+    const leftColWidth = (width - margin * 2) / 3; // 1/3 of content width
+    const leftColRightX = leftColX + leftColWidth;
     let leftY = headerY;
     
     const dateLabelImg = await textToImage('تاريخ التقرير', {
-      fontSize: 9, color: '#6B7280', align: 'left', isBold: false
+      fontSize: 9, color: '#6B7280', align: 'right', isBold: false
     });
     const dateLabelEmb = await pdfDoc.embedPng(dateLabelImg.buffer);
     page.drawImage(dateLabelEmb, {
-      x: leftColX,
+      x: leftColRightX - dateLabelImg.width,
       y: leftY,
       width: dateLabelImg.width,
       height: dateLabelImg.height
@@ -393,11 +395,11 @@ export async function generatePDFReport(
     
     leftY -= 16;
     const dateValueImg = await textToImage(dateStr, {
-      fontSize: 11, color: '#1F2937', align: 'left', isBold: true
+      fontSize: 11, color: '#1F2937', align: 'right', isBold: true
     });
     const dateValueEmb = await pdfDoc.embedPng(dateValueImg.buffer);
     page.drawImage(dateValueEmb, {
-      x: leftColX,
+      x: leftColRightX - dateValueImg.width,
       y: leftY,
       width: dateValueImg.width,
       height: dateValueImg.height
@@ -405,11 +407,11 @@ export async function generatePDFReport(
     
     leftY -= 16;
     const dayImg = await textToImage(dayName, {
-      fontSize: 9, color: '#6B7280', align: 'left', isBold: false
+      fontSize: 9, color: '#6B7280', align: 'right', isBold: false
     });
     const dayEmb = await pdfDoc.embedPng(dayImg.buffer);
     page.drawImage(dayEmb, {
-      x: leftColX,
+      x: leftColRightX - dayImg.width,
       y: leftY,
       width: dayImg.width,
       height: dayImg.height
@@ -419,11 +421,11 @@ export async function generatePDFReport(
       leftY -= 20;
       const phoneText = safeSettings.whatsappPhone;
       const phoneImg = await textToImage(phoneText, {
-        fontSize: 9, color: '#4B5563', align: 'left', isBold: false
+        fontSize: 9, color: '#4B5563', align: 'right', isBold: false
       });
       const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
       page.drawImage(phoneEmb, {
-        x: leftColX,
+        x: leftColRightX - phoneImg.width,
         y: leftY,
         width: phoneImg.width,
         height: phoneImg.height
@@ -515,59 +517,92 @@ export async function generatePDFReport(
     const cellHeight = cardHeight / 2;
     
     const studentDetails = [
-      { label: 'الاسم الرباعي', value: student.name || '-' },
-      { label: 'الفصل', value: student.classGrade || '-' },
-      { label: 'جوال ولي الأمر', value: student.parentPhone || '-' },
-      { label: 'حالة التقرير', value: 'معتمد من المدرسة', isSpecial: true }
+      { label: 'الاسم الرباعي', value: student.name || '-', row: 0, col: 0, hasBottomBorder: true, hasLeftBorder: true },
+      { label: 'الفصل', value: student.classGrade || '-', row: 0, col: 1, hasBottomBorder: false, hasLeftBorder: true },
+      { label: 'جوال ولي الأمر', value: student.parentPhone || '-', row: 1, col: 0, hasBottomBorder: false, hasLeftBorder: true },
+      { label: 'حالة التقرير', value: 'معتمد من المدرسة', row: 1, col: 1, hasBottomBorder: false, hasLeftBorder: false, isSpecial: true }
     ];
     
-    let detailIndex = 0;
-    for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < 2; col++) {
-        const detail = studentDetails[detailIndex];
-        const cellX = detailsX + col * cellWidth;
-        const cellY = cardY - row * cellHeight;
-        
-        // Cell background
-        const cellBg = detail.isSpecial ? COLORS.gray50 : COLORS.white;
-        page.drawRectangle({
-          x: cellX,
-          y: cellY - cellHeight,
-          width: cellWidth,
-          height: cellHeight,
-          color: cellBg,
-          borderColor: COLORS.gray200,
-          borderWidth: 1,
+    for (const detail of studentDetails) {
+      const cellX = detailsX + detail.col * cellWidth;
+      const cellY = cardY - detail.row * cellHeight;
+      
+      // Cell background
+      const cellBg = detail.isSpecial ? COLORS.gray50 : COLORS.white;
+      page.drawRectangle({
+        x: cellX,
+        y: cellY - cellHeight,
+        width: cellWidth,
+        height: cellHeight,
+        color: cellBg,
+      });
+      
+      // Draw borders only where needed
+      // Top border (only for first row)
+      if (detail.row === 0) {
+        page.drawLine({
+          start: { x: cellX, y: cellY },
+          end: { x: cellX + cellWidth, y: cellY },
+          thickness: 1,
+          color: COLORS.gray200
         });
-        
-        // Label
-        const labelImg = await textToImage(detail.label, {
-          fontSize: 9, color: '#6B7280', align: 'right', isBold: true
-        });
-        const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
-        page.drawImage(labelEmb, {
-          x: cellX + cellWidth - labelImg.width - 10,
-          y: cellY - 15,
-          width: labelImg.width,
-          height: labelImg.height
-        });
-        
-        // Value
-        const valueColorStr = detail.isSpecial ? '#0D9488' : '#1F2937';
-        const valueImg = await textToImage(detail.value, {
-          fontSize: 11, color: valueColorStr, 
-          align: 'right', isBold: true, maxWidth: cellWidth - 20
-        });
-        const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
-        page.drawImage(valueEmb, {
-          x: cellX + cellWidth - valueImg.width - 10,
-          y: cellY - 35,
-          width: valueImg.width,
-          height: valueImg.height
-        });
-        
-        detailIndex++;
       }
+      
+      // Bottom border
+      if (detail.hasBottomBorder) {
+        page.drawLine({
+          start: { x: cellX, y: cellY - cellHeight },
+          end: { x: cellX + cellWidth, y: cellY - cellHeight },
+          thickness: 1,
+          color: COLORS.gray200
+        });
+      }
+      
+      // Left border
+      if (detail.hasLeftBorder) {
+        page.drawLine({
+          start: { x: cellX, y: cellY },
+          end: { x: cellX, y: cellY - cellHeight },
+          thickness: 1,
+          color: COLORS.gray200
+        });
+      }
+      
+      // Right border (always for rightmost cells)
+      if (detail.col === 1) {
+        page.drawLine({
+          start: { x: cellX + cellWidth, y: cellY },
+          end: { x: cellX + cellWidth, y: cellY - cellHeight },
+          thickness: 1,
+          color: COLORS.gray200
+        });
+      }
+      
+      // Label
+      const labelImg = await textToImage(detail.label, {
+        fontSize: 9, color: '#6B7280', align: 'right', isBold: true
+      });
+      const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
+      page.drawImage(labelEmb, {
+        x: cellX + cellWidth - labelImg.width - 10,
+        y: cellY - 15,
+        width: labelImg.width,
+        height: labelImg.height
+      });
+      
+      // Value
+      const valueColorStr = detail.isSpecial ? '#0D9488' : '#1F2937';
+      const valueImg = await textToImage(detail.value, {
+        fontSize: 11, color: valueColorStr, 
+        align: 'right', isBold: true, maxWidth: cellWidth - 20
+      });
+      const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
+      page.drawImage(valueEmb, {
+        x: cellX + cellWidth - valueImg.width - 10,
+        y: cellY - 35,
+        width: valueImg.width,
+        height: valueImg.height
+      });
     }
 
     // ================= SUMMARY SECTION (4 cards + chart placeholder) =================
