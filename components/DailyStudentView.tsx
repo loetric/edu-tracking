@@ -41,16 +41,6 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<Student | null>(null);
   const { alert } = useModal();
   
-  // Set initial class filter when component mounts or when initialClassFilter changes
-  useEffect(() => {
-    if (initialClassFilter) {
-      setSelectedClass(initialClassFilter);
-    } else if (uniqueClasses.length > 0 && !selectedClass) {
-      // Auto-select first class if no initial filter and no class selected
-      setSelectedClass(uniqueClasses[0]);
-    }
-  }, [initialClassFilter, uniqueClasses]);
-
   // Get unique classes from settings only (not from student data) - without 'all' option
   const uniqueClasses = useMemo(() => {
     const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
@@ -58,6 +48,16 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
       : [];
     return classesFromSettings.sort();
   }, [settings]);
+  
+  // Set initial class filter when component mounts or when initialClassFilter changes
+  useEffect(() => {
+    if (initialClassFilter) {
+      setSelectedClass(initialClassFilter);
+    } else if (uniqueClasses.length > 0 && selectedClass === '') {
+      // Auto-select first class if no initial filter and no class selected
+      setSelectedClass(uniqueClasses[0]);
+    }
+  }, [initialClassFilter, uniqueClasses]);
 
   // Filter records by date range
   const filteredRecords = useMemo(() => {
