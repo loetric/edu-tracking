@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
 import { X, Send, Check, Users, Loader, FileText, Eye } from 'lucide-react';
 import { getStatusLabel, getAttendanceLabel } from '../constants';
@@ -33,6 +33,17 @@ export const BulkReportModal: React.FC<BulkReportModalProps> = ({
   const [sentIds, setSentIds] = useState<string[]>([]);
   const [isSendingAll, setIsSendingAll] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
+
+  // Validate settings on mount and when it changes
+  useEffect(() => {
+    if (isOpen && (!settings || typeof settings !== 'object')) {
+      alert({ 
+        message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات في صفحة الإعدادات.', 
+        type: 'error',
+        duration: 5000
+      });
+    }
+  }, [isOpen, settings, alert]);
 
   // Filter only students with records (students who have been tracked)
   const studentsWithRecords = students.filter(student => {
@@ -77,6 +88,12 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
         return;
       }
 
+      // Validate settings before generating PDF
+      if (!settings || typeof settings !== 'object') {
+        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات.', type: 'error' });
+        return;
+      }
+
       // Generate PDF report
       setGeneratingPdf(student.id);
       const pdfBytes = await generatePDFReport(student, record, settings, schedule);
@@ -104,6 +121,12 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
       const record = records[student.id];
       if (!record) {
         alert({ message: `لا توجد بيانات مرصودة للطالب ${student.name}`, type: 'warning' });
+        return;
+      }
+
+      // Validate settings before generating PDF
+      if (!settings || typeof settings !== 'object') {
+        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات.', type: 'error' });
         return;
       }
 

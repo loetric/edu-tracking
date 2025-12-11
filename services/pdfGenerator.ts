@@ -308,9 +308,11 @@ export async function generatePDFReport(
     if (!record) {
       throw new Error('Record data is missing');
     }
-    if (!settings) {
+    // Settings can be empty object, but we need at least an object
+    if (!settings || typeof settings !== 'object') {
       throw new Error('Settings data is missing');
     }
+    // Schedule can be empty array, but must be an array
     if (!Array.isArray(schedule)) {
       throw new Error('Schedule data is missing or invalid');
     }
@@ -330,6 +332,20 @@ export async function generatePDFReport(
 
     // Merge custom fields with defaults
     const fields: TemplateFields = { ...DEFAULT_FIELDS, ...customFields };
+
+    // Ensure settings has default values if missing
+    const safeSettings: SchoolSettings = {
+      name: settings.name || 'المدرسة',
+      ministry: settings.ministry || 'وزارة التعليم',
+      region: settings.region || 'الإدارة العامة للتعليم',
+      slogan: settings.slogan || '',
+      logoUrl: settings.logoUrl || '',
+      whatsappPhone: settings.whatsappPhone || '',
+      reportGeneralMessage: settings.reportGeneralMessage || '',
+      reportLink: settings.reportLink || '',
+      academicYear: settings.academicYear || '',
+      ...settings
+    };
 
     // Date formatting
     const today = new Date();
@@ -380,19 +396,19 @@ export async function generatePDFReport(
     }
     
     if (fields.schoolName) {
-      await drawField(firstPage, settings.name || '', fields.schoolName, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, safeSettings.name || '', fields.schoolName, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.ministry) {
-      await drawField(firstPage, settings.ministry || '', fields.ministry, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, safeSettings.ministry || '', fields.ministry, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.region) {
-      await drawField(firstPage, settings.region || '', fields.region, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, safeSettings.region || '', fields.region, helveticaFont, helveticaBoldFont, height);
     }
     
-    if (fields.schoolPhone && settings.whatsappPhone) {
-      await drawField(firstPage, settings.whatsappPhone, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
+    if (fields.schoolPhone && safeSettings.whatsappPhone) {
+      await drawField(firstPage, safeSettings.whatsappPhone, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.attendance) {
