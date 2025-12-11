@@ -264,38 +264,66 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
       }
     }
     
-    // Handle blob URLs - convert to data URL first
+    // Handle blob URLs - convert to arrayBuffer using FileReader
     if (imageUrl.startsWith('blob:')) {
       console.log('loadImage: Processing blob URL');
       try {
+        // Use FileReader to convert blob to data URL, then to base64
         const response = await fetch(imageUrl);
-        if (!response.ok) {
-          console.error('loadImage: Blob fetch failed:', response.status, response.statusText);
+        const blob = await response.blob();
+        
+        if (!blob || blob.size === 0) {
+          console.error('loadImage: Empty or invalid blob');
           return null;
         }
         
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const imageBytes = new Uint8Array(arrayBuffer);
+        // Convert blob to data URL using FileReader
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              resolve(reader.result);
+            } else {
+              reject(new Error('Failed to read blob as data URL'));
+            }
+          };
+          reader.onerror = () => reject(new Error('FileReader error'));
+          reader.readAsDataURL(blob);
+        });
+        
+        // Extract base64 data from data URL
+        const base64Data = dataUrl.split(',')[1];
+        if (!base64Data) {
+          console.error('loadImage: Invalid data URL format from blob');
+          return null;
+        }
+        
+        const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
         
         if (imageBytes.length === 0) {
-          console.error('loadImage: Empty blob data');
+          console.error('loadImage: Empty image bytes from blob');
           return null;
         }
         
-        // Try to determine image type from blob
+        // Try to determine image type from blob or data URL
         const contentType = blob.type || '';
-        console.log('loadImage: Blob content type:', contentType);
+        const isPng = contentType.includes('png') || dataUrl.includes('image/png') || imageUrl.toLowerCase().includes('.png');
         
-        // Try PNG first if content type suggests PNG
-        if (contentType.includes('png') || imageUrl.toLowerCase().includes('.png')) {
+        console.log('loadImage: Blob content type:', contentType, 'isPng:', isPng, 'size:', blob.size);
+        
+        // Try PNG first if detected
+        if (isPng) {
           console.log('loadImage: Attempting to embed blob as PNG');
           try {
-            return await pdfDoc.embedPng(imageBytes);
+            const embedded = await pdfDoc.embedPng(imageBytes);
+            console.log('loadImage: Successfully embedded blob as PNG');
+            return embedded;
           } catch (pngError) {
             console.warn('loadImage: PNG embedding failed, trying JPG:', pngError);
             try {
-              return await pdfDoc.embedJpg(imageBytes);
+              const embedded = await pdfDoc.embedJpg(imageBytes);
+              console.log('loadImage: Successfully embedded blob as JPG (fallback)');
+              return embedded;
             } catch (jpgError) {
               console.error('loadImage: Both PNG and JPG embedding failed:', jpgError);
               return null;
@@ -305,11 +333,15 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
           // Try JPG first
           console.log('loadImage: Attempting to embed blob as JPG');
           try {
-            return await pdfDoc.embedJpg(imageBytes);
+            const embedded = await pdfDoc.embedJpg(imageBytes);
+            console.log('loadImage: Successfully embedded blob as JPG');
+            return embedded;
           } catch (jpgError) {
             console.warn('loadImage: JPG embedding failed, trying PNG:', jpgError);
             try {
-              return await pdfDoc.embedPng(imageBytes);
+              const embedded = await pdfDoc.embedPng(imageBytes);
+              console.log('loadImage: Successfully embedded blob as PNG (fallback)');
+              return embedded;
             } catch (pngError) {
               console.error('loadImage: Both JPG and PNG embedding failed:', pngError);
               return null;
@@ -1286,16 +1318,13 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    // Calculate footerY dynamically based on cursorY, ensuring it's at least 80px from bottom
-    // Footer should be at least 80px tall (60px for content + 20px for bottom strip)
-    const minFooterY = 80;
-    const calculatedFooterY = Math.max(minFooterY, cursorY - 80);
-    const footerY = calculatedFooterY;
+    // Use fixed footerY to ensure consistent positioning
+    // Footer should be at the bottom with enough space for content
+    const footerY = 50; // Fixed position from bottom
     const footerHeight = 60;
     
     console.log('Footer positioning:', {
       cursorY: cursorY,
-      calculatedFooterY: calculatedFooterY,
       footerY: footerY,
       pageHeight: height,
       spaceFromBottom: footerY
