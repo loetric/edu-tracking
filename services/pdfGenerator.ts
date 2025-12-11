@@ -147,8 +147,8 @@ async function drawRadarChart(
       ctx.scale(scale, scale);
 
       const centerX = width / 2;
-      const centerY = height / 2;
-      const radius = Math.min(width, height) * 0.35; // 35% of size
+      const centerY = height / 2 - 10; // Move up a bit to leave space for performance text
+      const radius = Math.min(width, height) * 0.28; // Smaller radius to avoid overlap
       const numPoints = data.length;
       const angleStep = (2 * Math.PI) / numPoints;
 
@@ -198,28 +198,28 @@ async function drawRadarChart(
       ctx.fill();
       ctx.stroke();
 
-      // Draw labels
-      ctx.font = 'bold 10px ' + ARABIC_FONT_STACK;
+      // Draw labels (smaller font, further out to avoid overlap)
+      ctx.font = 'bold 9px ' + ARABIC_FONT_STACK;
       ctx.fillStyle = '#6b7280';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       for (let i = 0; i < numPoints; i++) {
         const angle = -Math.PI / 2 + (i * angleStep);
-        const labelRadius = radius + 15;
+        const labelRadius = radius + 20; // Further out
         const x = centerX + labelRadius * Math.cos(angle);
         const y = centerY + labelRadius * Math.sin(angle);
         
         ctx.fillText(data[i].subject, x, y);
       }
 
-      // Draw performance level text at bottom
-      ctx.font = 'bold 10px ' + ARABIC_FONT_STACK;
+      // Draw performance level text at bottom (separate, clear)
+      ctx.font = 'bold 9px ' + ARABIC_FONT_STACK;
       ctx.fillStyle = '#0d9488';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       const performanceText = `التقدير العام: ${performanceLevel}`;
-      ctx.fillText(performanceText, centerX, height - 5);
+      ctx.fillText(performanceText, centerX, height - 8);
 
       canvas.toBlob((blob) => {
         if (!blob) reject(new Error('Blob creation failed'));
@@ -588,23 +588,24 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
 
-    // Left section - Avatar
+    // Left section - Avatar (blue background like in image)
     const avatarSectionWidth = 100;
     const avatarX = margin;
     const avatarY = cardY - cardHeight / 2;
     const avatarSize = 50;
     
+    // Blue background for avatar section (matching image)
     page.drawRectangle({
       x: avatarX,
       y: cardY - cardHeight,
       width: avatarSectionWidth,
       height: cardHeight,
-      color: COLORS.gray50,
+      color: rgb(0.2, 0.4, 0.8), // Blue background
       borderColor: COLORS.gray300,
       borderWidth: 1,
     });
     
-    // Load and draw avatar
+    // Load and draw avatar or initials
     if (student.avatar) {
       const avatar = await loadImage(pdfDoc, student.avatar);
       if (avatar) {
@@ -621,17 +622,30 @@ export async function generatePDFReport(
         
         page.drawImage(avatar, {
           x: avatarX + avatarSectionWidth / 2 - finalAvatarWidth / 2,
-          y: avatarY - finalAvatarHeight / 2,
+          y: avatarY - finalAvatarHeight / 2 + 5,
           width: finalAvatarWidth,
           height: finalAvatarHeight,
         });
       }
+    } else {
+      // Draw initials if no avatar
+      const initials = student.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+      const initialsImg = await textToImage(initials, {
+        fontSize: 20, color: '#FFFFFF', align: 'center', isBold: true
+      });
+      const initialsEmb = await pdfDoc.embedPng(initialsImg.buffer);
+      page.drawImage(initialsEmb, {
+        x: avatarX + avatarSectionWidth / 2 - initialsImg.width / 2,
+        y: avatarY - initialsImg.height / 2 + 5,
+        width: initialsImg.width,
+        height: initialsImg.height
+      });
     }
     
     // Student ID below avatar
     const studentIdText = `رقم الملف: ${student.id}`;
     const studentIdImg = await textToImage(studentIdText, {
-      fontSize: 9, color: '#6B7280', align: 'center', isBold: true
+      fontSize: 8, color: '#FFFFFF', align: 'center', isBold: true
     });
     const studentIdEmb = await pdfDoc.embedPng(studentIdImg.buffer);
     page.drawImage(studentIdEmb, {
@@ -761,10 +775,68 @@ export async function generatePDFReport(
 
     cursorY -= 25;
     const summaryBoxHeight = 50;
-    const summaryBoxWidth = (contentWidth * 0.67 - 20) / 2; // 2/3 width for cards
-    const chartWidth = contentWidth * 0.33; // 1/3 width for chart
+    const summaryBoxWidth = (contentWidth * 0.65 - 30) / 2; // 65% width for cards, with spacing
+    const chartWidth = contentWidth * 0.35; // 35% width for chart (on left)
+    const gapBetween = 15; // Gap between chart and cards
     
-    // 4 Summary cards (2x2 grid)
+    // Chart (LEFT side - matching the image)
+    const chartX = margin;
+    const chartY = cursorY;
+    const chartHeight = summaryBoxHeight * 2 + 10;
+    const chartPadding = 8;
+    
+    page.drawRectangle({
+      x: chartX,
+      y: chartY - chartHeight,
+      width: chartWidth,
+      height: chartHeight,
+      color: COLORS.white,
+      borderColor: COLORS.gray200,
+      borderWidth: 1,
+    });
+    
+    // Chart title (top right of chart box)
+    const chartTitleImg = await textToImage('مؤشر الأداء', {
+      fontSize: 9, color: '#9CA3AF', align: 'right', isBold: true
+    });
+    const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
+    page.drawImage(chartTitleEmb, {
+      x: chartX + chartWidth - chartTitleImg.width - chartPadding,
+      y: chartY - 12,
+      width: chartTitleImg.width,
+      height: chartTitleImg.height
+    });
+    
+    // Draw radar chart (smaller, centered, with space for title and performance text)
+    if (record.attendance === 'present') {
+      const chartImageWidth = chartWidth - (chartPadding * 2);
+      const chartImageHeight = chartHeight - 50; // Leave space for title (top) and performance text (bottom)
+      const radarChart = await drawRadarChart(chartData, performanceLevel, chartImageWidth, chartImageHeight);
+      const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
+      
+      // Center the chart vertically in the available space
+      const chartImageY = chartY - chartHeight + 25; // Start after title space
+      page.drawImage(radarChartEmb, {
+        x: chartX + chartPadding,
+        y: chartImageY,
+        width: radarChart.width,
+        height: radarChart.height
+      });
+    } else {
+      const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
+        fontSize: 10, color: '#9CA3AF', align: 'center', isBold: false
+      });
+      const noDataEmb = await pdfDoc.embedPng(noDataImg.buffer);
+      page.drawImage(noDataEmb, {
+        x: chartX + chartWidth / 2 - noDataImg.width / 2,
+        y: chartY - chartHeight / 2 - noDataImg.height / 2,
+        width: noDataImg.width,
+        height: noDataImg.height
+      });
+    }
+
+    // 4 Summary cards (RIGHT side - 2x2 grid)
+    const cardsStartX = chartX + chartWidth + gapBetween;
     const summaryItems = [
       { label: 'الحضور', info: attendanceInfo },
       { label: 'المشاركة', info: participationInfo },
@@ -812,60 +884,6 @@ export async function generatePDFReport(
       } else {
         summaryX -= summaryBoxWidth;
       }
-    }
-
-    // Chart (right side)
-    const chartX = margin;
-    const chartY = cursorY - summaryBoxHeight;
-    const chartHeight = summaryBoxHeight * 2 + 10;
-    const chartPadding = 10;
-    
-    page.drawRectangle({
-      x: chartX,
-      y: chartY - chartHeight,
-      width: chartWidth,
-      height: chartHeight,
-      color: COLORS.white,
-      borderColor: COLORS.gray200,
-      borderWidth: 1,
-    });
-    
-    // Chart title
-    const chartTitleImg = await textToImage('مؤشر الأداء', {
-      fontSize: 9, color: '#9CA3AF', align: 'right', isBold: true
-    });
-    const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
-    page.drawImage(chartTitleEmb, {
-      x: chartX + chartWidth - chartTitleImg.width - chartPadding,
-      y: chartY - 15,
-      width: chartTitleImg.width,
-      height: chartTitleImg.height
-    });
-    
-    // Draw radar chart
-    if (record.attendance === 'present') {
-      const chartImageWidth = chartWidth - (chartPadding * 2);
-      const chartImageHeight = chartHeight - 40; // Leave space for title and performance text
-      const radarChart = await drawRadarChart(chartData, performanceLevel, chartImageWidth, chartImageHeight);
-      const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
-      
-      page.drawImage(radarChartEmb, {
-        x: chartX + chartPadding,
-        y: chartY - chartHeight + chartPadding + 5,
-        width: radarChart.width,
-        height: radarChart.height
-      });
-    } else {
-      const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
-        fontSize: 10, color: '#9CA3AF', align: 'center', isBold: false
-      });
-      const noDataEmb = await pdfDoc.embedPng(noDataImg.buffer);
-      page.drawImage(noDataEmb, {
-        x: chartX + chartWidth / 2 - noDataImg.width / 2,
-        y: chartY - chartHeight / 2 - noDataImg.height / 2,
-        width: noDataImg.width,
-        height: noDataImg.height
-      });
     }
 
     // ================= TABLE SECTION =================
