@@ -1489,7 +1489,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                       <div className="w-1/3 text-left">
                          <p className="text-gray-500 text-xs">التاريخ: 1445/XX/XX</p>
                          <p className="text-teal-600 font-bold text-xs mt-2">{formData.slogan}</p>
-                         {formData.whatsappPhone && <p className="text-gray-400 text-[10px] mt-1">ت: {formData.whatsappPhone}</p>}
                       </div>
                     </div>
                   </div>
