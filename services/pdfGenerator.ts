@@ -391,6 +391,14 @@ export async function generatePDFReport(
       stampUrl: settings.stampUrl || '',
       ...settings
     };
+    
+    // Debug: Log settings to console
+    console.log('PDF Generator - Settings received:', {
+      reportGeneralMessage: safeSettings.reportGeneralMessage,
+      stampUrl: safeSettings.stampUrl,
+      hasReportGeneralMessage: !!safeSettings.reportGeneralMessage,
+      hasStampUrl: !!safeSettings.stampUrl
+    });
 
     // Date formatting (matching PDFReport.tsx)
     const reportDate = record.date ? new Date(record.date) : new Date();
