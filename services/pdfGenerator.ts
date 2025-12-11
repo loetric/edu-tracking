@@ -213,33 +213,25 @@ export async function generatePDFReport(
     rightY -= 18;
     page.drawImage(sEmb, { x: width - margin - sEmb.width, y: rightY, width: sEmb.width, height: sEmb.height });
 
-    // Top Left: Date, Day, Report Title
+    // Top Left: Date, Day, Report Title - Simplified to match image
     const reportDate = record.date ? new Date(record.date) : new Date();
     const dateStr = reportDate.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' });
     const dayName = reportDate.toLocaleDateString('ar-SA', { weekday: 'long' });
     
-    const dateLabelImg = await textToImage('التاريخ :', { fontSize: 10, color: '#666666', align: 'left' });
-    const dateValueImg = await textToImage(dateStr, { fontSize: 10, color: '#333333', align: 'left', isBold: true });
-    const dayLabelImg = await textToImage('اليوم :', { fontSize: 10, color: '#666666', align: 'left' });
-    const dayValueImg = await textToImage(dayName, { fontSize: 10, color: '#333333', align: 'left', isBold: true });
-    const reportTitleImg = await textToImage('تقرير المتابعة اليومي', {
+    const reportTitleImg = await textToImage('المتابعة اليومي', {
+      fontSize: 14, color: '#143C55', align: 'left', isBold: true
+    });
+    const schoolNameTitleImg = await textToImage(settings.name || 'المدرسة', {
       fontSize: 12, color: '#143C55', align: 'left', isBold: true
     });
 
-    const dLEmb = await pdfDoc.embedPng(dateLabelImg.buffer);
-    const dVEmb = await pdfDoc.embedPng(dateValueImg.buffer);
-    const dayLEmb = await pdfDoc.embedPng(dayLabelImg.buffer);
-    const dayVEmb = await pdfDoc.embedPng(dayValueImg.buffer);
     const rtEmb = await pdfDoc.embedPng(reportTitleImg.buffer);
+    const sntEmb = await pdfDoc.embedPng(schoolNameTitleImg.buffer);
 
     let leftY = cursorY;
-    page.drawImage(dLEmb, { x: margin, y: leftY, width: dLEmb.width, height: dLEmb.height });
-    page.drawImage(dVEmb, { x: margin + dLEmb.width + 5, y: leftY, width: dVEmb.width, height: dVEmb.height });
-    leftY -= 18;
-    page.drawImage(dayLEmb, { x: margin, y: leftY, width: dayLEmb.width, height: dayLEmb.height });
-    page.drawImage(dayVEmb, { x: margin + dayLEmb.width + 5, y: leftY, width: dayVEmb.width, height: dayVEmb.height });
-    leftY -= 20;
     page.drawImage(rtEmb, { x: margin, y: leftY, width: rtEmb.width, height: rtEmb.height });
+    leftY -= 20;
+    page.drawImage(sntEmb, { x: margin, y: leftY, width: sntEmb.width, height: sntEmb.height });
 
     // Center: Logo
     if (settings.logoUrl) {
@@ -268,29 +260,22 @@ export async function generatePDFReport(
       color: COLORS.lightBlue,
     });
 
-    // Student info text
+    // Student info text - Only name and phone (matching the image)
     const studentNameText = `أسم الطالب : ${student.name}`;
-    const classText = `الصف / الفصل : ${student.classGrade || 'غير محدد'}`;
     const phoneText = `رقم الجوال : ${student.parentPhone || '-'}`;
 
     const nameImg = await textToImage(studentNameText, {
       fontSize: 11, color: '#333333', align: 'right', isBold: true
-    });
-    const classImg = await textToImage(classText, {
-      fontSize: 11, color: '#333333', align: 'right'
     });
     const phoneImg = await textToImage(phoneText, {
       fontSize: 11, color: '#333333', align: 'right'
     });
 
     const nameEmb = await pdfDoc.embedPng(nameImg.buffer);
-    const classEmb = await pdfDoc.embedPng(classImg.buffer);
     const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
 
     let infoY = cursorY - 20;
     page.drawImage(nameEmb, { x: width - margin - nameEmb.width, y: infoY, width: nameEmb.width, height: nameEmb.height });
-    infoY -= 15;
-    page.drawImage(classEmb, { x: width - margin - classEmb.width, y: infoY, width: classEmb.width, height: classEmb.height });
     infoY -= 15;
     page.drawImage(phoneEmb, { x: width - margin - phoneEmb.width, y: infoY, width: phoneEmb.width, height: phoneEmb.height });
 
@@ -422,31 +407,22 @@ export async function generatePDFReport(
       });
       cellX -= colWidths.teacher;
 
-      // Attendance (with checkmark if present)
+      // Attendance (with checkmark if present) - Only column with checkmarks
       if (record.attendance === 'present') {
         await drawCheckmark(pdfDoc, page, cellX - colWidths.attendance / 2, rowY - rowHeight / 2, 14, { r: 0.1, g: 0.6, b: 0.2 });
       }
       cellX -= colWidths.attendance;
 
-      // Homework (with checkmark if good/excellent)
-      if (record.attendance === 'present' && ['good', 'excellent'].includes(record.homework)) {
-        await drawCheckmark(pdfDoc, page, cellX - colWidths.homework / 2, rowY - rowHeight / 2, 14, { r: 0.1, g: 0.6, b: 0.2 });
-      }
+      // Homework - Empty (as shown in image)
       cellX -= colWidths.homework;
 
-      // Participation (with checkmark if good/excellent)
-      if (record.attendance === 'present' && ['good', 'excellent'].includes(record.participation)) {
-        await drawCheckmark(pdfDoc, page, cellX - colWidths.participation / 2, rowY - rowHeight / 2, 14, { r: 0.1, g: 0.6, b: 0.2 });
-      }
+      // Participation - Empty (as shown in image)
       cellX -= colWidths.participation;
 
-      // Behavior (with checkmark if good/excellent)
-      if (record.attendance === 'present' && ['good', 'excellent'].includes(record.behavior)) {
-        await drawCheckmark(pdfDoc, page, cellX - colWidths.behavior / 2, rowY - rowHeight / 2, 14, { r: 0.1, g: 0.6, b: 0.2 });
-      }
+      // Behavior - Empty (as shown in image)
       cellX -= colWidths.behavior;
 
-      // Notes
+      // Notes - Show notes for each session (from record.notes)
       const notesText = record.notes || '';
       if (notesText) {
         const notesImg = await textToImage(notesText, {
