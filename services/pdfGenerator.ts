@@ -5,32 +5,51 @@ import { getStatusLabel } from '../constants';
 // --- Configuration ---
 const ARABIC_FONT_STACK = '"Cairo", "Tajawal", "IBM Plex Sans Arabic", "Segoe UI", "Arial", sans-serif';
 
-// --- Color Palette matching the design ---
+// --- Color Palette matching the new design ---
 const COLORS = {
-  primary: rgb(0.09, 0.29, 0.49),
-  primaryLight: rgb(0.2, 0.45, 0.65),
-  accent: rgb(0.0, 0.74, 0.65),
+  // Page colors
+  pageBackground: rgb(0.96, 0.97, 0.98),
   white: rgb(1, 1, 1),
-  pageBackground: rgb(0.98, 0.98, 0.99),
-  studentInfoBg: rgb(0.95, 0.97, 0.99),
-  studentInfoBorder: rgb(0.85, 0.91, 0.96),
-  headerPrimary: rgb(0.09, 0.29, 0.49),
-  headerAttendance: rgb(0.0, 0.74, 0.65),
-  headerHomework: rgb(1.0, 0.60, 0.20),
-  headerParticipation: rgb(0.55, 0.27, 0.77),
-  headerBehavior: rgb(0.29, 0.69, 0.31),
+  
+  // Header colors
+  headerText: rgb(0.29, 0.32, 0.35),
+  headerTextLight: rgb(0.55, 0.58, 0.62),
+  
+  // Title colors
+  titlePrimary: rgb(0.09, 0.29, 0.49),
+  titleUnderline: rgb(0.0, 0.74, 0.65),
+  
+  // Student card
+  studentCardBg: rgb(0.93, 0.98, 0.96),
+  studentCardBorder: rgb(0.75, 0.90, 0.85),
+  studentCardAccent: rgb(0.0, 0.74, 0.65),
+  
+  // Summary boxes
+  summaryBoxBg: rgb(0.93, 0.98, 0.96),
+  summaryBoxBorder: rgb(0.75, 0.90, 0.85),
+  
+  // Table
+  tableHeaderBg: rgb(0.95, 0.96, 0.97),
+  tableHeaderText: rgb(0.30, 0.32, 0.34),
+  tableBorder: rgb(0.88, 0.90, 0.92),
   tableRowEven: rgb(1, 1, 1),
-  tableRowOdd: rgb(0.98, 0.99, 1.0),
-  borderLight: rgb(0.93, 0.94, 0.95),
+  tableRowOdd: rgb(0.99, 0.99, 0.99),
+  
+  // Status colors
+  statusPresent: rgb(0.0, 0.74, 0.65),
+  statusExcellent: rgb(0.0, 0.74, 0.65),
+  statusGood: rgb(0.4, 0.7, 0.9),
+  statusAverage: rgb(0.95, 0.75, 0.3),
+  statusPoor: rgb(0.95, 0.4, 0.4),
+  
+  // Text
   textPrimary: rgb(0.13, 0.13, 0.13),
-  textSecondary: rgb(0.45, 0.45, 0.45),
-  textLight: rgb(0.62, 0.62, 0.62),
-  messageBoxBg: rgb(0.95, 0.99, 0.97),
-  messageBoxBorder: rgb(0.8, 0.94, 0.88),
-  graphBoxBg: rgb(0.97, 0.96, 0.99),
-  graphBoxBorder: rgb(0.88, 0.85, 0.92),
-  footerBg: rgb(0.09, 0.29, 0.49),
-  footerText: rgb(0.95, 0.95, 0.95),
+  textSecondary: rgb(0.45, 0.47, 0.49),
+  
+  // Footer
+  footerBg: rgb(0.96, 0.97, 0.98),
+  footerText: rgb(0.55, 0.58, 0.62),
+  footerBorder: rgb(0.88, 0.90, 0.92),
 };
 
 /**
@@ -127,9 +146,9 @@ async function textToImage(
 }
 
 /**
- * Draw checkmark symbol
+ * Draw star icon
  */
-async function drawCheckmark(
+async function drawStar(
   pdfDoc: PDFDocument,
   page: PDFPage,
   x: number,
@@ -137,18 +156,44 @@ async function drawCheckmark(
   size: number,
   color: { r: number; g: number; b: number }
 ) {
-  const checkImg = await textToImage('✓', {
+  const starImg = await textToImage('★', {
     fontSize: size,
     color: `rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`,
     align: 'center',
-    isBold: true
+    isBold: false
   });
-  const checkEmb = await pdfDoc.embedPng(checkImg.buffer);
-  page.drawImage(checkEmb, {
-    x: x - checkImg.width / 2,
-    y: y - checkImg.height / 2,
-    width: checkImg.width,
-    height: checkImg.height
+  const starEmb = await pdfDoc.embedPng(starImg.buffer);
+  page.drawImage(starEmb, {
+    x: x - starImg.width / 2,
+    y: y - starImg.height / 2,
+    width: starImg.width,
+    height: starImg.height
+  });
+}
+
+/**
+ * Draw clipboard icon
+ */
+async function drawClipboard(
+  pdfDoc: PDFDocument,
+  page: PDFPage,
+  x: number,
+  y: number,
+  size: number,
+  color: { r: number; g: number; b: number }
+) {
+  const clipboardImg = await textToImage('📋', {
+    fontSize: size,
+    color: `rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`,
+    align: 'center',
+    isBold: false
+  });
+  const clipboardEmb = await pdfDoc.embedPng(clipboardImg.buffer);
+  page.drawImage(clipboardEmb, {
+    x: x - clipboardImg.width / 2,
+    y: y - clipboardImg.height / 2,
+    width: clipboardImg.width,
+    height: clipboardImg.height
   });
 }
 
@@ -158,11 +203,9 @@ async function drawCheckmark(
 async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
   try {
     if (!imageUrl || imageUrl.trim() === '') {
-      console.warn('Empty logo URL provided');
       return null;
     }
     
-    // Handle data URLs (base64)
     if (imageUrl.startsWith('data:')) {
       const base64Data = imageUrl.split(',')[1];
       const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
@@ -174,43 +217,25 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
       }
     }
     
-    // Handle regular URLs
-    console.log('Fetching image from URL:', imageUrl);
     const response = await fetch(imageUrl, {
       mode: 'cors',
       cache: 'no-cache'
     });
     
     if (!response.ok) {
-      console.warn('Failed to fetch image:', response.status, response.statusText);
       return null;
     }
     
     const arrayBuffer = await response.arrayBuffer();
     const imageBytes = new Uint8Array(arrayBuffer);
     
-    // Try to detect image type from content or URL
     const contentType = response.headers.get('content-type') || '';
     const urlLower = imageUrl.toLowerCase();
     
     if (contentType.includes('png') || urlLower.includes('.png') || urlLower.includes('png')) {
       return await pdfDoc.embedPng(imageBytes);
-    } else if (contentType.includes('jpeg') || contentType.includes('jpg') || 
-               urlLower.includes('.jpg') || urlLower.includes('.jpeg') ||
-               urlLower.includes('jpeg') || urlLower.includes('jpg')) {
-      return await pdfDoc.embedJpg(imageBytes);
     } else {
-      // Try PNG first, then JPG
-      try {
-        return await pdfDoc.embedPng(imageBytes);
-      } catch (pngError) {
-        try {
-          return await pdfDoc.embedJpg(imageBytes);
-        } catch (jpgError) {
-          console.error('Failed to embed image as PNG or JPG:', pngError, jpgError);
-          return null;
-        }
-      }
+      return await pdfDoc.embedJpg(imageBytes);
     }
   } catch (error) {
     console.error('Error loading image:', error);
@@ -219,7 +244,7 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
 }
 
 /**
- * Get status text in Arabic (using system constants)
+ * Get status text in Arabic
  */
 function getStatusText(status: string, type: 'attendance' | 'academic'): string {
   if (type === 'attendance') {
@@ -230,7 +255,6 @@ function getStatusText(status: string, type: 'attendance' | 'academic'): string 
       default: return '-';
     }
   } else {
-    // Use getStatusLabel from constants
     return getStatusLabel(status) || '-';
   }
 }
@@ -241,18 +265,18 @@ function getStatusText(status: string, type: 'attendance' | 'academic'): string 
 function getStatusBadgeColor(status: string, type: 'attendance' | 'academic'): { r: number; g: number; b: number } {
   if (type === 'attendance') {
     switch(status) {
-      case 'present': return { r: 0.0, g: 0.74, b: 0.65 }; // Teal
-      case 'excused': return { r: 0.95, g: 0.75, b: 0.3 }; // Yellow
-      case 'absent': return { r: 0.95, g: 0.4, b: 0.4 }; // Red
-      default: return { r: 0.7, g: 0.7, b: 0.7 }; // Gray
+      case 'present': return { r: 0.0, g: 0.74, b: 0.65 };
+      case 'excused': return { r: 0.95, g: 0.75, b: 0.3 };
+      case 'absent': return { r: 0.95, g: 0.4, b: 0.4 };
+      default: return { r: 0.7, g: 0.7, b: 0.7 };
     }
   } else {
     switch(status) {
-      case 'excellent': return { r: 0.29, g: 0.69, b: 0.31 }; // Green
-      case 'good': return { r: 0.4, g: 0.7, b: 0.9 }; // Blue
-      case 'average': return { r: 0.95, g: 0.75, b: 0.3 }; // Yellow
-      case 'poor': return { r: 0.95, g: 0.4, b: 0.4 }; // Red
-      default: return { r: 0.7, g: 0.7, b: 0.7 }; // Gray
+      case 'excellent': return { r: 0.0, g: 0.74, b: 0.65 };
+      case 'good': return { r: 0.4, g: 0.7, b: 0.9 };
+      case 'average': return { r: 0.95, g: 0.75, b: 0.3 };
+      case 'poor': return { r: 0.95, g: 0.4, b: 0.4 };
+      default: return { r: 0.7, g: 0.7, b: 0.7 };
     }
   }
 }
@@ -268,9 +292,8 @@ async function drawStatusBadge(
   x: number,
   y: number,
   width: number,
-  height: number = 22
+  height: number = 20
 ) {
-  // Draw badge background
   page.drawRectangle({
     x: x - width / 2,
     y: y - height / 2,
@@ -281,9 +304,8 @@ async function drawStatusBadge(
     borderWidth: 1,
   });
 
-  // Draw badge text
   const badgeTextImg = await textToImage(text, {
-    fontSize: 9, color: '#FFFFFF', align: 'center', isBold: true, maxWidth: width - 5
+    fontSize: 9, color: '#FFFFFF', align: 'center', isBold: false, maxWidth: width - 5
   });
   const badgeTextEmb = await pdfDoc.embedPng(badgeTextImg.buffer);
   page.drawImage(badgeTextEmb, {
@@ -295,7 +317,7 @@ async function drawStatusBadge(
 }
 
 /**
- * Generate PDF Report with dynamic data from system
+ * Generate PDF Report matching the new design
  */
 export async function generatePDFReport(
   student: Student,
@@ -304,7 +326,6 @@ export async function generatePDFReport(
   schedule: ScheduleItem[]
 ): Promise<Uint8Array> {
   try {
-    // Validate inputs
     if (!student || !student.name) {
       throw new Error('Student data is missing or invalid');
     }
@@ -331,7 +352,7 @@ export async function generatePDFReport(
       name: settings.name || 'المدرسة',
       ministry: settings.ministry || 'وزارة التعليم',
       region: settings.region || 'الإدارة العامة للتعليم',
-      slogan: settings.slogan || 'التميز .. غايتنا',
+      slogan: settings.slogan || '',
       logoUrl: settings.logoUrl || '',
       whatsappPhone: settings.whatsappPhone || '',
       reportGeneralMessage: settings.reportGeneralMessage || '',
@@ -347,7 +368,6 @@ export async function generatePDFReport(
     const dayName = reportDate.toLocaleDateString('ar-SA', { weekday: 'long' });
 
     // ================= HEADER SECTION =================
-    
     page.drawRectangle({
       x: 0,
       y: height - 140,
@@ -355,252 +375,324 @@ export async function generatePDFReport(
       height: 140,
       color: COLORS.white,
     });
-    
-    page.drawRectangle({
-      x: 0,
-      y: height - 144,
-      width: width,
-      height: 4,
-      color: COLORS.accent,
-    });
 
-    // ================= HEADER SECTION - All data from settings =================
-    
-    // Top Right: Kingdom, Ministry, Region, School Name (all from settings)
-    // Unified font size and color for all header texts
-    const headerFontSize = 11;
-    const headerColor = '#2B2B2B'; // Unified dark gray color
-    const headerBold = true;
-    
-    const kingdomText = 'المملكة العربية السعودية';
-    const ministryText = safeSettings.ministry || 'وزارة التعليم';
-    const regionText = safeSettings.region || 'الإدارة العامة للتعليم';
-    const schoolNameText = safeSettings.name || 'المدرسة';
-
-    const kingdomImg = await textToImage(kingdomText, {
-      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
-    });
-    const ministryImg = await textToImage(ministryText, {
-      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
-    });
-    const regionImg = await textToImage(regionText, {
-      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
-    });
-    const schoolNameImg = await textToImage(schoolNameText, {
-      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
-    });
-
-    const kEmb = await pdfDoc.embedPng(kingdomImg.buffer);
-    const mEmb = await pdfDoc.embedPng(ministryImg.buffer);
-    const rEmb = await pdfDoc.embedPng(regionImg.buffer);
-    const sEmb = await pdfDoc.embedPng(schoolNameImg.buffer);
+    // Right side - Kingdom info (all from settings)
+    const headerTexts = [
+      { text: 'المملكة العربية السعودية', bold: false },
+      { text: safeSettings.ministry, bold: false },
+      { text: safeSettings.region, bold: false },
+      { text: safeSettings.name, bold: true }
+    ];
 
     let rightY = cursorY;
-    const lineSpacing = 20; // Unified spacing between lines
-    page.drawImage(kEmb, { x: width - margin - kingdomImg.width, y: rightY, width: kingdomImg.width, height: kingdomImg.height });
-    rightY -= lineSpacing;
-    page.drawImage(mEmb, { x: width - margin - ministryImg.width, y: rightY, width: ministryImg.width, height: ministryImg.height });
-    rightY -= lineSpacing;
-    page.drawImage(rEmb, { x: width - margin - regionImg.width, y: rightY, width: regionImg.width, height: regionImg.height });
-    rightY -= lineSpacing;
-    page.drawImage(sEmb, { x: width - margin - schoolNameImg.width, y: rightY, width: schoolNameImg.width, height: schoolNameImg.height });
+    for (let i = 0; i < headerTexts.length; i++) {
+      const item = headerTexts[i];
+      const img = await textToImage(item.text, {
+        fontSize: i === 3 ? 11 : 10,
+        color: i === 3 ? '#2D3748' : '#718096',
+        align: 'right',
+        isBold: item.bold
+      });
+      const emb = await pdfDoc.embedPng(img.buffer);
+      page.drawImage(emb, {
+        x: width - margin - img.width,
+        y: rightY,
+        width: img.width,
+        height: img.height
+      });
+      rightY -= 18;
+    }
 
-    // Top Left: Report Title, Date, and Slogan (from settings)
-    const reportTitle = 'المتابعة اليومي';
-    const reportTitleImg = await textToImage(reportTitle, {
+    // Left side - Report info and date
+    const reportTitleImg = await textToImage('تقرير متابعة يومي', {
       fontSize: 16, color: '#17496D', align: 'left', isBold: true
     });
-    const dateInfoImg = await textToImage(`${dayName} - ${dateStr}`, {
-      fontSize: 10, color: '#737373', align: 'left', isBold: false
+    const reportTitleEmb = await pdfDoc.embedPng(reportTitleImg.buffer);
+    
+    let leftY = cursorY;
+    page.drawImage(reportTitleEmb, {
+      x: margin,
+      y: leftY + 5,
+      width: reportTitleImg.width,
+      height: reportTitleImg.height
     });
     
-    // Add slogan if available (from settings)
-    let sloganImg = null;
-    let sloganEmb = null;
-    if (safeSettings.slogan) {
-      sloganImg = await textToImage(safeSettings.slogan, {
-        fontSize: 10, color: '#0D9488', align: 'left', isBold: true
-      });
-      sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
-    }
+    // Draw underline for title
+    page.drawLine({
+      start: { x: margin, y: leftY + 3 },
+      end: { x: margin + reportTitleImg.width, y: leftY + 3 },
+      thickness: 3,
+      color: COLORS.titleUnderline
+    });
 
-    const rtEmb = await pdfDoc.embedPng(reportTitleImg.buffer);
-    const diEmb = await pdfDoc.embedPng(dateInfoImg.buffer);
-
-    let leftY = cursorY;
-    page.drawImage(rtEmb, { x: margin, y: leftY, width: reportTitleImg.width, height: reportTitleImg.height });
-    leftY -= 22;
-    page.drawImage(diEmb, { x: margin, y: leftY, width: dateInfoImg.width, height: dateInfoImg.height });
+    // Date info - Top Left
+    leftY -= 30;
+    const dateInfoImg = await textToImage(`${dayName}\n${dateStr}`, {
+      fontSize: 10, color: '#718096', align: 'left', isBold: false
+    });
+    const dateInfoEmb = await pdfDoc.embedPng(dateInfoImg.buffer);
+    page.drawImage(dateInfoEmb, {
+      x: margin,
+      y: leftY,
+      width: dateInfoImg.width,
+      height: dateInfoImg.height
+    });
     
-    // Add slogan below date if available
-    if (sloganEmb && sloganImg) {
-      leftY -= 18;
-      page.drawImage(sloganEmb, { x: margin, y: leftY, width: sloganImg.width, height: sloganImg.height });
-    }
-    
-    // Add WhatsApp phone if available (from settings)
+    // Phone - Bottom Left (from settings)
     if (safeSettings.whatsappPhone) {
-      const phoneText = `ت: ${safeSettings.whatsappPhone}`;
-      const phoneImg = await textToImage(phoneText, {
-        fontSize: 8, color: '#9CA3AF', align: 'left', isBold: false
+      leftY -= 25;
+      const phoneImg = await textToImage(`📞 ${safeSettings.whatsappPhone}`, {
+        fontSize: 9, color: '#A0AEC0', align: 'left', isBold: false
       });
       const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
-      leftY -= 14;
-      page.drawImage(phoneEmb, { x: margin, y: leftY, width: phoneImg.width, height: phoneImg.height });
+      page.drawImage(phoneEmb, {
+        x: margin,
+        y: leftY,
+        width: phoneImg.width,
+        height: phoneImg.height
+      });
     }
 
-    // Center: Logo (from settings.logoUrl)
-    // Try to load logo with better error handling
-    try {
-      if (safeSettings.logoUrl && safeSettings.logoUrl.trim() !== '') {
-        console.log('Attempting to load logo from:', safeSettings.logoUrl);
-        const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
-        if (logo) {
-          const logoSize = 70;
-          const logoX = width / 2 - logoSize / 2;
-          const logoY = cursorY - 25;
-          
-          // Get logo dimensions to maintain aspect ratio
-          const logoDims = logo.scale(1);
-          const logoAspectRatio = logoDims.width / logoDims.height;
-          let finalLogoWidth = logoSize;
-          let finalLogoHeight = logoSize;
-          
-          if (logoAspectRatio > 1) {
-            // Logo is wider than tall
-            finalLogoHeight = logoSize / logoAspectRatio;
-          } else {
-            // Logo is taller than wide
-            finalLogoWidth = logoSize * logoAspectRatio;
-          }
-          
-          // Center the logo
-          const adjustedLogoX = logoX + (logoSize - finalLogoWidth) / 2;
-          const adjustedLogoY = logoY + (logoSize - finalLogoHeight) / 2;
-          
-          // Draw subtle background for logo
-          page.drawRectangle({
-            x: logoX - 3,
-            y: logoY - 3,
-            width: logoSize + 6,
-            height: logoSize + 6,
-            color: rgb(0.95, 0.95, 0.95),
-          });
-          
-          page.drawImage(logo, {
-            x: adjustedLogoX,
-            y: adjustedLogoY,
-            width: finalLogoWidth,
-            height: finalLogoHeight,
-          });
-          
-          console.log('Logo loaded and drawn successfully');
+    // Center - Logo (from settings)
+    if (safeSettings.logoUrl) {
+      const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
+      if (logo) {
+        const logoSize = 65;
+        const logoX = width / 2 - logoSize / 2;
+        const logoY = cursorY - 15;
+        
+        const logoDims = logo.scale(1);
+        const logoAspectRatio = logoDims.width / logoDims.height;
+        let finalLogoWidth = logoSize;
+        let finalLogoHeight = logoSize;
+        
+        if (logoAspectRatio > 1) {
+          finalLogoHeight = logoSize / logoAspectRatio;
         } else {
-          console.warn('Logo image could not be loaded from URL:', safeSettings.logoUrl);
+          finalLogoWidth = logoSize * logoAspectRatio;
         }
-      } else {
-        console.log('No logo URL provided in settings');
+        
+        const adjustedLogoX = logoX + (logoSize - finalLogoWidth) / 2;
+        const adjustedLogoY = logoY + (logoSize - finalLogoHeight) / 2;
+        
+        page.drawImage(logo, {
+          x: adjustedLogoX,
+          y: adjustedLogoY,
+          width: finalLogoWidth,
+          height: finalLogoHeight,
+        });
       }
-    } catch (error) {
-      console.error('Error loading logo:', error);
-      // Continue without logo if there's an error
     }
 
     // ================= STUDENT INFO CARD =================
-    cursorY -= 120;
-    const cardHeight = 55;
+    cursorY -= 110;
+    const cardHeight = 100;
     
-    page.drawRectangle({
-      x: margin + 2,
-      y: cursorY - cardHeight - 2,
-      width: contentWidth,
-      height: cardHeight,
-      color: rgb(0.92, 0.92, 0.93),
-    });
-    
+    // Main card background
     page.drawRectangle({
       x: margin,
       y: cursorY - cardHeight,
       width: contentWidth,
       height: cardHeight,
-      color: COLORS.studentInfoBg,
-      borderColor: COLORS.studentInfoBorder,
-      borderWidth: 1.5,
+      color: COLORS.studentCardBg,
+      borderColor: COLORS.studentCardBorder,
+      borderWidth: 1,
     });
     
+    // Left accent bar
     page.drawRectangle({
       x: margin,
       y: cursorY - cardHeight,
-      width: 5,
+      width: 4,
       height: cardHeight,
-      color: COLORS.accent,
+      color: COLORS.studentCardAccent,
     });
 
-    // Student info (from student object)
-    const studentNameText = `أسم الطالب : ${student.name}`;
-    const phoneText = `رقم الجوال : ${student.parentPhone || '-'}`;
+    // Student info - Right side (all from student object)
+    const studentInfoTexts = [
+      { label: 'الاسم الرباعي', value: student.name },
+      { label: 'الفصل', value: student.classGrade || '-' },
+      { label: 'جوال ولي الأمر', value: student.parentPhone || '-' },
+      { label: 'رقم الملف', value: student.studentNumber || '-' }
+    ];
 
-    const nameImg = await textToImage(studentNameText, {
-      fontSize: 12, color: '#2B2B2B', align: 'right', isBold: true
-    });
-    const phoneImg = await textToImage(phoneText, {
-      fontSize: 11, color: '#737373', align: 'right'
-    });
+    let infoY = cursorY - 15;
+    for (const info of studentInfoTexts) {
+      const labelImg = await textToImage(info.label, {
+        fontSize: 10, color: '#718096', align: 'right', isBold: false
+      });
+      const valueImg = await textToImage(info.value, {
+        fontSize: 11, color: '#2D3748', align: 'right', isBold: true
+      });
+      
+      const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
+      const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
+      
+      const infoRightX = width - margin - 15;
+      page.drawImage(labelEmb, {
+        x: infoRightX - labelImg.width,
+        y: infoY,
+        width: labelImg.width,
+        height: labelImg.height
+      });
+      
+      page.drawImage(valueEmb, {
+        x: infoRightX - labelImg.width - valueImg.width - 10,
+        y: infoY,
+        width: valueImg.width,
+        height: valueImg.height
+      });
+      
+      infoY -= 20;
+    }
 
-    const nameEmb = await pdfDoc.embedPng(nameImg.buffer);
-    const phoneEmb = await pdfDoc.embedPng(phoneImg.buffer);
-
-    let infoY = cursorY - 18;
-    const infoRightX = width - margin - 15;
+    // Left side - Status badge with icon (from record)
+    const statusCircleX = margin + 55;
+    const statusCircleY = cursorY - cardHeight / 2;
+    const statusCircleSize = 60;
     
-    page.drawImage(nameEmb, { 
-      x: infoRightX - nameImg.width, 
-      y: infoY, 
-      width: nameImg.width, 
-      height: nameImg.height 
+    page.drawCircle({
+      x: statusCircleX,
+      y: statusCircleY,
+      size: statusCircleSize / 2,
+      color: COLORS.white,
+      borderColor: COLORS.studentCardBorder,
+      borderWidth: 2,
     });
     
-    infoY -= 18;
-    page.drawImage(phoneEmb, { 
-      x: infoRightX - phoneImg.width, 
-      y: infoY, 
-      width: phoneImg.width, 
-      height: phoneImg.height 
+    // Status text in circle (from record.attendance)
+    const statusLabel = getStatusText(record.attendance, 'attendance');
+    const statusIcon = record.attendance === 'present' ? '✓' : record.attendance === 'excused' ? '⚠' : '✗';
+    const statusColor = record.attendance === 'present' ? '#0D9488' : record.attendance === 'excused' ? '#F59E0B' : '#EF4444';
+    
+    const statusTextImg = await textToImage(`${statusIcon}\n${statusLabel}`, {
+      fontSize: 11, color: statusColor, align: 'center', isBold: true
+    });
+    const statusTextEmb = await pdfDoc.embedPng(statusTextImg.buffer);
+    page.drawImage(statusTextEmb, {
+      x: statusCircleX - statusTextImg.width / 2,
+      y: statusCircleY - statusTextImg.height / 2,
+      width: statusTextImg.width,
+      height: statusTextImg.height
     });
 
-    // ================= TABLE =================
-    cursorY -= (cardHeight + 25);
+    // ================= SUMMARY SECTION =================
+    cursorY -= (cardHeight + 30);
     
+    // Title with star icon
+    const summaryTitleImg = await textToImage('ملخص الأداء والمستوى اليومي', {
+      fontSize: 13, color: '#2D3748', align: 'right', isBold: true
+    });
+    const summaryTitleEmb = await pdfDoc.embedPng(summaryTitleImg.buffer);
+    page.drawImage(summaryTitleEmb, {
+      x: width - margin - summaryTitleImg.width - 25,
+      y: cursorY,
+      width: summaryTitleImg.width,
+      height: summaryTitleImg.height
+    });
+    
+    await drawStar(pdfDoc, page, width - margin - 12, cursorY + 7, 14, { r: 0.8, g: 0.6, b: 0.2 });
+
+    cursorY -= 30;
+    const summaryBoxHeight = 70;
+    const summaryBoxWidth = (contentWidth - 30) / 4;
+
+    // Summary items (all from record)
+    const summaryItems = [
+      { label: 'الحضور', value: getStatusText(record.attendance, 'attendance'), icon: '✓' },
+      { label: 'المشاركة', value: record.participation && record.participation !== 'none' ? getStatusText(record.participation, 'academic') : '-', icon: '📊' },
+      { label: 'الواجبات', value: record.homework && record.homework !== 'none' ? getStatusText(record.homework, 'academic') : '-', icon: '📝' },
+      { label: 'السلوك', value: record.behavior && record.behavior !== 'none' ? getStatusText(record.behavior, 'academic') : '-', icon: '⭐' }
+    ];
+
+    let summaryX = width - margin;
+    for (const item of summaryItems) {
+      page.drawRectangle({
+        x: summaryX - summaryBoxWidth,
+        y: cursorY - summaryBoxHeight,
+        width: summaryBoxWidth - 10,
+        height: summaryBoxHeight,
+        color: COLORS.summaryBoxBg,
+        borderColor: COLORS.summaryBoxBorder,
+        borderWidth: 1,
+      });
+      
+      const labelImg = await textToImage(item.label, {
+        fontSize: 10, color: '#718096', align: 'center', isBold: false
+      });
+      const valueImg = await textToImage(item.value, {
+        fontSize: 12, color: '#0D9488', align: 'center', isBold: true
+      });
+      
+      const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
+      const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
+      
+      const boxCenterX = summaryX - summaryBoxWidth / 2 - 5;
+      
+      page.drawImage(labelEmb, {
+        x: boxCenterX - labelImg.width / 2,
+        y: cursorY - 20,
+        width: labelImg.width,
+        height: labelImg.height
+      });
+      
+      page.drawImage(valueEmb, {
+        x: boxCenterX - valueImg.width / 2,
+        y: cursorY - 45,
+        width: valueImg.width,
+        height: valueImg.height
+      });
+      
+      summaryX -= summaryBoxWidth;
+    }
+
+    // ================= TABLE SECTION =================
+    cursorY -= (summaryBoxHeight + 30);
+    
+    // Title with clipboard icon
+    const tableTitleImg = await textToImage('كشف المتابعة والحصص الدراسية', {
+      fontSize: 13, color: '#2D3748', align: 'right', isBold: true
+    });
+    const tableTitleEmb = await pdfDoc.embedPng(tableTitleImg.buffer);
+    page.drawImage(tableTitleEmb, {
+      x: width - margin - tableTitleImg.width - 25,
+      y: cursorY,
+      width: tableTitleImg.width,
+      height: tableTitleImg.height
+    });
+    
+    await drawClipboard(pdfDoc, page, width - margin - 12, cursorY + 7, 14, { r: 0.0, g: 0.74, b: 0.65 });
+
+    cursorY -= 35;
     // Filter schedule for the day (from schedule prop)
     const dailySchedule = schedule.filter(s => s.day === dayName).sort((a, b) => a.period - b.period);
     
     const tableY = cursorY;
-    const rowHeight = 38;
-    const headerHeight = 45;
+    const rowHeight = 35;
+    const headerHeight = 40;
     const numRows = Math.min(dailySchedule.length, 7);
     
     const colWidths = {
-      serial: contentWidth * 0.07,
-      subject: contentWidth * 0.23,
-      teacher: contentWidth * 0.18,
-      attendance: contentWidth * 0.13,
-      homework: contentWidth * 0.13,
-      participation: contentWidth * 0.13,
-      behavior: contentWidth * 0.13,
+      serial: contentWidth * 0.08,
+      subject: contentWidth * 0.22,
+      teacher: contentWidth * 0.20,
+      attendance: contentWidth * 0.125,
+      homework: contentWidth * 0.125,
+      participation: contentWidth * 0.125,
+      behavior: contentWidth * 0.125,
     };
 
-    // Table headers
     const headers = [
-      { text: 'م', width: colWidths.serial, bg: COLORS.headerPrimary, textColor: '#FFFFFF' },
-      { text: 'المادة ( الجدول )', width: colWidths.subject, bg: COLORS.headerPrimary, textColor: '#FFFFFF' },
-      { text: 'اسم المعلم', width: colWidths.teacher, bg: COLORS.headerPrimary, textColor: '#FFFFFF' },
-      { text: 'الحضور', width: colWidths.attendance, bg: COLORS.headerAttendance, textColor: '#FFFFFF' },
-      { text: 'الواجبات', width: colWidths.homework, bg: COLORS.headerHomework, textColor: '#FFFFFF' },
-      { text: 'المشاركة', width: colWidths.participation, bg: COLORS.headerParticipation, textColor: '#FFFFFF' },
-      { text: 'السلوك', width: colWidths.behavior, bg: COLORS.headerBehavior, textColor: '#FFFFFF' },
+      { text: 'م', width: colWidths.serial },
+      { text: 'المادة', width: colWidths.subject },
+      { text: 'المعلم', width: colWidths.teacher },
+      { text: 'الحضور', width: colWidths.attendance },
+      { text: 'الواجبات', width: colWidths.homework },
+      { text: 'المشاركة', width: colWidths.participation },
+      { text: 'السلوك', width: colWidths.behavior },
     ];
 
-    // Draw headers
+    // Draw table header
     let headerX = width - margin;
     for (const header of headers) {
       page.drawRectangle({
@@ -608,14 +700,14 @@ export async function generatePDFReport(
         y: tableY - headerHeight,
         width: header.width,
         height: headerHeight,
-        color: header.bg,
+        color: COLORS.tableHeaderBg,
       });
       
       const hImg = await textToImage(header.text, {
-        fontSize: 11, 
-        color: header.textColor, 
-        align: 'center', 
-        isBold: true, 
+        fontSize: 11,
+        color: '#4A5568',
+        align: 'center',
+        isBold: true,
         maxWidth: header.width - 10
       });
       const hEmb = await pdfDoc.embedPng(hImg.buffer);
@@ -632,15 +724,22 @@ export async function generatePDFReport(
           start: { x: headerX, y: tableY },
           end: { x: headerX, y: tableY - headerHeight },
           thickness: 1,
-          color: rgb(1, 1, 1),
-          opacity: 0.3
+          color: COLORS.tableBorder
         });
       }
       
       headerX -= header.width;
     }
 
-    // Draw rows (using record data - not sessions)
+    // Draw bottom border of header
+    page.drawLine({
+      start: { x: margin, y: tableY - headerHeight },
+      end: { x: width - margin, y: tableY - headerHeight },
+      thickness: 1.5,
+      color: COLORS.tableBorder
+    });
+
+    // Draw rows (using schedule and record data)
     let rowY = tableY - headerHeight;
     for (let i = 0; i < numRows; i++) {
       const session = dailySchedule[i];
@@ -658,41 +757,29 @@ export async function generatePDFReport(
         start: { x: margin, y: rowY - rowHeight },
         end: { x: width - margin, y: rowY - rowHeight },
         thickness: 0.5,
-        color: COLORS.borderLight
+        color: COLORS.tableBorder
       });
 
       let cellX = width - margin;
       
-      // Serial number (period from schedule)
+      // Serial number (from schedule.period)
       const serialNum = String(session.period);
       const serialImg = await textToImage(serialNum, {
-        fontSize: 11, color: '#FFFFFF', align: 'center', isBold: true
+        fontSize: 11, color: '#2D3748', align: 'center', isBold: true
       });
       const serialEmb = await pdfDoc.embedPng(serialImg.buffer);
-      
-      const circleSize = 24;
-      const circleX = cellX - colWidths.serial / 2;
-      const circleY = rowY - rowHeight / 2;
-      
-      page.drawCircle({
-        x: circleX,
-        y: circleY,
-        size: circleSize / 2,
-        color: COLORS.primary,
-      });
-      
       page.drawImage(serialEmb, {
-        x: circleX - serialImg.width / 2,
-        y: circleY - serialImg.height / 2,
+        x: cellX - colWidths.serial / 2 - serialImg.width / 2,
+        y: rowY - rowHeight / 2 - serialImg.height / 2,
         width: serialImg.width,
         height: serialImg.height
       });
       cellX -= colWidths.serial;
 
-      // Subject (from schedule)
+      // Subject (from schedule.subject)
       const subjectText = session.subject || '-';
       const subjectImg = await textToImage(subjectText, {
-        fontSize: 11, color: '#2B2B2B', align: 'right', maxWidth: colWidths.subject - 15, isBold: true
+        fontSize: 11, color: '#2D3748', align: 'right', maxWidth: colWidths.subject - 15, isBold: true
       });
       const subjectEmb = await pdfDoc.embedPng(subjectImg.buffer);
       page.drawImage(subjectEmb, {
@@ -703,10 +790,10 @@ export async function generatePDFReport(
       });
       cellX -= colWidths.subject;
 
-      // Teacher (from schedule)
+      // Teacher (from schedule.teacher)
       const teacherText = session.teacher || '-';
       const teacherImg = await textToImage(teacherText, {
-        fontSize: 10, color: '#737373', align: 'right', maxWidth: colWidths.teacher - 15
+        fontSize: 10, color: '#718096', align: 'right', maxWidth: colWidths.teacher - 15
       });
       const teacherEmb = await pdfDoc.embedPng(teacherImg.buffer);
       page.drawImage(teacherEmb, {
@@ -717,41 +804,46 @@ export async function generatePDFReport(
       });
       cellX -= colWidths.teacher;
 
-      // Attendance (from record.attendance - applies to all sessions if present)
+      // Attendance (from record.attendance)
       if (record.attendance === 'present') {
-        await drawCheckmark(pdfDoc, page, cellX - colWidths.attendance / 2, rowY - rowHeight / 2, 14, { r: 0.1, g: 0.6, b: 0.2 });
+        const attendanceText = getStatusText(record.attendance, 'attendance');
+        const attendanceColor = getStatusBadgeColor(record.attendance, 'attendance');
+        await drawStatusBadge(
+          pdfDoc, page, attendanceText, attendanceColor,
+          cellX - colWidths.attendance / 2, rowY - rowHeight / 2, 50
+        );
       }
       cellX -= colWidths.attendance;
 
-      // Homework (from record.homework - only if present)
+      // Homework (from record.homework)
       if (record.attendance === 'present' && record.homework && record.homework !== 'none') {
         const homeworkText = getStatusText(record.homework, 'academic');
         const homeworkColor = getStatusBadgeColor(record.homework, 'academic');
         await drawStatusBadge(
           pdfDoc, page, homeworkText, homeworkColor,
-          cellX - colWidths.homework / 2, rowY - rowHeight / 2, 45
+          cellX - colWidths.homework / 2, rowY - rowHeight / 2, 50
         );
       }
       cellX -= colWidths.homework;
 
-      // Participation (from record.participation - only if present)
+      // Participation (from record.participation)
       if (record.attendance === 'present' && record.participation && record.participation !== 'none') {
         const participationText = getStatusText(record.participation, 'academic');
         const participationColor = getStatusBadgeColor(record.participation, 'academic');
         await drawStatusBadge(
           pdfDoc, page, participationText, participationColor,
-          cellX - colWidths.participation / 2, rowY - rowHeight / 2, 55
+          cellX - colWidths.participation / 2, rowY - rowHeight / 2, 50
         );
       }
       cellX -= colWidths.participation;
 
-      // Behavior (from record.behavior - only if present)
+      // Behavior (from record.behavior)
       if (record.attendance === 'present' && record.behavior && record.behavior !== 'none') {
         const behaviorText = getStatusText(record.behavior, 'academic');
         const behaviorColor = getStatusBadgeColor(record.behavior, 'academic');
         await drawStatusBadge(
           pdfDoc, page, behaviorText, behaviorColor,
-          cellX - colWidths.behavior / 2, rowY - rowHeight / 2, 55
+          cellX - colWidths.behavior / 2, rowY - rowHeight / 2, 50
         );
       }
       cellX -= colWidths.behavior;
@@ -759,157 +851,70 @@ export async function generatePDFReport(
       rowY -= rowHeight;
     }
 
-    // ================= BOTTOM SECTION =================
-    cursorY = rowY - 25;
-    const boxHeight = 100;
-    const boxWidth = (contentWidth - 15) / 2;
-
-    // Left box: Counselor message (from settings.reportGeneralMessage)
-    if (safeSettings.reportGeneralMessage) {
-      page.drawRectangle({
-        x: margin + 1,
-        y: cursorY - boxHeight - 1,
-        width: boxWidth,
-        height: boxHeight,
-        color: rgb(0.90, 0.90, 0.91),
-      });
-      
-      page.drawRectangle({
-        x: margin,
-        y: cursorY - boxHeight,
-        width: boxWidth,
-        height: boxHeight,
-        color: COLORS.messageBoxBg,
-        borderColor: COLORS.messageBoxBorder,
-        borderWidth: 1.5,
-      });
-      
-      page.drawRectangle({
-        x: margin,
-        y: cursorY - 4,
-        width: boxWidth,
-        height: 4,
-        color: COLORS.headerBehavior,
-      });
-
-      const counselorTitleText = 'رسالة الموجه الطلابي :';
-      const counselorMessageText = safeSettings.reportGeneralMessage;
-
-      const counselorTitleImg = await textToImage(counselorTitleText, {
-        fontSize: 12, color: '#17496D', align: 'right', isBold: true
-      });
-      const counselorMsgImg = await textToImage(counselorMessageText, {
-        fontSize: 10, color: '#2B2B2B', align: 'right', maxWidth: boxWidth - 25
-      });
-
-      const ctEmb = await pdfDoc.embedPng(counselorTitleImg.buffer);
-      const cmEmb = await pdfDoc.embedPng(counselorMsgImg.buffer);
-
-      page.drawImage(ctEmb, {
-        x: margin + boxWidth - counselorTitleImg.width - 12,
-        y: cursorY - 22,
-        width: counselorTitleImg.width,
-        height: counselorTitleImg.height
-      });
-
-      page.drawImage(cmEmb, {
-        x: margin + boxWidth - counselorMsgImg.width - 12,
-        y: cursorY - 48,
-        width: counselorMsgImg.width,
-        height: counselorMsgImg.height
-      });
-    }
-
-    // Right box: Performance indicator
-    page.drawRectangle({
-      x: margin + boxWidth + 15 + 1,
-      y: cursorY - boxHeight - 1,
-      width: boxWidth,
-      height: boxHeight,
-      color: rgb(0.90, 0.90, 0.91),
-    });
-    
-    page.drawRectangle({
-      x: margin + boxWidth + 15,
-      y: cursorY - boxHeight,
-      width: boxWidth,
-      height: boxHeight,
-      color: COLORS.graphBoxBg,
-      borderColor: COLORS.graphBoxBorder,
-      borderWidth: 1.5,
-    });
-    
-    page.drawRectangle({
-      x: margin + boxWidth + 15,
-      y: cursorY - 4,
-      width: boxWidth,
-      height: 4,
-      color: COLORS.headerParticipation,
-    });
-
-    const performanceTitleText = 'الرسم البياني';
-    const performanceSubText = 'مؤشر الأداء';
-
-    const graphTitleImg = await textToImage(performanceTitleText, {
-      fontSize: 12, color: '#17496D', align: 'right', isBold: true
-    });
-    
-    const performanceTextImg = await textToImage(performanceSubText, {
-      fontSize: 9, color: '#737373', align: 'center'
-    });
-
-    const gtEmb = await pdfDoc.embedPng(graphTitleImg.buffer);
-    const ptEmb = await pdfDoc.embedPng(performanceTextImg.buffer);
-
-    page.drawImage(gtEmb, {
-      x: margin + boxWidth + 15 + boxWidth - graphTitleImg.width - 12,
-      y: cursorY - 22,
-      width: graphTitleImg.width,
-      height: graphTitleImg.height
-    });
-
-    page.drawImage(ptEmb, {
-      x: margin + boxWidth + 15 + boxWidth / 2 - performanceTextImg.width / 2,
-      y: cursorY - boxHeight / 2 - performanceTextImg.height / 2,
-      width: performanceTextImg.width,
-      height: performanceTextImg.height
-    });
-
-    // ================= FOOTER =================
-    const footerY = 40;
-    const footerHeight = 35;
+    // ================= FOOTER SECTION =================
+    const footerY = 50;
+    const footerHeight = 50;
     
     page.drawRectangle({
       x: 0,
-      y: footerY,
+      y: 0,
       width: width,
-      height: footerHeight,
+      height: footerY + footerHeight,
       color: COLORS.footerBg,
     });
     
-    page.drawRectangle({
-      x: 0,
-      y: footerY + footerHeight,
-      width: width,
-      height: 2,
-      color: COLORS.accent,
+    page.drawLine({
+      start: { x: 0, y: footerY + footerHeight },
+      end: { x: width, y: footerY + footerHeight },
+      thickness: 1,
+      color: COLORS.footerBorder
     });
 
-    const platformName = 'منصة التتبع الالكتروني';
-    const whatsappPhone = safeSettings.whatsappPhone || '-';
-    const slogan = safeSettings.slogan || 'تميزكم ... غايتنا';
-    
-    const footerText = `يصدر هذا التقرير من ${platformName} - رقم واتساب المدرسة : ${whatsappPhone} - ${slogan}`;
-    const footerImg = await textToImage(footerText, {
-      fontSize: 9, color: '#F0F0F0', align: 'center', maxWidth: contentWidth
+    // Footer left - School manager signature
+    const managerTitleImg = await textToImage('مدير المدرسة', {
+      fontSize: 10, color: '#718096', align: 'left', isBold: false
     });
-    const footerEmb = await pdfDoc.embedPng(footerImg.buffer);
+    const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
+    page.drawImage(managerTitleEmb, {
+      x: margin,
+      y: footerY + 25,
+      width: managerTitleImg.width,
+      height: managerTitleImg.height
+    });
+
+    // Footer right - Educational affairs signature
+    const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
+      fontSize: 10, color: '#718096', align: 'right', isBold: false
+    });
+    const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
+    page.drawImage(affairsTitleEmb, {
+      x: width - margin - affairsTitleImg.width,
+      y: footerY + 25,
+      width: affairsTitleImg.width,
+      height: affairsTitleImg.height
+    });
+
+    // Footer center - Stamp placeholder
+    const stampImg = await textToImage('مكان الختم', {
+      fontSize: 9, color: '#A0AEC0', align: 'center', isBold: false
+    });
+    const stampEmb = await pdfDoc.embedPng(stampImg.buffer);
     
-    page.drawImage(footerEmb, {
-      x: width / 2 - footerImg.width / 2,
-      y: footerY + footerHeight / 2 - footerImg.height / 2,
-      width: footerImg.width,
-      height: footerImg.height
+    page.drawRectangle({
+      x: width / 2 - 40,
+      y: footerY + 15,
+      width: 80,
+      height: 35,
+      borderColor: rgb(0.85, 0.87, 0.89),
+      borderWidth: 1,
+      borderDashArray: [3, 3],
+    });
+    
+    page.drawImage(stampEmb, {
+      x: width / 2 - stampImg.width / 2,
+      y: footerY + 28,
+      width: stampImg.width,
+      height: stampImg.height
     });
 
     return await pdfDoc.save();
