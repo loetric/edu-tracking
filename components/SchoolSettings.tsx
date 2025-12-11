@@ -1514,15 +1514,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                     </div>
                   </div>
 
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">السطر الرابع (اسم المدرسة)</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
-                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
-                    />
-                  </div>
 
 
                   <div className="mt-4">

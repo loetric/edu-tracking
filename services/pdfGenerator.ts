@@ -386,6 +386,9 @@ export async function generatePDFReport(
       reportLink: settings.reportLink || '',
       academicYear: settings.academicYear || '',
       classGrades: settings.classGrades || [],
+      principalName: settings.principalName || '',
+      educationalAffairsOfficer: settings.educationalAffairsOfficer || '',
+      stampUrl: settings.stampUrl || '',
       ...settings
     };
 
@@ -451,10 +454,10 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
-        // Logo aligned with header texts (same Y as headerStartY)
+        // Logo aligned with header texts (same Y as headerStartY) - raised 14px
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: headerStartY - finalLogoHeight, // Aligned with header texts
+          y: headerStartY - finalLogoHeight + 14, // Raised 14px
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
@@ -1161,7 +1164,7 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    const footerY = 40; // Moved down more to avoid overlap with notes
+    const footerY = 33; // Moved down 7px more (40 - 7 = 33)
     const footerHeight = 60;
     
     // Top border
@@ -1173,7 +1176,11 @@ export async function generatePDFReport(
     });
 
     // Left - Educational affairs signature (no "التوقيع" label)
-    const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
+    // Use name from settings if available, otherwise use title only
+    const affairsTitleText = safeSettings.educationalAffairsOfficer 
+      ? `وكيل الشؤون التعليمية\n${safeSettings.educationalAffairsOfficer}`
+      : 'وكيل الشؤون التعليمية';
+    const affairsTitleImg = await textToImage(affairsTitleText, {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
@@ -1192,9 +1199,45 @@ export async function generatePDFReport(
       color: COLORS.gray300
     });
 
-    // Center - QR Code or stamp placeholder (no "ختم المدرسة" label)
+    // Center - QR Code or stamp (use stampUrl from settings if available, otherwise QR code or placeholder)
     const footerCenterX = width / 2;
-    if (safeSettings.reportLink) {
+    if (safeSettings.stampUrl) {
+      // Use stamp image from settings
+      try {
+        const stamp = await loadImage(pdfDoc, safeSettings.stampUrl);
+        if (stamp) {
+          const stampDims = stamp.scale(1);
+          const stampAspectRatio = stampDims.width / stampDims.height;
+          let stampWidth = 60;
+          let stampHeight = 60;
+          
+          if (stampAspectRatio > 1) {
+            stampHeight = 60 / stampAspectRatio;
+          } else {
+            stampWidth = 60 * stampAspectRatio;
+          }
+          
+          page.drawImage(stamp, {
+            x: footerCenterX - stampWidth / 2,
+            y: footerY + 13, // Moved down 7px
+            width: stampWidth,
+            height: stampHeight,
+          });
+        }
+      } catch (e) {
+        console.warn('Could not load stamp image:', e);
+        // Fallback to placeholder
+        page.drawRectangle({
+          x: footerCenterX - 30,
+          y: footerY + 13,
+          width: 60,
+          height: 60,
+          borderColor: COLORS.gray300,
+          borderWidth: 2,
+          borderDashArray: [3, 3],
+        });
+      }
+    } else if (safeSettings.reportLink) {
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(safeSettings.reportLink)}`;
       try {
         const qrCode = await loadImage(pdfDoc, qrCodeUrl);
@@ -1234,7 +1277,11 @@ export async function generatePDFReport(
     }
 
     // Right - School manager signature (no "التوقيع" label)
-    const managerTitleImg = await textToImage('مدير المدرسة', {
+    // Use name from settings if available, otherwise use title only
+    const managerTitleText = safeSettings.principalName 
+      ? `مدير المدرسة\n${safeSettings.principalName}`
+      : 'مدير المدرسة';
+    const managerTitleImg = await textToImage(managerTitleText, {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
