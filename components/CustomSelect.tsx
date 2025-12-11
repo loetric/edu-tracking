@@ -20,16 +20,20 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
+  const [dropdownWidth, setDropdownWidth] = useState<number | string>('100%');
   const selectRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Calculate dropdown position based on available space
+  // Calculate dropdown position and width based on available space
   useEffect(() => {
     if (isOpen && selectRef.current) {
       const rect = selectRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       const dropdownHeight = 160; // max-h-40 = 160px
+
+      // Set dropdown width to match select button width
+      setDropdownWidth(rect.width);
 
       // If not enough space below but enough above, show above
       if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
@@ -125,10 +129,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               WebkitOverflowScrolling: 'touch',
               // Ensure scrolling works properly
               overscrollBehavior: 'contain',
-              // Allow text to wrap and show fully
-              minWidth: 'max-content',
-              width: 'max-content',
-              maxWidth: '100vw'
+              // Match the width of the select button exactly
+              width: typeof dropdownWidth === 'number' ? `${dropdownWidth}px` : dropdownWidth,
+              minWidth: typeof dropdownWidth === 'number' ? `${dropdownWidth}px` : dropdownWidth,
+              maxWidth: typeof dropdownWidth === 'number' ? `${dropdownWidth}px` : dropdownWidth
             }}
             onWheel={(e) => {
               // Prevent closing on scroll inside dropdown

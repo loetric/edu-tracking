@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS public.schedule (
     subject text NOT NULL,
     classRoom text NOT NULL,
     teacher text,
+    "academicYear" text, -- العام الدراسي (مثال: 1445-1446)
     created_at timestamptz DEFAULT now() NOT NULL
 );
 
