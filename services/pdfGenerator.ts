@@ -198,7 +198,7 @@ async function drawRadarChart(
       ctx.fill();
       ctx.stroke();
 
-      // Draw labels (smaller font, further out to avoid overlap)
+      // Draw labels (smaller font, further out to avoid overlap) - ALL labels including المشاركة
       ctx.font = 'bold 9px ' + ARABIC_FONT_STACK;
       ctx.fillStyle = '#6b7280';
       ctx.textAlign = 'center';
@@ -210,16 +210,11 @@ async function drawRadarChart(
         const x = centerX + labelRadius * Math.cos(angle);
         const y = centerY + labelRadius * Math.sin(angle);
         
+        // Always draw label, even if value is 0
         ctx.fillText(data[i].subject, x, y);
       }
 
-      // Draw performance level text at bottom (separate, clear)
-      ctx.font = 'bold 9px ' + ARABIC_FONT_STACK;
-      ctx.fillStyle = '#0d9488';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      const performanceText = `التقدير العام: ${performanceLevel}`;
-      ctx.fillText(performanceText, centerX, height - 8);
+      // Don't draw performance level text here - it will be drawn below the chart box
 
       canvas.toBlob((blob) => {
         if (!blob) reject(new Error('Blob creation failed'));
@@ -436,10 +431,10 @@ export async function generatePDFReport(
     const headerTextColor = '#2D3748'; // Unified color
     const headerLineSpacing = 18;
     
-    // Center column - Logo (BIGGER and CENTERED)
+    // Center column - Logo (BIGGER and AT THE TOP)
     const headerCenterX = width / 2;
-    const logoSize = 85; // Bigger logo
-    const logoY = headerStartY - 5; // Centered vertically in header
+    const logoSize = 100; // Even bigger logo
+    const logoTopY = headerY - 5; // At the top of header
     
     if (safeSettings.logoUrl) {
       const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
@@ -455,11 +450,10 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
-        // Center logo vertically in header
-        const logoCenterY = headerStartY - (headerSectionHeight / 2);
+        // Logo at the top, centered
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: logoCenterY - finalLogoHeight / 2,
+          y: logoTopY - finalLogoHeight,
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
@@ -467,7 +461,7 @@ export async function generatePDFReport(
     }
     
     // Title with underline (below logo, centered)
-    const titleY = headerStartY - headerSectionHeight + 20;
+    const titleY = logoTopY - logoSize - 15;
     const titleText = 'تقرير متابعة يومي';
     const titleImg = await textToImage(titleText, {
       fontSize: 16, color: '#1F2937', align: 'center', isBold: true
@@ -596,76 +590,9 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
 
-    // Left section - Avatar (blue background like in image)
-    const avatarSectionWidth = 100;
-    const avatarX = margin;
-    const avatarY = cardY - cardHeight / 2;
-    const avatarSize = 50;
-    
-    // Blue background for avatar section (matching image)
-    page.drawRectangle({
-      x: avatarX,
-      y: cardY - cardHeight,
-      width: avatarSectionWidth,
-      height: cardHeight,
-      color: rgb(0.2, 0.4, 0.8), // Blue background
-      borderColor: COLORS.gray300,
-      borderWidth: 1,
-    });
-    
-    // Load and draw avatar or initials
-    if (student.avatar) {
-      const avatar = await loadImage(pdfDoc, student.avatar);
-      if (avatar) {
-        const avatarDims = avatar.scale(1);
-        const avatarAspectRatio = avatarDims.width / avatarDims.height;
-        let finalAvatarWidth = avatarSize;
-        let finalAvatarHeight = avatarSize;
-        
-        if (avatarAspectRatio > 1) {
-          finalAvatarHeight = avatarSize / avatarAspectRatio;
-        } else {
-          finalAvatarWidth = avatarSize * avatarAspectRatio;
-        }
-        
-        page.drawImage(avatar, {
-          x: avatarX + avatarSectionWidth / 2 - finalAvatarWidth / 2,
-          y: avatarY - finalAvatarHeight / 2 + 5,
-          width: finalAvatarWidth,
-          height: finalAvatarHeight,
-        });
-      }
-    } else {
-      // Draw initials if no avatar
-      const initials = student.name.split(' ').map(n => n[0]).join('').substring(0, 2);
-      const initialsImg = await textToImage(initials, {
-        fontSize: 20, color: '#FFFFFF', align: 'center', isBold: true
-      });
-      const initialsEmb = await pdfDoc.embedPng(initialsImg.buffer);
-      page.drawImage(initialsEmb, {
-        x: avatarX + avatarSectionWidth / 2 - initialsImg.width / 2,
-        y: avatarY - initialsImg.height / 2 + 5,
-        width: initialsImg.width,
-        height: initialsImg.height
-      });
-    }
-    
-    // Student ID below avatar
-    const studentIdText = `رقم الملف: ${student.id}`;
-    const studentIdImg = await textToImage(studentIdText, {
-      fontSize: 8, color: '#FFFFFF', align: 'center', isBold: true
-    });
-    const studentIdEmb = await pdfDoc.embedPng(studentIdImg.buffer);
-    page.drawImage(studentIdEmb, {
-      x: avatarX + avatarSectionWidth / 2 - studentIdImg.width / 2,
-      y: cardY - cardHeight + 10,
-      width: studentIdImg.width,
-      height: studentIdImg.height
-    });
-
-    // Right section - Student details grid (4 cells)
-    const detailsX = margin + avatarSectionWidth;
-    const detailsWidth = contentWidth - avatarSectionWidth;
+    // Student details grid (4 cells - NO avatar section)
+    const detailsX = margin;
+    const detailsWidth = contentWidth;
     const cellWidth = detailsWidth / 2;
     const cellHeight = cardHeight / 2;
     
@@ -731,14 +658,14 @@ export async function generatePDFReport(
         });
       }
       
-      // Label
+      // Label (moved down to avoid border overlap)
       const labelImg = await textToImage(detail.label, {
         fontSize: 9, color: '#6B7280', align: 'right', isBold: true
       });
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
         x: cellX + cellWidth - labelImg.width - 10,
-        y: cellY - 15,
+        y: cellY - 20, // Moved down
         width: labelImg.width,
         height: labelImg.height
       });
@@ -752,7 +679,7 @@ export async function generatePDFReport(
       const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
       page.drawImage(valueEmb, {
         x: cellX + cellWidth - valueImg.width - 10,
-        y: cellY - 35,
+        y: cellY - 40, // Moved down
         width: valueImg.width,
         height: valueImg.height
       });
@@ -815,11 +742,11 @@ export async function generatePDFReport(
       height: chartTitleImg.height
     });
     
-    // Draw radar chart (smaller, centered, with space for title and performance text)
+    // Draw radar chart (without performance text - it will be below the box)
     if (record.attendance === 'present') {
       const chartImageWidth = chartWidth - (chartPadding * 2);
-      const chartImageHeight = chartHeight - 50; // Leave space for title (top) and performance text (bottom)
-      const radarChart = await drawRadarChart(chartData, performanceLevel, chartImageWidth, chartImageHeight);
+      const chartImageHeight = chartHeight - 30; // Leave space for title only
+      const radarChart = await drawRadarChart(chartData, '', chartImageWidth, chartImageHeight); // Empty performanceLevel
       const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
       
       // Center the chart vertically in the available space
@@ -829,6 +756,19 @@ export async function generatePDFReport(
         y: chartImageY,
         width: radarChart.width,
         height: radarChart.height
+      });
+      
+      // Draw performance level text BELOW the chart box (outside the box)
+      const performanceText = `التقدير العام: ${performanceLevel}`;
+      const performanceImg = await textToImage(performanceText, {
+        fontSize: 9, color: '#0D9488', align: 'center', isBold: true
+      });
+      const performanceEmb = await pdfDoc.embedPng(performanceImg.buffer);
+      page.drawImage(performanceEmb, {
+        x: chartX + chartWidth / 2 - performanceImg.width / 2,
+        y: chartY - chartHeight - 15, // Below the chart box, outside
+        width: performanceImg.width,
+        height: performanceImg.height
       });
     } else {
       const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
@@ -872,14 +812,14 @@ export async function generatePDFReport(
         summaryBoxHeight
       );
       
-      // Label
+      // Label (moved down to avoid border overlap)
       const labelImg = await textToImage(item.label, {
         fontSize: 9, color: '#6B7280', align: 'center', isBold: true
       });
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
         x: boxX + summaryBoxWidth / 2 - labelImg.width / 2,
-        y: boxY - 15,
+        y: boxY - 20, // Moved down
         width: labelImg.width,
         height: labelImg.height
       });
@@ -1161,7 +1101,7 @@ export async function generatePDFReport(
       const notesTitleEmb = await pdfDoc.embedPng(notesTitleImg.buffer);
       page.drawImage(notesTitleEmb, {
         x: width - margin - notesTitleImg.width - 10,
-        y: cursorY - 15,
+        y: cursorY - 20, // Moved down to avoid border overlap
         width: notesTitleImg.width,
         height: notesTitleImg.height
       });
@@ -1219,7 +1159,7 @@ export async function generatePDFReport(
     }
 
     // ================= FOOTER SECTION =================
-    const footerY = 80;
+    const footerY = 50; // Moved down to avoid overlap with notes
     const footerHeight = 60;
     
     // Top border
@@ -1352,7 +1292,7 @@ export async function generatePDFReport(
       borderWidth: 1,
     });
     
-    // Slogan
+    // Slogan (moved down to avoid border overlap)
     if (safeSettings.slogan) {
       const sloganImg = await textToImage(safeSettings.slogan, {
         fontSize: 9, color: '#6B7280', align: 'left', isBold: true
@@ -1360,13 +1300,13 @@ export async function generatePDFReport(
       const sloganEmb = await pdfDoc.embedPng(sloganImg.buffer);
       page.drawImage(sloganEmb, {
         x: margin + 10,
-        y: bottomStripY + 8,
+        y: bottomStripY + 12, // Moved down
         width: sloganImg.width,
         height: sloganImg.height
       });
     }
     
-    // Platform info
+    // Platform info (moved down to avoid border overlap)
     const platformText = `صدر عن: نظام التتبع الذكي${safeSettings.whatsappPhone ? ` | Contact: ${safeSettings.whatsappPhone}` : ''}`;
     const platformImg = await textToImage(platformText, {
       fontSize: 8, color: '#6B7280', align: 'right', isBold: false
@@ -1374,7 +1314,7 @@ export async function generatePDFReport(
     const platformEmb = await pdfDoc.embedPng(platformImg.buffer);
     page.drawImage(platformEmb, {
       x: width - margin - platformImg.width - 10,
-      y: bottomStripY + 8,
+      y: bottomStripY + 12, // Moved down
       width: platformImg.width,
       height: platformImg.height
     });
