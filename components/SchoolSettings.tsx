@@ -550,53 +550,138 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   };
 
   const handleAddSession = async () => {
-      if (newSession.day && newSession.period && newSession.subject && newSession.classRoom && newSession.teacher && onUpdateSchedule) {
-          try {
-              // Trim and normalize teacher name to ensure consistency
-              const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
+      // التحقق من البيانات المطلوبة
+      if (!newSession.day || !newSession.period || !newSession.subject || !newSession.classRoom || !newSession.teacher) {
+          alert({ message: 'الرجاء تعبئة جميع بيانات الحصة المطلوبة', type: 'warning' });
+          return;
+      }
+
+      // التحقق من وجود العام الدراسي
+      if (!formData.academicYear || formData.academicYear.trim() === '') {
+          alert({ message: 'الرجاء تحديد العام الدراسي في الإعدادات العامة أولاً', type: 'warning' });
+          return;
+      }
+
+      if (!onUpdateSchedule) {
+          alert({ message: 'خطأ في النظام: لا يمكن حفظ الحصة', type: 'error' });
+          return;
+      }
+
+      try {
+          // Trim and normalize teacher name to ensure consistency
+          const normalizedTeacher = (newSession.teacher || '').trim().replace(/\s+/g, ' ');
+          const normalizedClassRoom = (newSession.classRoom || '').trim();
+          const academicYear = formData.academicYear.trim();
+          
+          let updatedSchedule: ScheduleItem[];
+          
+          if (editingSession) {
+              // Update existing session - التحقق من التعارضات (استثناء الحصة الحالية)
+              const otherSessions = schedule.filter(s => s.id !== editingSession.id);
               
-              let updatedSchedule: ScheduleItem[];
+              // التحقق من تعارض المعلم
+              const teacherConflict = otherSessions.find(s => 
+                  s.day === newSession.day && 
+                  s.period === newSession.period && 
+                  (s.teacher === normalizedTeacher || s.originalTeacher === normalizedTeacher) &&
+                  (s.academicYear === academicYear || !s.academicYear)
+              );
               
-              if (editingSession) {
-                  // Update existing session
-                  updatedSchedule = schedule.map(s => 
-                      s.id === editingSession.id 
-                          ? {
-                              ...s,
-                              day: newSession.day!,
-                              period: newSession.period!,
-                              subject: newSession.subject!.trim(),
-                              classRoom: newSession.classRoom!.trim(),
-                              teacher: normalizedTeacher
-                          }
-                          : s
-                  );
-                  console.log('handleAddSession: Updating session, schedule length:', updatedSchedule.length);
-              } else {
-                  // Add new session
-                  const sessionToAdd: ScheduleItem = {
-                      id: Date.now().toString(),
-                      day: newSession.day,
-                      period: newSession.period,
-                      subject: newSession.subject.trim(),
-                      classRoom: newSession.classRoom.trim(),
-                      teacher: normalizedTeacher
-                  };
-                  updatedSchedule = [...schedule, sessionToAdd];
-                  console.log('handleAddSession: Adding session, new schedule length:', updatedSchedule.length);
+              if (teacherConflict) {
+                  alert({ 
+                      message: `لا يمكن تحديث الحصة: المعلم "${normalizedTeacher}" لديه حصة أخرى في ${teacherConflict.day} - الحصة ${teacherConflict.period} (${teacherConflict.subject} - ${teacherConflict.classRoom})`, 
+                      type: 'error' 
+                  });
+                  return;
               }
               
-              await onUpdateSchedule(updatedSchedule);
-              setNewSession({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
-              setEditingSession(null);
-              setIsAddingSession(false);
-              // Success message is shown in onUpdateSchedule
-          } catch (error) {
-              console.error('handleAddSession: Error saving session:', error);
-              alert({ message: editingSession ? 'فشل في تحديث الحصة. يرجى المحاولة مرة أخرى.' : 'فشل في إضافة الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
+              // التحقق من تعارض الفصل
+              const classConflict = otherSessions.find(s => 
+                  s.day === newSession.day && 
+                  s.period === newSession.period && 
+                  s.classRoom === normalizedClassRoom &&
+                  (s.academicYear === academicYear || !s.academicYear)
+              );
+              
+              if (classConflict) {
+                  alert({ 
+                      message: `لا يمكن تحديث الحصة: الفصل "${normalizedClassRoom}" لديه حصة أخرى في ${classConflict.day} - الحصة ${classConflict.period} (${classConflict.subject} - معلم: ${classConflict.teacher || classConflict.originalTeacher})`, 
+                      type: 'error' 
+                  });
+                  return;
+              }
+
+              // Update existing session
+              updatedSchedule = schedule.map(s => 
+                  s.id === editingSession.id 
+                      ? {
+                          ...s,
+                          day: newSession.day!,
+                          period: newSession.period!,
+                          subject: newSession.subject!.trim(),
+                          classRoom: normalizedClassRoom,
+                          teacher: normalizedTeacher,
+                          academicYear: academicYear
+                      }
+                      : s
+              );
+              console.log('handleAddSession: Updating session, schedule length:', updatedSchedule.length);
+          } else {
+              // Add new session - التحقق من التعارضات
+              // التحقق من تعارض المعلم
+              const teacherConflict = schedule.find(s => 
+                  s.day === newSession.day && 
+                  s.period === newSession.period && 
+                  (s.teacher === normalizedTeacher || s.originalTeacher === normalizedTeacher) &&
+                  (s.academicYear === academicYear || !s.academicYear)
+              );
+              
+              if (teacherConflict) {
+                  alert({ 
+                      message: `لا يمكن إضافة الحصة: المعلم "${normalizedTeacher}" لديه حصة أخرى في ${teacherConflict.day} - الحصة ${teacherConflict.period} (${teacherConflict.subject} - ${teacherConflict.classRoom})`, 
+                      type: 'error' 
+                  });
+                  return;
+              }
+              
+              // التحقق من تعارض الفصل
+              const classConflict = schedule.find(s => 
+                  s.day === newSession.day && 
+                  s.period === newSession.period && 
+                  s.classRoom === normalizedClassRoom &&
+                  (s.academicYear === academicYear || !s.academicYear)
+              );
+              
+              if (classConflict) {
+                  alert({ 
+                      message: `لا يمكن إضافة الحصة: الفصل "${normalizedClassRoom}" لديه حصة أخرى في ${classConflict.day} - الحصة ${classConflict.period} (${classConflict.subject} - معلم: ${classConflict.teacher || classConflict.originalTeacher})`, 
+                      type: 'error' 
+                  });
+                  return;
+              }
+
+              // Add new session
+              const sessionToAdd: ScheduleItem = {
+                  id: Date.now().toString(),
+                  day: newSession.day,
+                  period: newSession.period,
+                  subject: newSession.subject.trim(),
+                  classRoom: normalizedClassRoom,
+                  teacher: normalizedTeacher,
+                  academicYear: academicYear
+              };
+              updatedSchedule = [...schedule, sessionToAdd];
+              console.log('handleAddSession: Adding session, new schedule length:', updatedSchedule.length);
           }
-      } else {
-          alert({ message: 'الرجاء تعبئة جميع بيانات الحصة', type: 'warning' });
+          
+          await onUpdateSchedule(updatedSchedule);
+          setNewSession({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
+          setEditingSession(null);
+          setIsAddingSession(false);
+          alert({ message: editingSession ? 'تم تحديث الحصة بنجاح' : 'تم إضافة الحصة بنجاح', type: 'success' });
+      } catch (error) {
+          console.error('handleAddSession: Error saving session:', error);
+          alert({ message: editingSession ? 'فشل في تحديث الحصة. يرجى المحاولة مرة أخرى.' : 'فشل في إضافة الحصة. يرجى المحاولة مرة أخرى.', type: 'error' });
       }
   };
 
@@ -745,6 +830,19 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                       />
                   </div>
                   <p className="text-xs text-gray-500 mt-1">يستخدم هذا الرقم في تذييل التقارير كمرجع لولي الأمر</p>
+              </div>
+
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">العام الدراسي *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="مثال: 1445-1446"
+                    value={formData.academicYear || ''}
+                    onChange={e => setFormData({...formData, academicYear: e.target.value})}
+                    className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">يستخدم لتحديد العام الدراسي للحصص والجداول</p>
               </div>
 
               <div>

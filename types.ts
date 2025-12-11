@@ -22,6 +22,7 @@ export interface SchoolSettings {
   reportGeneralMessage?: string; // رسالة عامة تظهر في التقارير
   reportLink?: string; // رابط يتحول لباركود
   classGrades?: string[]; // قائمة الفصول المعرفة من قبل مدير النظام
+  academicYear?: string; // العام الدراسي (مثال: 1445-1446)
 }
 
 export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'special' | 'other';
@@ -83,6 +84,7 @@ export interface ScheduleItem {
   // New fields for substitution logic
   originalTeacher?: string; 
   isSubstituted?: boolean;
+  academicYear?: string; // العام الدراسي
   created_at?: string | Date; // ISO string or Date object
 }
 
