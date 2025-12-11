@@ -23,6 +23,10 @@ export interface SchoolSettings {
   reportLink?: string; // رابط يتحول لباركود
   classGrades?: string[]; // قائمة الفصول المعرفة من قبل مدير النظام
   academicYear?: string; // العام الدراسي (مثال: 1445-1446)
+  principalName?: string; // اسم مدير المدرسة
+  educationalAffairsOfficer?: string; // وكيل الشؤون التعليمية
+  schoolNumber?: string; // رقم المدرسة
+  stampUrl?: string; // ختم المدرسة (صورة)
 }
 
 export type ChallengeType = 'none' | 'sick' | 'retest' | 'orphan' | 'financial' | 'behavioral' | 'special' | 'other';

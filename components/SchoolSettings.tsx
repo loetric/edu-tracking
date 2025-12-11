@@ -736,7 +736,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
       {/* Tabs */}
       <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
         <div className="flex flex-wrap gap-2 md:gap-3 border-b border-gray-200 pb-2">
-          <button onClick={() => setActiveTab('general')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>الترويسة والبيانات العامة</button>
+          <button onClick={() => setActiveTab('general')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'general' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إعدادات المدرسة</button>
           <button onClick={() => setActiveTab('users')} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'users' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>إدارة المستخدمين والصلاحيات</button>
           <div className="w-full md:w-px h-px md:h-6 bg-gray-300 my-1 md:my-0"></div>
           <button onClick={() => { setActiveTab('academic'); setAcademicSubTab('classes'); }} className={`px-3 md:px-4 py-2 md:py-2.5 font-bold text-xs md:text-sm transition-colors rounded-t-lg ${activeTab === 'academic' ? 'bg-teal-50 text-teal-700 border-b-2 border-teal-600' : 'text-gray-500 hover:bg-gray-50'}`}>التعريفات الأكاديمية</button>
@@ -761,82 +761,20 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
         {activeTab === 'general' && (
           <>
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              إعدادات ترويسة التقارير
+              إعدادات المدرسة
             </h2>
             
-            {/* Header Preview */}
-            <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-sm font-bold text-gray-500 mb-3">معاينة الترويسة (كما ستظهر في التقرير):</h3>
-              <div className="bg-white border border-gray-300 p-4 rounded flex justify-between items-center text-center">
-                <div className="text-right w-1/3 space-y-1">
-                   <p className="font-bold text-gray-800 text-sm">المملكة العربية السعودية</p>
-                   <p className="font-bold text-gray-800 text-sm">{formData.ministry}</p>
-                   <p className="font-bold text-gray-800 text-sm">{formData.region}</p>
-                   <p className="font-bold text-gray-800 text-sm">{formData.name}</p>
-                </div>
-                <div className="w-1/3 flex justify-center">
-                   {formData.logoUrl ? (
-                       <img src={formData.logoUrl} alt="Logo" className="h-20 w-20 object-contain" />
-                   ) : (
-                       <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center">
-                           <ImageIcon className="text-gray-400" />
-                       </div>
-                   )}
-                </div>
-                <div className="w-1/3 text-left">
-                   <p className="text-gray-500 text-xs">التاريخ: 1445/XX/XX</p>
-                   <p className="text-teal-600 font-bold text-xs mt-2">{formData.slogan}</p>
-                   {formData.whatsappPhone && <p className="text-gray-400 text-[10px] mt-1">ت: {formData.whatsappPhone}</p>}
-                </div>
-              </div>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">السطر الثاني (الوزارة)</label>
-                    <input
-                      type="text"
-                      value={formData.ministry}
-                      onChange={e => setFormData({...formData, ministry: e.target.value})}
-                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">السطر الثالث (الإدارة التعليمية)</label>
-                    <input
-                      type="text"
-                      value={formData.region}
-                      onChange={e => setFormData({...formData, region: e.target.value})}
-                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
-                    />
-                  </div>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">السطر الرابع (اسم المدرسة)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">اسم المدرسة *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
                   className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                  placeholder="مثال: مدرسة الابتدائية الأولى"
                 />
-              </div>
-
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">رقم واتساب المدرسة (للتواصل)</label>
-                  <div className="relative">
-                      <Phone size={16} className="absolute top-3 right-3 text-gray-400" />
-                      <input
-                        type="text"
-                        placeholder="966500000000"
-                        value={formData.whatsappPhone || ''}
-                        onChange={e => setFormData({...formData, whatsappPhone: e.target.value})}
-                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 pr-10 border"
-                      />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">يستخدم هذا الرقم في تذييل التقارير كمرجع لولي الأمر</p>
               </div>
 
               <div>
@@ -850,6 +788,39 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                     className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
                   />
                   <p className="text-xs text-gray-500 mt-1">يستخدم لتحديد العام الدراسي للحصص والجداول</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">اسم مدير المدرسة</label>
+                <input
+                  type="text"
+                  value={formData.principalName || ''}
+                  onChange={e => setFormData({...formData, principalName: e.target.value})}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                  placeholder="مثال: أ. محمد بن أحمد العلي"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">وكيل الشؤون التعليمية</label>
+                <input
+                  type="text"
+                  value={formData.educationalAffairsOfficer || ''}
+                  onChange={e => setFormData({...formData, educationalAffairsOfficer: e.target.value})}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                  placeholder="مثال: أ. خالد بن سعيد المطيري"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">رقم المدرسة</label>
+                <input
+                  type="text"
+                  value={formData.schoolNumber || ''}
+                  onChange={e => setFormData({...formData, schoolNumber: e.target.value})}
+                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                  placeholder="مثال: 12345"
+                />
               </div>
 
               <div>
@@ -878,13 +849,48 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ختم المدرسة</label>
+                <div className="flex gap-4 items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="relative w-20 h-20 bg-white rounded-lg border border-gray-200 flex items-center justify-center overflow-hidden shadow-sm">
+                      {formData.stampUrl ? (
+                          <img src={formData.stampUrl} alt="Stamp" className="w-full h-full object-contain" />
+                      ) : (
+                          <ImageIcon className="text-gray-300" size={32} />
+                      )}
+                  </div>
+                  <div className="flex-1">
+                      <label className="cursor-pointer bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 inline-flex items-center gap-2 shadow-sm transition-colors text-sm font-bold mb-2">
+                        <Upload size={16} />
+                        رفع صورة الختم
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setFormData({ ...formData, stampUrl: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                        />
+                      </label>
+                      <p className="text-xs text-gray-400">يرفع ختم المدرسة كصورة (PNG, JPG)</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="pt-4 border-t border-gray-100 space-y-4">
                 <button
                   type="submit"
                   className="w-full flex justify-center items-center gap-2 bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md"
                 >
                   <Save size={20} />
-                  حفظ إعدادات الترويسة
+                  حفظ إعدادات المدرسة
                 </button>
 
                 {onReset && (
@@ -1453,6 +1459,95 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               </p>
 
               <div className="space-y-6">
+                {/* Header Section */}
+                <div className="border-b border-gray-200 pb-6">
+                  <h4 className="font-bold text-gray-800 mb-4">إعدادات الترويسة</h4>
+                  
+                  {/* Header Preview */}
+                  <div className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-500 mb-3">معاينة الترويسة (كما ستظهر في التقرير):</h3>
+                    <div className="bg-white border border-gray-300 p-4 rounded flex justify-between items-center text-center">
+                      <div className="text-right w-1/3 space-y-1">
+                         <p className="font-bold text-gray-800 text-sm">المملكة العربية السعودية</p>
+                         <p className="font-bold text-gray-800 text-sm">{formData.ministry}</p>
+                         <p className="font-bold text-gray-800 text-sm">{formData.region}</p>
+                         <p className="font-bold text-gray-800 text-sm">{formData.name}</p>
+                      </div>
+                      <div className="w-1/3 flex justify-center">
+                         {formData.logoUrl ? (
+                             <img src={formData.logoUrl} alt="Logo" className="h-20 w-20 object-contain" />
+                         ) : (
+                             <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center">
+                                 <ImageIcon className="text-gray-400" />
+                             </div>
+                         )}
+                      </div>
+                      <div className="w-1/3 text-left">
+                         <p className="text-gray-500 text-xs">التاريخ: 1445/XX/XX</p>
+                         <p className="text-teal-600 font-bold text-xs mt-2">{formData.slogan}</p>
+                         {formData.whatsappPhone && <p className="text-gray-400 text-[10px] mt-1">ت: {formData.whatsappPhone}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">السطر الثاني (الوزارة)</label>
+                      <input
+                        type="text"
+                        value={formData.ministry}
+                        onChange={e => setFormData({...formData, ministry: e.target.value})}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">السطر الثالث (الإدارة التعليمية)</label>
+                      <input
+                        type="text"
+                        value={formData.region}
+                        onChange={e => setFormData({...formData, region: e.target.value})}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">السطر الرابع (اسم المدرسة)</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                    />
+                  </div>
+
+                  <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">رقم واتساب المدرسة (للتواصل)</label>
+                      <div className="relative">
+                          <Phone size={16} className="absolute top-3 right-3 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="966500000000"
+                            value={formData.whatsappPhone || ''}
+                            onChange={e => setFormData({...formData, whatsappPhone: e.target.value})}
+                            className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 pr-10 border"
+                          />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">يستخدم هذا الرقم في تذييل التقارير كمرجع لولي الأمر</p>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">الشعار</label>
+                    <input
+                      type="text"
+                      value={formData.slogan}
+                      onChange={e => setFormData({...formData, slogan: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
+                      placeholder="مثال: نحو تعليم متميز"
+                    />
+                  </div>
+                </div>
+
                 {/* Report General Message */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
