@@ -742,14 +742,14 @@ export async function generatePDFReport(
       height: chartTitleImg.height
     });
     
-    // Draw radar chart (without performance text - it will be below the box)
+    // Draw radar chart (with space for performance text at bottom inside the box)
     if (record.attendance === 'present') {
       const chartImageWidth = chartWidth - (chartPadding * 2);
-      const chartImageHeight = chartHeight - 30; // Leave space for title only
+      const chartImageHeight = chartHeight - 50; // Leave space for title (top) and performance text (bottom)
       const radarChart = await drawRadarChart(chartData, '', chartImageWidth, chartImageHeight); // Empty performanceLevel
       const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
       
-      // Center the chart vertically in the available space
+      // Center the chart vertically in the available space (above performance text)
       const chartImageY = chartY - chartHeight + 25; // Start after title space
       page.drawImage(radarChartEmb, {
         x: chartX + chartPadding,
@@ -758,7 +758,7 @@ export async function generatePDFReport(
         height: radarChart.height
       });
       
-      // Draw performance level text BELOW the chart box (outside the box)
+      // Draw performance level text INSIDE the chart box at the bottom (before border)
       const performanceText = `التقدير العام: ${performanceLevel}`;
       const performanceImg = await textToImage(performanceText, {
         fontSize: 9, color: '#0D9488', align: 'center', isBold: true
@@ -766,7 +766,7 @@ export async function generatePDFReport(
       const performanceEmb = await pdfDoc.embedPng(performanceImg.buffer);
       page.drawImage(performanceEmb, {
         x: chartX + chartWidth / 2 - performanceImg.width / 2,
-        y: chartY - chartHeight - 15, // Below the chart box, outside
+        y: chartY - chartHeight + 12, // Inside the box, at the bottom, before border (12px from bottom)
         width: performanceImg.width,
         height: performanceImg.height
       });
