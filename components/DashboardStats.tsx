@@ -353,11 +353,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                                 {item.isReady && (
                                                     <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">تم الرصد</span>
                                                 )}
-                                                <span className="text-[9px] text-gray-500 font-normal flex items-center gap-1">
+                                                <span className="text-[10px] text-gray-500 font-normal flex items-center gap-1">
                                                     {item.teachers.map((teacherInfo, idx) => (
                                                         <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
                                                             {idx > 0 && <span className="mx-0.5">•</span>}
-                                                            <User size={9} className="flex-shrink-0 text-gray-400" />
+                                                            <User size={10} className="flex-shrink-0 text-gray-400" />
                                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                                 : teacherInfo.name}
@@ -441,11 +441,11 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex items-center gap-1 mb-1.5 text-[9px] text-gray-500 flex-wrap">
+                                <div className="flex items-center gap-1 mb-1.5 text-[10px] text-gray-500 flex-wrap">
                                     {item.teachers.map((teacherInfo, idx) => (
                                         <span key={idx} className={`flex items-center gap-0.5 ${teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}`}>
                                             {idx > 0 && <span className="mx-0.5">•</span>}
-                                            <User size={8} className="flex-shrink-0 text-gray-400" />
+                                            <User size={9} className="flex-shrink-0 text-gray-400" />
                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                 : teacherInfo.name}

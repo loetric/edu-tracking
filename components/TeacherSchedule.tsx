@@ -156,9 +156,18 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                       <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">اختر المعلم البديل (المكلف):</label>
                       <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                           {(() => {
-                              // Filter teachers: exclude the original teacher and check availability
+                              // Get original teacher and current substitute (if any)
                               const originalTeacher = selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher;
-                              const availableSubstitutes = availableTeachers.filter(t => t !== originalTeacher);
+                              const currentSubstitute = selectedSessionForSub.isSubstituted ? selectedSessionForSub.teacher : null;
+                              
+                              // Filter teachers: exclude both original teacher and current substitute
+                              const availableSubstitutes = availableTeachers.filter(t => {
+                                  // Exclude original teacher
+                                  if (t === originalTeacher) return false;
+                                  // Exclude current substitute if exists
+                                  if (currentSubstitute && t === currentSubstitute) return false;
+                                  return true;
+                              });
                               
                               // Filter by availability: teacher should not have a session at the same time
                               const availableAtTime = availableSubstitutes.filter(teacher => {
@@ -189,7 +198,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                       </div>
                       {(() => {
                           const originalTeacher = selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher;
-                          const availableSubstitutes = availableTeachers.filter(t => t !== originalTeacher);
+                          const currentSubstitute = selectedSessionForSub.isSubstituted ? selectedSessionForSub.teacher : null;
+                          
+                          // Filter teachers: exclude both original teacher and current substitute
+                          const availableSubstitutes = availableTeachers.filter(t => {
+                              if (t === originalTeacher) return false;
+                              if (currentSubstitute && t === currentSubstitute) return false;
+                              return true;
+                          });
+                          
                           const availableAtTime = availableSubstitutes.filter(teacher => {
                               const hasConflict = schedule.some(s => 
                                   s.day === selectedSessionForSub.day && 
@@ -199,6 +216,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                               );
                               return !hasConflict;
                           });
+                          
                           if (availableAtTime.length === 0 && availableSubstitutes.length > 0) {
                               return (
                                   <p className="text-xs text-yellow-600 mt-2 bg-yellow-50 p-2 rounded border border-yellow-200">
@@ -234,21 +252,21 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             ? 'الجدول الدراسي العام' 
                             : 'جدولي الدراسي'}
                     </h2>
-                    <p className="text-gray-500">
-                        {role === 'admin' && filterType === 'teacher' && filterValue ? (
-                            <span>
-                                <span className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
-                                    النصاب: {schedule.filter(s => (s.teacher === filterValue || s.originalTeacher === filterValue) && !s.isSubstituted).length} حصة
-                                </span>
+                    {role === 'admin' && filterType === 'teacher' && filterValue ? (
+                        <div className="mt-1">
+                            <span className="inline-block bg-blue-50/60 text-blue-600 font-semibold px-2.5 py-1 rounded-md border border-blue-100 text-xs md:text-sm">
+                                النصاب: {schedule.filter(s => (s.teacher === filterValue || s.originalTeacher === filterValue) && !s.isSubstituted).length} حصة
                             </span>
-                        ) : role === 'admin' 
-                            ? 'نظرة شاملة على جميع الحصص الدراسية' 
-                            : (
-                                <span className="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
+                        </div>
+                    ) : role === 'admin' 
+                        ? <p className="text-gray-500">نظرة شاملة على جميع الحصص الدراسية</p>
+                        : (
+                            <div className="mt-1">
+                                <span className="inline-block bg-blue-50/60 text-blue-600 font-semibold px-2.5 py-1 rounded-md border border-blue-100 text-xs md:text-sm">
                                     النصاب: {schedule.filter(s => !s.isSubstituted).length} حصة - الحصص المسندة إليك خلال الأسبوع
                                 </span>
-                            )}
-                    </p>
+                            </div>
+                        )}
                 </div>
             </div>
             

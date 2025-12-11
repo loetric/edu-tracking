@@ -1238,6 +1238,22 @@ const App: React.FC = () => {
   };
 
   const handleAssignSubstitute = async (scheduleItemId: string, newTeacher: string) => {
+      // Find the schedule item
+      const scheduleItem = schedule.find(s => s.id === scheduleItemId);
+      if (!scheduleItem) {
+          alert({ message: 'لم يتم العثور على الحصة المحددة', type: 'error' });
+          return;
+      }
+      
+      // Get the original teacher
+      const originalTeacher = scheduleItem.originalTeacher || scheduleItem.teacher;
+      
+      // Validate that substitute is different from original teacher
+      if (newTeacher === originalTeacher) {
+          alert({ message: 'لا يمكن إسناد الحصة للمعلم الأساسي نفسه. يرجى اختيار معلم بديل آخر.', type: 'error' });
+          return;
+      }
+      
       const today = new Date().toISOString().split('T')[0];
       const newSub: Substitution = {
           id: Date.now().toString(),
