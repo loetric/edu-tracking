@@ -122,6 +122,9 @@ export interface FieldPosition {
   font?: 'regular' | 'bold';
   color?: { r: number; g: number; b: number };
   width?: number; // For text fields that might need wrapping
+  backgroundColor?: { r: number; g: number; b: number }; // Background color for the field
+  borderColor?: { r: number; g: number; b: number }; // Border color
+  padding?: number; // Padding around text
 }
 
 export interface TemplateFields {
@@ -174,33 +177,78 @@ const DEFAULT_FIELDS: TemplateFields = {
   // ============================================
   // SCHOOL INFORMATION (Top Section)
   // ============================================
-  schoolName: { x: 297, y: 800, fontSize: 16, font: 'bold' },      // اسم المدرسة (وسط الصفحة)
-  ministry: { x: 297, y: 780, fontSize: 12, font: 'regular' },     // الوزارة (وسط الصفحة)
-  region: { x: 297, y: 760, fontSize: 12, font: 'regular' },       // الإدارة التعليمية (وسط الصفحة)
+  // Matching PDFReport.tsx styling: bold, larger font for school name
+  schoolName: { x: 297, y: 800, fontSize: 18, font: 'bold', color: { r: 0.1, g: 0.4, b: 0.5 } },      // اسم المدرسة (teal-800)
+  ministry: { x: 297, y: 780, fontSize: 12, font: 'regular', color: { r: 0.3, g: 0.3, b: 0.3 } },     // الوزارة (gray-800)
+  region: { x: 297, y: 760, fontSize: 12, font: 'regular', color: { r: 0.3, g: 0.3, b: 0.3 } },       // الإدارة التعليمية (gray-800)
   
   // ============================================
   // STUDENT INFORMATION (Top-Left Section)
   // ============================================
-  studentName: { x: 80, y: 720, fontSize: 14, font: 'bold' },       // اسم الطالب
-  studentClass: { x: 80, y: 700, fontSize: 12, font: 'regular' },   // الفصل
-  studentId: { x: 80, y: 680, fontSize: 11, font: 'regular' },     // رقم الملف
-  parentPhone: { x: 80, y: 660, fontSize: 11, font: 'regular' },   // جوال ولي الأمر
+  // Matching PDFReport.tsx: bold for names, regular for details
+  studentName: { x: 80, y: 720, fontSize: 14, font: 'bold', color: { r: 0.2, g: 0.2, b: 0.2 } },       // اسم الطالب (gray-900)
+  studentClass: { x: 80, y: 700, fontSize: 12, font: 'regular', color: { r: 0.3, g: 0.3, b: 0.3 } },   // الفصل (gray-800)
+  studentId: { x: 80, y: 680, fontSize: 11, font: 'regular', color: { r: 0.4, g: 0.4, b: 0.4 } },     // رقم الملف (gray-600)
+  parentPhone: { x: 80, y: 660, fontSize: 11, font: 'regular', color: { r: 0.4, g: 0.4, b: 0.4 } },   // جوال ولي الأمر (gray-600)
   
   // ============================================
   // DATE INFORMATION (Top-Right Section)
   // ============================================
-  reportDate: { x: 450, y: 720, fontSize: 12, font: 'regular' },   // تاريخ التقرير
-  dayName: { x: 450, y: 700, fontSize: 11, font: 'regular' },       // اسم اليوم
-  schoolPhone: { x: 450, y: 680, fontSize: 11, font: 'regular' },   // رقم واتساب المدرسة
+  // Matching PDFReport.tsx: smaller gray text for labels, bold for values
+  reportDate: { x: 450, y: 720, fontSize: 12, font: 'bold', color: { r: 0.3, g: 0.3, b: 0.3 } },   // تاريخ التقرير (gray-800)
+  dayName: { x: 450, y: 700, fontSize: 11, font: 'regular', color: { r: 0.4, g: 0.4, b: 0.4 } },       // اسم اليوم (gray-600)
+  schoolPhone: { x: 450, y: 680, fontSize: 11, font: 'regular', color: { r: 0.4, g: 0.4, b: 0.4 } },   // رقم واتساب المدرسة (gray-600)
   
   // ============================================
   // PERFORMANCE INDICATORS (Middle Section)
   // ============================================
-  // Assuming a table or grid layout
-  attendance: { x: 100, y: 580, fontSize: 12, font: 'regular' },   // الحضور
-  participation: { x: 200, y: 580, fontSize: 12, font: 'regular' }, // المشاركة
-  homework: { x: 300, y: 580, fontSize: 12, font: 'regular' },     // الواجبات
-  behavior: { x: 400, y: 580, fontSize: 12, font: 'regular' },      // السلوك
+  // Colored cards like in PDFReport.tsx
+  // Colors: green for present, yellow for excused, red for absent
+  // teal for excellent, blue for good, yellow for average, red for poor
+  attendance: { 
+    x: 100, 
+    y: 580, 
+    fontSize: 12, 
+    font: 'bold',
+    backgroundColor: { r: 0.95, g: 0.98, b: 0.95 }, // bg-green-50
+    borderColor: { r: 0.8, g: 0.9, b: 0.8 }, // border-green-200
+    color: { r: 0.2, g: 0.5, b: 0.2 }, // text-green-800
+    padding: 5,
+    width: 120
+  },
+  participation: { 
+    x: 200, 
+    y: 580, 
+    fontSize: 12, 
+    font: 'bold',
+    backgroundColor: { r: 0.95, g: 0.97, b: 1.0 }, // bg-teal-50 or bg-blue-50
+    borderColor: { r: 0.7, g: 0.85, b: 0.95 }, // border-teal-200 or border-blue-200
+    color: { r: 0.1, g: 0.4, b: 0.5 }, // text-teal-800 or text-blue-800
+    padding: 5,
+    width: 120
+  },
+  homework: { 
+    x: 300, 
+    y: 580, 
+    fontSize: 12, 
+    font: 'bold',
+    backgroundColor: { r: 0.95, g: 0.97, b: 1.0 }, // bg-teal-50 or bg-blue-50
+    borderColor: { r: 0.7, g: 0.85, b: 0.95 }, // border-teal-200 or border-blue-200
+    color: { r: 0.1, g: 0.4, b: 0.5 }, // text-teal-800 or text-blue-800
+    padding: 5,
+    width: 120
+  },
+  behavior: { 
+    x: 400, 
+    y: 580, 
+    fontSize: 12, 
+    font: 'bold',
+    backgroundColor: { r: 0.95, g: 0.97, b: 1.0 }, // bg-teal-50 or bg-blue-50
+    borderColor: { r: 0.7, g: 0.85, b: 0.95 }, // border-teal-200 or border-blue-200
+    color: { r: 0.1, g: 0.4, b: 0.5 }, // text-teal-800 or text-blue-800
+    padding: 5,
+    width: 120
+  },
   
   // ============================================
   // SCHEDULE (Middle-Bottom Section)
@@ -249,8 +297,36 @@ function containsArabic(text: string): boolean {
 }
 
 /**
+ * Draw a colored background box (like in PDFReport.tsx)
+ */
+function drawBackgroundBox(
+  page: PDFPage,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  backgroundColor: { r: number; g: number; b: number },
+  pageHeight: number,
+  borderColor?: { r: number; g: number; b: number }
+): void {
+  const pdfY = pageHeight - y;
+  
+  // Draw background
+  page.drawRectangle({
+    x: x,
+    y: pdfY - height,
+    width: width,
+    height: height,
+    color: rgb(backgroundColor.r, backgroundColor.g, backgroundColor.b),
+    borderColor: borderColor ? rgb(borderColor.r, borderColor.g, borderColor.b) : undefined,
+    borderWidth: borderColor ? 1 : 0,
+  });
+}
+
+/**
  * Draw text on PDF page with field configuration
  * Uses image embedding for Arabic text since pdf-lib doesn't support Arabic fonts
+ * Supports colored backgrounds and borders like PDFReport.tsx
  */
 async function drawField(
   page: PDFPage,
@@ -264,24 +340,43 @@ async function drawField(
   
   const fontSize = field.fontSize || 12;
   const isBold = field.font === 'bold';
+  const padding = field.padding || 0;
+  
+  // Draw background box if specified (like colored cards in PDFReport.tsx)
+  if (field.backgroundColor) {
+    const textWidth = field.width || 200; // Estimate width
+    const textHeight = fontSize * 1.5 + (padding * 2);
+    drawBackgroundBox(
+      page,
+      field.x - padding,
+      field.y,
+      textWidth + (padding * 2),
+      textHeight,
+      field.backgroundColor,
+      pageHeight,
+      field.borderColor
+    );
+  }
+  
+  // Determine text color
+  let textColor = field.color ? rgb(field.color.r, field.color.g, field.color.b) : rgb(0, 0, 0);
   
   // Check if text contains Arabic characters
   if (containsArabic(text)) {
     // Use image embedding for Arabic text
-    await drawArabicText(page, text, field.x, field.y, fontSize, isBold, pageHeight);
+    await drawArabicText(page, text, field.x + padding, field.y, fontSize, isBold, pageHeight);
   } else {
     // Use regular text drawing for non-Arabic text
     const font = isBold ? boldFont : regularFont;
-    const color = field.color ? rgb(field.color.r, field.color.g, field.color.b) : rgb(0, 0, 0);
     const y = pageHeight - field.y;
     
     try {
       page.drawText(text, {
-        x: field.x,
-        y: y,
+        x: field.x + padding,
+        y: y - fontSize - padding,
         size: fontSize,
         font: font,
-        color: color,
+        color: textColor,
         maxWidth: field.width,
       });
     } catch (error) {
@@ -309,7 +404,8 @@ export async function generatePDFReport(
       throw new Error('Record data is missing');
     }
     // Settings can be empty object, but we need at least an object
-    if (!settings || typeof settings !== 'object') {
+    // Check if settings exists (even if empty, it should be an object)
+    if (!settings) {
       throw new Error('Settings data is missing');
     }
     // Schedule can be empty array, but must be an array
@@ -356,7 +452,7 @@ export async function generatePDFReport(
     });
     const dayName = today.toLocaleDateString('ar-SA', { weekday: 'long' });
 
-    // Helper function to get status text
+    // Helper function to get status text (matching PDFReport.tsx format)
     const getStatusText = (status: string, type: 'attendance' | 'academic'): string => {
       if (type === 'attendance') {
         switch(status) {
@@ -366,78 +462,101 @@ export async function generatePDFReport(
           default: return '-';
         }
       } else {
-        return getStatusLabel(status);
+        // Map to Arabic labels matching PDFReport.tsx
+        switch(status) {
+          case 'excellent': return 'متميز';
+          case 'good': return 'جيد';
+          case 'average': return 'متوسط';
+          case 'poor': return 'ضعيف';
+          default: return getStatusLabel(status) || '-';
+        }
       }
     };
 
-    // Fill in fields (all async to support Arabic text)
-    if (fields.studentName) {
-      await drawField(firstPage, student.name, fields.studentName, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.studentClass) {
-      await drawField(firstPage, student.classGrade || '', fields.studentClass, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.studentId) {
-      await drawField(firstPage, student.id, fields.studentId, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.parentPhone) {
-      await drawField(firstPage, student.parentPhone || '', fields.parentPhone, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.reportDate) {
-      await drawField(firstPage, dateStr, fields.reportDate, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.dayName) {
-      await drawField(firstPage, dayName, fields.dayName, helveticaFont, helveticaBoldFont, height);
-    }
-    
-    if (fields.schoolName) {
-      await drawField(firstPage, safeSettings.name || '', fields.schoolName, helveticaFont, helveticaBoldFont, height);
-    }
-    
+    // Fill in fields (all async to support Arabic text) - Better formatting with labels
+    // School Information Header (Top Section)
     if (fields.ministry) {
-      await drawField(firstPage, safeSettings.ministry || '', fields.ministry, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, safeSettings.ministry || 'وزارة التعليم', fields.ministry, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.region) {
-      await drawField(firstPage, safeSettings.region || '', fields.region, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, safeSettings.region || 'الإدارة العامة للتعليم', fields.region, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    if (fields.schoolName) {
+      await drawField(firstPage, safeSettings.name || 'المدرسة', fields.schoolName, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    // Student Information (with labels for better organization)
+    if (fields.studentName) {
+      await drawField(firstPage, `اسم الطالب: ${student.name}`, fields.studentName, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    if (fields.studentClass) {
+      await drawField(firstPage, `الفصل: ${student.classGrade || 'غير محدد'}`, fields.studentClass, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    if (fields.studentId) {
+      await drawField(firstPage, `رقم الملف: ${student.id}`, fields.studentId, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    if (fields.parentPhone) {
+      await drawField(firstPage, `جوال ولي الأمر: ${student.parentPhone || 'غير متوفر'}`, fields.parentPhone, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    // Date Information (with labels)
+    if (fields.reportDate) {
+      await drawField(firstPage, `تاريخ التقرير: ${dateStr}`, fields.reportDate, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    if (fields.dayName) {
+      await drawField(firstPage, `اليوم: ${dayName}`, fields.dayName, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.schoolPhone && safeSettings.whatsappPhone) {
-      await drawField(firstPage, safeSettings.whatsappPhone, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, `رقم واتساب المدرسة: ${safeSettings.whatsappPhone}`, fields.schoolPhone, helveticaFont, helveticaBoldFont, height);
     }
     
+    // Performance Indicators (with labels for clarity)
     if (fields.attendance) {
-      await drawField(firstPage, getStatusText(record.attendance, 'attendance'), fields.attendance, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, `الحضور: ${getStatusText(record.attendance, 'attendance')}`, fields.attendance, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.participation) {
-      await drawField(firstPage, getStatusText(record.participation, 'academic'), fields.participation, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, `المشاركة: ${getStatusText(record.participation, 'academic')}`, fields.participation, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.homework) {
-      await drawField(firstPage, getStatusText(record.homework, 'academic'), fields.homework, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, `الواجبات: ${getStatusText(record.homework, 'academic')}`, fields.homework, helveticaFont, helveticaBoldFont, height);
     }
     
     if (fields.behavior) {
-      await drawField(firstPage, getStatusText(record.behavior, 'academic'), fields.behavior, helveticaFont, helveticaBoldFont, height);
+      await drawField(firstPage, `السلوك: ${getStatusText(record.behavior, 'academic')}`, fields.behavior, helveticaFont, helveticaBoldFont, height);
     }
     
+    // Notes section with better formatting
     if (fields.notes) {
-      await drawField(firstPage, record.notes || '', fields.notes, helveticaFont, helveticaBoldFont, height);
+      const notesText = record.notes || '';
+      if (notesText) {
+        await drawField(firstPage, `الملاحظات: ${notesText}`, fields.notes, helveticaFont, helveticaBoldFont, height);
+      }
     }
     
-    // Schedule (if multiple positions)
+    // Counselor/Admin Message (reportGeneralMessage)
+    if (safeSettings.reportGeneralMessage && fields.notes) {
+      const messageY = (fields.notes.y || 300) - 30; // Place above notes
+      await drawField(firstPage, `رسالة الموجه: ${safeSettings.reportGeneralMessage}`, 
+        { ...fields.notes, y: messageY, fontSize: 10 }, helveticaFont, helveticaBoldFont, height);
+    }
+    
+    // Schedule (if multiple positions) - Better formatting
     if (fields.schedule && fields.schedule.length > 0) {
       const dailySchedule = schedule.filter(s => s.day === dayName).sort((a, b) => a.period - b.period);
       for (let index = 0; index < dailySchedule.length; index++) {
         const session = dailySchedule[index];
         if (fields.schedule && fields.schedule[index]) {
-          const scheduleText = `${session.period} - ${session.subject} (${session.classRoom})`;
+          // Format: "الحصة 1: الرياضيات - المعلم: أحمد - الفصل: الثالث/1"
+          const scheduleText = `الحصة ${session.period}: ${session.subject} - المعلم: ${session.teacher} - الفصل: ${session.classRoom}`;
           await drawField(firstPage, scheduleText, fields.schedule[index], helveticaFont, helveticaBoldFont, height);
         }
       }

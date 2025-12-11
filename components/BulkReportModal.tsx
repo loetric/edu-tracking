@@ -34,16 +34,8 @@ export const BulkReportModal: React.FC<BulkReportModalProps> = ({
   const [isSendingAll, setIsSendingAll] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
 
-  // Validate settings on mount and when it changes
-  useEffect(() => {
-    if (isOpen && (!settings || typeof settings !== 'object')) {
-      alert({ 
-        message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات في صفحة الإعدادات.', 
-        type: 'error',
-        duration: 5000
-      });
-    }
-  }, [isOpen, settings, alert]);
+  // Note: settings validation is done in previewReport and sendReport functions
+  // No need to validate in useEffect as it may show false errors
 
   // Filter only students with records (students who have been tracked)
   const studentsWithRecords = students.filter(student => {
@@ -89,8 +81,9 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
       }
 
       // Validate settings before generating PDF
-      if (!settings || typeof settings !== 'object') {
-        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات.', type: 'error' });
+      // Check if settings exists and has at least a name property
+      if (!settings || !settings.name) {
+        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات في صفحة الإعدادات.', type: 'error' });
         return;
       }
 
@@ -98,12 +91,42 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
       setGeneratingPdf(student.id);
       const pdfBytes = await generatePDFReport(student, record, settings, schedule);
       
-      // Create blob and open in new window for preview
+      // Create blob and open in new window for preview (without download)
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
       const pdfUrl = URL.createObjectURL(blob);
       
-      // Open PDF in new window/tab for preview
-      window.open(pdfUrl, '_blank');
+      // Open PDF in new window/tab for preview only (no download)
+      // Use iframe or embed to display PDF directly in browser
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>معاينة التقرير - ${student.name}</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;
+                }
+                iframe {
+                  width: 100%;
+                  height: 100vh;
+                  border: none;
+                }
+              </style>
+            </head>
+            <body>
+              <iframe src="${pdfUrl}" type="application/pdf"></iframe>
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      } else {
+        // Fallback: open directly (may trigger download in some browsers)
+        window.open(pdfUrl, '_blank');
+      }
       
       setGeneratingPdf(null);
     } catch (error) {
@@ -125,8 +148,9 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
       }
 
       // Validate settings before generating PDF
-      if (!settings || typeof settings !== 'object') {
-        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات.', type: 'error' });
+      // Check if settings exists and has at least a name property
+      if (!settings || !settings.name) {
+        alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات في صفحة الإعدادات.', type: 'error' });
         return;
       }
 

@@ -14,7 +14,7 @@ interface DashboardStatsProps {
   completedSessions?: string[];
   schedule: ScheduleItem[]; // Prop is required now
   settings?: SchoolSettings; // Settings to get classGrades from
-  onBulkReport?: (records: Record<string, DailyRecord>) => void; // Function to open bulk report modal
+  onBulkReport?: (className: string) => void; // Function to navigate to reports page with class filter
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, records = {}, onSendReminder, role, completedSessions = [], schedule, settings, onBulkReport }) => {
@@ -335,99 +335,85 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                     
                     {/* Desktop Table */}
                     <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-right text-sm">
-                            <thead className="bg-gray-50 text-gray-500">
+                        <table className="w-full text-right text-xs border border-gray-200">
+                            <thead className="bg-gray-50 text-gray-500 border-b border-gray-200">
                                 <tr>
-                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">الفصل</th>
-                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">نسبة الإنجاز</th>
-                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">حالة التقرير</th>
-                                    <th className="px-4 md:px-6 py-3 md:py-4 font-bold text-xs">إجراء</th>
+                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">الفصل</th>
+                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">نسبة الإنجاز</th>
+                                    <th className="px-3 py-2 font-bold text-[10px] border-r border-gray-200">حالة التقرير</th>
+                                    <th className="px-3 py-2 font-bold text-[10px]">إجراء</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {classStatus.length > 0 ? classStatus.map((item) => (
-                                    <tr key={item.className} className={`transition-colors ${item.isReady ? 'bg-green-50/30' : 'hover:bg-gray-50'}`}>
-                                        <td className="px-4 md:px-6 py-3 md:py-4 font-bold text-gray-800">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-sm md:text-base">{item.className}</span>
-                                                    {item.isReady && (
-                                                        <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">تم الرصد</span>
-                                                    )}
-                                                </div>
-                                                <div className="text-[10px] md:text-xs text-gray-400 font-normal flex flex-wrap gap-x-2">
+                                    <tr key={item.className} className={`transition-colors border-b border-gray-100 ${item.isReady ? 'bg-green-50/30' : 'hover:bg-gray-50'}`}>
+                                        <td className="px-3 py-2 font-bold text-gray-800 border-r border-gray-200">
+                                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                                <span className="text-[11px]">{item.className}</span>
+                                                {item.isReady && (
+                                                    <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded whitespace-nowrap">تم الرصد</span>
+                                                )}
+                                                <span className="text-[9px] text-gray-400 font-normal">
                                                     {item.teachers.map((teacherInfo, idx) => (
                                                         <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
+                                                            {idx > 0 && ' • '}
                                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                                 : teacherInfo.name}
                                                         </span>
                                                     ))}
-                                                </div>
+                                                </span>
                                             </div>
                                         </td>
-                                        <td className="px-4 md:px-6 py-3 md:py-4">
-                                            <div className="flex items-center gap-2 md:gap-3">
-                                                <div className="flex-1 h-1.5 md:h-2 bg-gray-200 rounded-full max-w-[80px] md:max-w-[100px] overflow-hidden">
+                                        <td className="px-3 py-2 border-r border-gray-200">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="flex-1 h-1.5 bg-gray-200 rounded-full max-w-[60px] overflow-hidden">
                                                     <div 
                                                         className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
                                                         style={{ width: `${(item.progress / item.total) * 100}%` }}
                                                     ></div>
                                                 </div>
-                                                <span className="text-[10px] md:text-xs font-bold text-gray-600">
+                                                <span className="text-[9px] font-bold text-gray-600 whitespace-nowrap">
                                                     {item.progress}/{item.total}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-4 md:px-6 py-3 md:py-4">
+                                        <td className="px-3 py-2 border-r border-gray-200">
                                             {item.isReady ? (
-                                                <div className="flex items-center gap-1.5 md:gap-2 bg-green-100 text-green-700 px-2 md:px-3 py-0.5 md:py-1 rounded-full w-fit">
-                                                    <CheckCircle size={12} className="md:w-4 md:h-4 flex-shrink-0" />
-                                                    <span className="font-bold text-[10px] md:text-xs">جاهز للإرسال</span>
+                                                <div className="flex items-center gap-1 bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                                    <CheckCircle size={10} className="flex-shrink-0" />
+                                                    <span className="font-bold text-[9px]">جاهز للإرسال</span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-1.5 md:gap-2 bg-gray-100 text-gray-500 px-2 md:px-3 py-0.5 md:py-1 rounded-full w-fit">
-                                                    <Clock size={12} className="md:w-4 md:h-4 flex-shrink-0" />
-                                                    <span className="font-bold text-[10px] md:text-xs">جاري الرصد...</span>
+                                                <div className="flex items-center gap-1 bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                                    <Clock size={10} className="flex-shrink-0" />
+                                                    <span className="font-bold text-[9px]">جاري الرصد...</span>
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-4 md:px-6 py-3 md:py-4">
+                                        <td className="px-3 py-2">
                                             {item.isReady ? (
                                                 <button 
-                                                    className="flex items-center gap-1.5 md:gap-2 text-white bg-teal-600 hover:bg-teal-700 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-colors shadow-sm"
+                                                    className="flex items-center gap-1 text-white bg-teal-600 hover:bg-teal-700 px-2 py-1 rounded text-[9px] font-bold transition-colors shadow-sm whitespace-nowrap"
                                                     onClick={() => {
                                                         if (onBulkReport) {
-                                                            // Filter records for students in this class for today
-                                                            const today = new Date().toISOString().split('T')[0];
-                                                            const classRecords: Record<string, DailyRecord> = {};
-                                                            const classStudents = students.filter(s => s.classGrade === item.className);
-                                                            classStudents.forEach(student => {
-                                                                const record = Object.values(records).find(r => 
-                                                                    r.studentId === student.id && r.date === today
-                                                                );
-                                                                if (record) {
-                                                                    classRecords[student.id] = record;
-                                                                }
-                                                            });
-                                                            onBulkReport(classRecords);
+                                                            // Navigate to reports page with class filter
+                                                            onBulkReport(item.className);
                                                         } else {
                                                             alert({ message: `سيتم توجيهك لصفحة إرسال التقارير الجماعية للفصل ${item.className}`, type: 'info' });
                                                         }
                                                     }}
                                                 >
-                                                    <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
-                                                    <span className="hidden sm:inline">إرسال التقارير</span>
-                                                    <span className="sm:hidden">إرسال</span>
+                                                    <Send size={10} className="rtl:rotate-180 flex-shrink-0"/>
+                                                    <span>إرسال التقارير</span>
                                                 </button>
                                             ) : (
                                                  <button 
                                                     onClick={() => handleReminderClick(getFirstTeacherName(item.teachers), item.className)}
-                                                    className="flex items-center gap-1.5 md:gap-2 text-orange-600 hover:text-white hover:bg-orange-500 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-colors border border-orange-200"
+                                                    className="flex items-center gap-1 text-orange-600 hover:text-white hover:bg-orange-500 px-2 py-1 rounded text-[9px] font-bold transition-colors border border-orange-200 whitespace-nowrap"
                                                 >
-                                                    <Send size={12} className="md:w-[14px] md:h-[14px] rtl:rotate-180 flex-shrink-0"/>
-                                                    <span className="hidden sm:inline">استعجال المعلمين</span>
-                                                    <span className="sm:hidden">استعجال</span>
+                                                    <Send size={10} className="rtl:rotate-180 flex-shrink-0"/>
+                                                    <span>استعجال المعلمين</span>
                                                 </button>
                                             )}
                                         </td>
@@ -454,33 +440,36 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                         </div>
                                     )}
                                 </div>
-                                <div className="text-[10px] text-gray-500 mb-2 flex flex-wrap gap-x-1.5">
-                                    <span>المعلمين:</span>
+                                <div className="flex items-center gap-1 mb-1.5 text-[9px] text-gray-500">
                                     {item.teachers.map((teacherInfo, idx) => (
                                         <span key={idx} className={teacherInfo.isSubstituted ? 'text-purple-700 font-medium' : 'text-gray-600'}>
+                                            {idx > 0 && ' • '}
                                             {teacherInfo.isSubstituted && teacherInfo.originalTeacher 
                                                 ? `${teacherInfo.originalTeacher} (احتياط: ${teacherInfo.name})`
                                                 : teacherInfo.name}
-                                            {idx < item.teachers.length - 1 && '، '}
                                         </span>
                                     ))}
                                 </div>
-                                <div className="mb-2">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[9px] font-bold text-gray-600">نسبة الإنجاز</span>
-                                        <span className="text-[9px] font-bold text-gray-600">{item.progress}/{item.total}</span>
-                                    </div>
-                                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                         <div 
                                             className={`h-full rounded-full transition-all duration-500 ${item.isReady ? 'bg-green-500' : 'bg-blue-500'}`} 
                                             style={{ width: `${(item.progress / item.total) * 100}%` }}
                                         ></div>
                                     </div>
+                                    <span className="text-[9px] font-bold text-gray-600 whitespace-nowrap">{item.progress}/{item.total}</span>
                                 </div>
                                 {item.isReady ? (
-                                    <button className="w-full bg-teal-600 text-white py-1.5 rounded-lg text-[10px] font-bold hover:bg-teal-700 flex items-center justify-center gap-1">
-                                        <FileText size={10} className="flex-shrink-0" />
-                                        <span>عرض التقرير</span>
+                                    <button 
+                                        onClick={() => {
+                                            if (onBulkReport) {
+                                                onBulkReport(item.className);
+                                            }
+                                        }}
+                                        className="w-full bg-teal-600 text-white py-1 rounded text-[9px] font-bold hover:bg-teal-700 flex items-center justify-center gap-1 whitespace-nowrap"
+                                    >
+                                        <Send size={9} className="rtl:rotate-180 flex-shrink-0" />
+                                        <span>إرسال التقارير</span>
                                     </button>
                                 ) : (
                                     <button 

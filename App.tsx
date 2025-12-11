@@ -76,6 +76,7 @@ const App: React.FC = () => {
   // PDF & Modal States
   const [pdfData, setPdfData] = useState<{student: Student, record: DailyRecord} | null>(null);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [reportsClassFilter, setReportsClassFilter] = useState<string | null>(null); // Filter for reports page
 
   // --- Check for existing session on mount ---
   // CRITICAL: Check session immediately and load user if exists
@@ -1146,9 +1147,10 @@ const App: React.FC = () => {
       }
   };
 
-  const handleBulkReportClick = (records: Record<string, DailyRecord>) => {
-      setCurrentRecords(prev => ({...prev, ...records}));
-      setBulkModalOpen(true);
+  const handleBulkReportClick = (className: string) => {
+      // Navigate to reports page with class filter
+      setReportsClassFilter(className);
+      setActiveTab('reports');
   };
 
   const handleResetData = async () => {
@@ -1393,7 +1395,11 @@ const App: React.FC = () => {
             onSave={handleSaveRecords}
             isAdmin={currentUser.role === 'admin'}
             role={currentUser.role}
-            onBulkReport={currentUser.role === 'admin' ? handleBulkReportClick : undefined}
+            onBulkReport={currentUser.role === 'admin' ? (records: Record<string, DailyRecord>) => {
+              // For StudentTracker, keep the old behavior (open modal with records)
+              setCurrentRecords(prev => ({...prev, ...records}));
+              setBulkModalOpen(true);
+            } : undefined}
             onSendReport={handleSendReport}
             schedule={currentSchedule}
             onSessionEnter={handleSessionEnter}
@@ -1522,6 +1528,8 @@ const App: React.FC = () => {
                   // Handle bulk send
                   setBulkModalOpen(true);
                 }}
+                initialClassFilter={reportsClassFilter}
+                schedule={schedule}
               />
             ) : (
               <StudentTracker 

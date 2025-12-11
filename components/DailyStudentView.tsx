@@ -1,30 +1,45 @@
-import React, { useState, useMemo } from 'react';
-import { Student, DailyRecord } from '../types';
-import { Calendar, Printer, Send, Filter, Search, X, Download } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Student, DailyRecord, ScheduleItem } from '../types';
+import { Calendar, Printer, Send, Filter, Search, X, Download, Eye } from 'lucide-react';
 import { getStatusLabel, getStatusColor, getAttendanceLabel } from '../constants';
 import { CustomSelect } from './CustomSelect';
 import { BulkReportModal } from './BulkReportModal';
 import { SchoolSettings } from '../types';
+import { generatePDFReport } from '../services/pdfGenerator';
+import { useModal } from '../hooks/useModal';
 
 interface DailyStudentViewProps {
   students: Student[];
   records: Record<string, DailyRecord>;
-  settings: SchoolSettings;
+  settings?: SchoolSettings;
   onSendReports?: (records: Record<string, DailyRecord>) => void;
+  initialClassFilter?: string | null; // Initial class filter when navigating from dashboard
+  schedule?: ScheduleItem[]; // Schedule for PDF generation
 }
 
 export const DailyStudentView: React.FC<DailyStudentViewProps> = ({ 
   students, 
   records, 
   settings,
-  onSendReports 
+  onSendReports,
+  initialClassFilter,
+  schedule = []
 }) => {
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'custom'>('today');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<string>(initialClassFilter || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
+  const [selectedStudentForReport, setSelectedStudentForReport] = useState<Student | null>(null);
+  const { alert } = useModal();
+  
+  // Set initial class filter when component mounts or when initialClassFilter changes
+  useEffect(() => {
+    if (initialClassFilter) {
+      setSelectedClass(initialClassFilter);
+    }
+  }, [initialClassFilter]);
 
   // Get unique classes from settings only (not from student data)
   const uniqueClasses = useMemo(() => {
@@ -60,7 +75,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
         break;
     }
 
-    return Object.values(records).filter(r => {
+    return Object.values(records).filter((r: DailyRecord) => {
       const recordDate = r.date;
       return recordDate >= dateFilter.start && recordDate <= dateFilter.end;
     });
@@ -278,19 +293,69 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                         )}
                       </td>
                       <td className="px-4 py-3 print:hidden">
-                        <button
-                          onClick={() => {
-                            const recordsToSend: Record<string, DailyRecord> = {};
-                            if (latestRecord) {
-                              recordsToSend[student.id] = latestRecord;
-                            }
-                            setShowBulkModal(true);
-                          }}
-                          className="text-teal-600 hover:text-teal-700 bg-teal-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors"
-                        >
-                          <Send size={14} className="inline mr-1" />
-                          إرسال
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              if (!latestRecord) {
+                                alert({ message: `لا توجد بيانات مرصودة للطالب ${student.name}`, type: 'warning' });
+                                return;
+                              }
+                              if (!settings || !settings.name) {
+                                alert({ message: 'إعدادات المدرسة غير متوفرة. يرجى التحقق من الإعدادات.', type: 'error' });
+                                return;
+                              }
+                              
+                              try {
+                                // Generate and open PDF for preview
+                                const pdfBytes = await generatePDFReport(student, latestRecord, settings, schedule);
+                                const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+                                const pdfUrl = URL.createObjectURL(blob);
+                                
+                                // Open PDF in new window for preview only
+                                const newWindow = window.open('', '_blank');
+                                if (newWindow) {
+                                  newWindow.document.write(`
+                                    <!DOCTYPE html>
+                                    <html>
+                                      <head>
+                                        <title>معاينة التقرير - ${student.name}</title>
+                                        <style>
+                                          body { margin: 0; padding: 0; overflow: hidden; }
+                                          iframe { width: 100%; height: 100vh; border: none; }
+                                        </style>
+                                      </head>
+                                      <body>
+                                        <iframe src="${pdfUrl}" type="application/pdf"></iframe>
+                                      </body>
+                                    </html>
+                                  `);
+                                  newWindow.document.close();
+                                } else {
+                                  window.open(pdfUrl, '_blank');
+                                }
+                              } catch (error) {
+                                console.error('Error generating PDF:', error);
+                                alert({ message: `حدث خطأ أثناء توليد تقرير ${student.name}. يرجى المحاولة مرة أخرى.`, type: 'error' });
+                              }
+                            }}
+                            className="text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                            title="معاينة التقرير"
+                          >
+                            <Eye size={14} />
+                            معاينة
+                          </button>
+                          <button
+                            onClick={() => {
+                              // Set selected student and open modal for this student only
+                              setSelectedStudentForReport(student);
+                              setShowBulkModal(true);
+                            }}
+                            className="text-teal-600 hover:text-teal-700 bg-teal-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                          >
+                            <Send size={14} />
+                            إرسال
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -306,20 +371,31 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
         )}
       </div>
 
-      {/* Bulk Report Modal */}
+      {/* Bulk Report Modal - Show only selected student if one is selected */}
       {showBulkModal && (
         <BulkReportModal
           isOpen={showBulkModal}
-          onClose={() => setShowBulkModal(false)}
-          students={studentsWithRecords}
-          records={Object.fromEntries(
-            studentsWithRecords.map(student => {
-              const latestRecord = studentRecordsMap[student.id]?.[studentRecordsMap[student.id].length - 1];
-              return [student.id, latestRecord || {} as DailyRecord];
-            }).filter(([_, record]) => Object.keys(record).length > 0)
-          )}
-          schoolName={settings.name}
-          schoolPhone={settings.whatsappPhone}
+          onClose={() => {
+            setShowBulkModal(false);
+            setSelectedStudentForReport(null);
+          }}
+          students={selectedStudentForReport 
+            ? [selectedStudentForReport] 
+            : studentsWithRecords}
+          records={selectedStudentForReport && studentRecordsMap[selectedStudentForReport.id]
+            ? {
+                [selectedStudentForReport.id]: studentRecordsMap[selectedStudentForReport.id][studentRecordsMap[selectedStudentForReport.id].length - 1]
+              }
+            : Object.fromEntries(
+                studentsWithRecords.map(student => {
+                  const latestRecord = studentRecordsMap[student.id]?.[studentRecordsMap[student.id].length - 1];
+                  return [student.id, latestRecord || {} as DailyRecord];
+                }).filter(([_, record]) => Object.keys(record).length > 0)
+              )}
+          schoolName={settings?.name || 'المدرسة'}
+          schoolPhone={settings?.whatsappPhone}
+          settings={settings || {} as SchoolSettings}
+          schedule={schedule}
         />
       )}
     </div>
