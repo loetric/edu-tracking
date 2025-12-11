@@ -349,7 +349,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                                     <tr key={item.className} className={`transition-all duration-200 border-b border-gray-100 last:border-b-0 ${item.isReady ? 'bg-green-50/30 hover:bg-green-50/50' : 'hover:bg-gray-50/80'}`}>
                                         <td className="px-3 py-2.5 font-bold text-gray-800 border-r border-gray-200">
                                             <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                                <span className="text-[11px] font-semibold">{item.className}</span>
+                                                <span className="text-[13px] font-semibold">{item.className}</span>
                                                 {item.isReady && (
                                                     <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded-full whitespace-nowrap">تم الرصد</span>
                                                 )}
@@ -433,7 +433,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ students, record
                         {classStatus.length > 0 ? classStatus.map((item) => (
                             <div key={item.className} className={`bg-white border rounded-xl p-3 shadow-sm transition-all duration-200 ${item.isReady ? 'border-green-200 bg-green-50/30' : 'border-gray-200 hover:shadow-md'}`}>
                                 <div className="flex items-center justify-between mb-1.5 gap-2">
-                                    <p className="font-bold text-gray-800 text-xs truncate flex-1">{item.className}</p>
+                                    <p className="font-bold text-gray-800 text-sm truncate flex-1">{item.className}</p>
                                     {item.isReady && (
                                         <div className="flex items-center gap-1 flex-shrink-0">
                                             <span className="text-[9px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">تم الرصد</span>

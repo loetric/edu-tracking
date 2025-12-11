@@ -1259,16 +1259,39 @@ const App: React.FC = () => {
   };
 
   const handleRemoveSubstitute = async (scheduleItemId: string) => {
+      // Prevent multiple clicks
+      if (isDataLoading) {
+          return;
+      }
+      
+      setIsDataLoading(true);
       try {
-          // Find the substitution to remove
-          const substitution = substitutions.find(sub => sub.scheduleItemId === scheduleItemId);
-          if (substitution) {
-              await api.removeSubstitute(substitution.id);
-              setSubstitutions(prev => prev.filter(sub => sub.id !== substitution.id));
-              handleAddLog('إلغاء احتياط', 'تم إلغاء إسناد حصة احتياط');
+          // Find the substitution to remove - try multiple ways to find it
+          let substitution = substitutions.find(sub => sub.scheduleItemId === scheduleItemId);
+          
+          // If not found in local state, try fetching from database
+          if (!substitution) {
+              const allSubs = await api.getSubstitutions();
+              substitution = allSubs.find(sub => sub.scheduleItemId === scheduleItemId);
+              if (substitution) {
+                  // Update local state
+                  setSubstitutions(allSubs);
+              }
           }
           
-          // Update schedule to remove substitution
+          // Remove from database if found
+          if (substitution && substitution.id) {
+              try {
+                  await api.removeSubstitute(substitution.id);
+                  setSubstitutions(prev => prev.filter(sub => sub.id !== substitution!.id));
+                  handleAddLog('إلغاء احتياط', 'تم إلغاء إسناد حصة احتياط');
+              } catch (dbError) {
+                  console.error('Error removing from database:', dbError);
+                  // Continue to update UI even if DB removal fails
+              }
+          }
+          
+          // Always update schedule to remove substitution (optimistic update)
           const updatedSchedule = schedule.map(s => 
               s.id === scheduleItemId 
                   ? { ...s, teacher: s.originalTeacher || s.teacher, originalTeacher: undefined, isSubstituted: false }
@@ -1279,7 +1302,9 @@ const App: React.FC = () => {
           alert({ message: 'تم إلغاء إسناد المعلم الاحتياطي بنجاح', type: 'success' });
       } catch (error) {
           console.error('Error removing substitute:', error);
-          alert({ message: 'فشل في إلغاء إسناد المعلم الاحتياطي', type: 'error' });
+          alert({ message: 'فشل في إلغاء إسناد المعلم الاحتياطي. يرجى المحاولة مرة أخرى.', type: 'error' });
+      } finally {
+          setIsDataLoading(false);
       }
   };
 

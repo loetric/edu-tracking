@@ -125,7 +125,32 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                   <div className="mb-3 md:mb-4 bg-gray-50 p-2.5 md:p-3 rounded-lg border border-gray-200 text-xs md:text-sm">
                       <p className="font-bold text-gray-600 mb-1">المعلم الأساسي:</p>
                       <p className="text-red-600 font-bold truncate">{selectedSessionForSub.originalTeacher || selectedSessionForSub.teacher}</p>
+                      {selectedSessionForSub.isSubstituted && selectedSessionForSub.teacher && selectedSessionForSub.originalTeacher && (
+                          <div className="mt-2 pt-2 border-t border-gray-300">
+                              <p className="font-bold text-gray-600 mb-1">المعلم البديل الحالي:</p>
+                              <p className="text-purple-600 font-bold truncate">{selectedSessionForSub.teacher}</p>
+                          </div>
+                      )}
                   </div>
+
+                  {/* Show remove substitute button if session is already substituted */}
+                  {selectedSessionForSub.isSubstituted && selectedSessionForSub.originalTeacher && onRemoveSubstitute && (
+                      <div className="mb-4 md:mb-6">
+                          <button
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onRemoveSubstitute) {
+                                      onRemoveSubstitute(selectedSessionForSub.id);
+                                      setSelectedSessionForSub(null);
+                                  }
+                              }}
+                              className="w-full bg-red-600 text-white py-2.5 md:py-3 rounded-lg font-bold hover:bg-red-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                          >
+                              <X size={16} />
+                              <span>إلغاء الإسناد وإرجاع الحصة للمعلم الأساسي</span>
+                          </button>
+                      </div>
+                  )}
 
                   <div className="mb-4 md:mb-6">
                       <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">اختر المعلم البديل (المكلف):</label>
@@ -212,11 +237,17 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                     <p className="text-gray-500">
                         {role === 'admin' && filterType === 'teacher' && filterValue ? (
                             <span>
-                                النصاب: {schedule.filter(s => (s.teacher === filterValue || s.originalTeacher === filterValue) && !s.isSubstituted).length} حصة
+                                <span className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
+                                    النصاب: {schedule.filter(s => (s.teacher === filterValue || s.originalTeacher === filterValue) && !s.isSubstituted).length} حصة
+                                </span>
                             </span>
                         ) : role === 'admin' 
                             ? 'نظرة شاملة على جميع الحصص الدراسية' 
-                            : `النصاب: ${schedule.filter(s => !s.isSubstituted).length} حصة - الحصص المسندة إليك خلال الأسبوع`}
+                            : (
+                                <span className="inline-block bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 font-bold px-3 py-1.5 rounded-lg border border-blue-200 shadow-sm">
+                                    النصاب: {schedule.filter(s => !s.isSubstituted).length} حصة - الحصص المسندة إليك خلال الأسبوع
+                                </span>
+                            )}
                     </p>
                 </div>
             </div>
@@ -458,12 +489,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        e.preventDefault();
                                                         if (onRemoveSubstitute) {
                                                             onRemoveSubstitute(session.id);
                                                         }
                                                     }}
-                                                    className="bg-red-600 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer hover:bg-red-700 transition-colors"
+                                                    onMouseDown={(e) => e.stopPropagation()}
+                                                    className="bg-red-600 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="التراجع عن الإسناد"
+                                                    type="button"
                                                 >
                                                     إلغاء
                                                 </button>
@@ -519,12 +553,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  e.preventDefault();
                                   if (onRemoveSubstitute) {
                                     onRemoveSubstitute(session.id);
                                   }
                                 }}
-                                className="text-red-600 hover:text-red-700 text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded border border-red-300 hover:bg-red-50 transition-colors"
+                                onMouseDown={(e) => e.stopPropagation()}
+                                className="text-red-600 hover:text-red-700 text-[9px] md:text-xs font-bold px-1.5 py-0.5 rounded border border-red-300 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="التراجع عن الإسناد"
+                                type="button"
                               >
                                 إلغاء
                               </button>
