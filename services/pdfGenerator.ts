@@ -246,21 +246,60 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
     
     // Handle data URLs
     if (imageUrl.startsWith('data:')) {
-      console.log('loadImage: Processing data URL');
+      console.log('loadImage: Processing data URL, length:', imageUrl.length);
       const base64Data = imageUrl.split(',')[1];
       if (!base64Data) {
-        console.error('loadImage: Invalid data URL format');
+        console.error('loadImage: Invalid data URL format - no base64 data found');
         return null;
       }
       
+      console.log('loadImage: Base64 data length:', base64Data.length);
       const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      console.log('loadImage: Image bytes length:', imageBytes.length);
       
-      if (imageUrl.includes('image/png')) {
-        console.log('loadImage: Embedding PNG from data URL');
-        return await pdfDoc.embedPng(imageBytes);
+      if (imageBytes.length === 0) {
+        console.error('loadImage: Empty image bytes from data URL');
+        return null;
+      }
+      
+      // Check if PNG or JPG
+      const isPng = imageUrl.includes('image/png');
+      console.log('loadImage: Is PNG:', isPng, 'data URL prefix:', imageUrl.substring(0, 30));
+      
+      if (isPng) {
+        console.log('loadImage: Attempting to embed PNG from data URL');
+        try {
+          const embedded = await pdfDoc.embedPng(imageBytes);
+          console.log('loadImage: Successfully embedded PNG from data URL');
+          return embedded;
+        } catch (pngError) {
+          console.warn('loadImage: PNG embedding failed, trying JPG:', pngError);
+          try {
+            const embedded = await pdfDoc.embedJpg(imageBytes);
+            console.log('loadImage: Successfully embedded JPG from data URL (fallback)');
+            return embedded;
+          } catch (jpgError) {
+            console.error('loadImage: Both PNG and JPG embedding failed from data URL:', jpgError);
+            return null;
+          }
+        }
       } else {
-        console.log('loadImage: Embedding JPG from data URL');
-        return await pdfDoc.embedJpg(imageBytes);
+        console.log('loadImage: Attempting to embed JPG from data URL');
+        try {
+          const embedded = await pdfDoc.embedJpg(imageBytes);
+          console.log('loadImage: Successfully embedded JPG from data URL');
+          return embedded;
+        } catch (jpgError) {
+          console.warn('loadImage: JPG embedding failed, trying PNG:', jpgError);
+          try {
+            const embedded = await pdfDoc.embedPng(imageBytes);
+            console.log('loadImage: Successfully embedded PNG from data URL (fallback)');
+            return embedded;
+          } catch (pngError) {
+            console.error('loadImage: Both JPG and PNG embedding failed from data URL:', pngError);
+            return null;
+          }
+        }
       }
     }
     
