@@ -1175,14 +1175,14 @@ export async function generatePDFReport(
       color: COLORS.gray200
     });
 
-    // Left - Educational affairs signature (no "التوقيع" label)
+    // Right - Educational affairs signature (no signature line)
     // Title first, then name below if available
     const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
     page.drawImage(affairsTitleEmb, {
-      x: margin + 50 - affairsTitleImg.width / 2,
+      x: width - margin - 50 - affairsTitleImg.width / 2,
       y: footerY + 33, // Moved down 7px
       width: affairsTitleImg.width,
       height: affairsTitleImg.height
@@ -1195,20 +1195,12 @@ export async function generatePDFReport(
       });
       const affairsNameEmb = await pdfDoc.embedPng(affairsNameImg.buffer);
       page.drawImage(affairsNameEmb, {
-        x: margin + 50 - affairsNameImg.width / 2,
+        x: width - margin - 50 - affairsNameImg.width / 2,
         y: footerY + 20, // Below the title
         width: affairsNameImg.width,
         height: affairsNameImg.height
       });
     }
-    
-    // Signature line
-    page.drawLine({
-      start: { x: margin + 20, y: footerY + 13 }, // Moved down 7px
-      end: { x: margin + 80, y: footerY + 13 },
-      thickness: 1,
-      color: COLORS.gray300
-    });
 
     // Center - QR Code or stamp (use stampUrl from settings if available, otherwise QR code or placeholder)
     const footerCenterX = width / 2;
@@ -1287,14 +1279,14 @@ export async function generatePDFReport(
       });
     }
 
-    // Right - School manager signature (no "التوقيع" label)
+    // Left - School manager signature (no signature line)
     // Title first, then name below if available
     const managerTitleImg = await textToImage('مدير المدرسة', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
     page.drawImage(managerTitleEmb, {
-      x: width - margin - 50 - managerTitleImg.width / 2,
+      x: margin + 50 - managerTitleImg.width / 2,
       y: footerY + 33, // Moved down 7px
       width: managerTitleImg.width,
       height: managerTitleImg.height
@@ -1307,20 +1299,12 @@ export async function generatePDFReport(
       });
       const managerNameEmb = await pdfDoc.embedPng(managerNameImg.buffer);
       page.drawImage(managerNameEmb, {
-        x: width - margin - 50 - managerNameImg.width / 2,
+        x: margin + 50 - managerNameImg.width / 2,
         y: footerY + 20, // Below the title
         width: managerNameImg.width,
         height: managerNameImg.height
       });
     }
-    
-    // Signature line
-    page.drawLine({
-      start: { x: width - margin - 80, y: footerY + 13 }, // Moved down 7px
-      end: { x: width - margin - 20, y: footerY + 13 },
-      thickness: 1,
-      color: COLORS.gray300
-    });
 
     // Bottom strip
     const bottomStripY = 20;
