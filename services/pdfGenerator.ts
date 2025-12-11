@@ -233,7 +233,7 @@ async function drawRadarChart(
 }
 
 /**
- * Load image from URL
+ * Load image from URL (supports data URLs, blob URLs, and regular URLs)
  */
 async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
   try {
@@ -244,6 +244,7 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
     
     console.log('loadImage: Attempting to load:', imageUrl);
     
+    // Handle data URLs
     if (imageUrl.startsWith('data:')) {
       console.log('loadImage: Processing data URL');
       const base64Data = imageUrl.split(',')[1];
@@ -263,6 +264,65 @@ async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
       }
     }
     
+    // Handle blob URLs - convert to data URL first
+    if (imageUrl.startsWith('blob:')) {
+      console.log('loadImage: Processing blob URL');
+      try {
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+          console.error('loadImage: Blob fetch failed:', response.status, response.statusText);
+          return null;
+        }
+        
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        const imageBytes = new Uint8Array(arrayBuffer);
+        
+        if (imageBytes.length === 0) {
+          console.error('loadImage: Empty blob data');
+          return null;
+        }
+        
+        // Try to determine image type from blob
+        const contentType = blob.type || '';
+        console.log('loadImage: Blob content type:', contentType);
+        
+        // Try PNG first if content type suggests PNG
+        if (contentType.includes('png') || imageUrl.toLowerCase().includes('.png')) {
+          console.log('loadImage: Attempting to embed blob as PNG');
+          try {
+            return await pdfDoc.embedPng(imageBytes);
+          } catch (pngError) {
+            console.warn('loadImage: PNG embedding failed, trying JPG:', pngError);
+            try {
+              return await pdfDoc.embedJpg(imageBytes);
+            } catch (jpgError) {
+              console.error('loadImage: Both PNG and JPG embedding failed:', jpgError);
+              return null;
+            }
+          }
+        } else {
+          // Try JPG first
+          console.log('loadImage: Attempting to embed blob as JPG');
+          try {
+            return await pdfDoc.embedJpg(imageBytes);
+          } catch (jpgError) {
+            console.warn('loadImage: JPG embedding failed, trying PNG:', jpgError);
+            try {
+              return await pdfDoc.embedPng(imageBytes);
+            } catch (pngError) {
+              console.error('loadImage: Both JPG and PNG embedding failed:', pngError);
+              return null;
+            }
+          }
+        }
+      } catch (blobError) {
+        console.error('loadImage: Error processing blob URL:', blobError);
+        return null;
+      }
+    }
+    
+    // Handle regular URLs
     console.log('loadImage: Fetching image from URL');
     const response = await fetch(imageUrl, {
       mode: 'cors',
