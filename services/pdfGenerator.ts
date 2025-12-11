@@ -464,8 +464,8 @@ export async function generatePDFReport(
       }
     }
     
-    // Title with underline (below logo, centered)
-    const titleY = headerStartY - logoSize - 15;
+    // Title with underline (below logo, centered) - reduced spacing
+    const titleY = headerStartY - logoSize - 5; // Reduced from 15 to 5 to remove gap
     const titleText = 'تقرير متابعة يومي';
     const titleImg = await textToImage(titleText, {
       fontSize: 16, color: '#1F2937', align: 'center', isBold: true
@@ -1176,14 +1176,14 @@ export async function generatePDFReport(
     });
 
     // Right - Educational affairs signature (no signature line)
-    // Title first, then name below if available
+    // Title first, then name below if available - aligned with manager title
     const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
     page.drawImage(affairsTitleEmb, {
       x: width - margin - 50 - affairsTitleImg.width / 2,
-      y: footerY + 33, // Moved down 7px
+      y: footerY + 25, // Same height as manager title
       width: affairsTitleImg.width,
       height: affairsTitleImg.height
     });
@@ -1306,8 +1306,8 @@ export async function generatePDFReport(
       });
     }
 
-    // Bottom strip (moved up to avoid overlap with signatures)
-    const bottomStripY = 5;
+    // Bottom strip (raised 6px)
+    const bottomStripY = 11; // Raised 6px (5 + 6 = 11)
     const bottomStripHeight = 25;
     page.drawRectangle({
       x: margin,
