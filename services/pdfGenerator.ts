@@ -454,10 +454,10 @@ export async function generatePDFReport(
           finalLogoWidth = logoSize * logoAspectRatio;
         }
         
-        // Logo aligned with header texts (same Y as headerStartY) - raised 21px (14 + 7)
+        // Logo aligned with header texts (same Y as headerStartY) - raised 29px (21 + 8)
         page.drawImage(logo, {
           x: headerCenterX - finalLogoWidth / 2,
-          y: headerStartY - finalLogoHeight + 21, // Raised 21px (14 + 7)
+          y: headerStartY - finalLogoHeight + 29, // Raised 29px (21 + 8)
           width: finalLogoWidth,
           height: finalLogoHeight,
         });
@@ -579,7 +579,7 @@ export async function generatePDFReport(
     });
 
     // ================= STUDENT INFO CARD (matching PDFReport.tsx) =================
-    cursorY -= 30;
+    cursorY -= 5; // Reduced spacing between header and report content
     const cardHeight = 80;
     const cardY = cursorY;
     
