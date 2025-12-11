@@ -127,6 +127,115 @@ async function textToImage(
 }
 
 /**
+ * Draw radar chart on canvas and return as image
+ */
+async function drawRadarChart(
+  data: Array<{ subject: string; A: number; fullMark: number }>,
+  performanceLevel: string,
+  width: number = 200,
+  height: number = 200
+): Promise<{ buffer: Uint8Array; width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context unavailable');
+
+      const scale = 3;
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      ctx.scale(scale, scale);
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) * 0.35; // 35% of size
+      const numPoints = data.length;
+      const angleStep = (2 * Math.PI) / numPoints;
+
+      // Draw background circles (grid)
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 4; i++) {
+        const r = (radius * i) / 4;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
+
+      // Draw radial lines
+      for (let i = 0; i < numPoints; i++) {
+        const angle = -Math.PI / 2 + (i * angleStep); // Start from top
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+
+      // Draw data polygon
+      ctx.fillStyle = 'rgba(13, 148, 136, 0.5)'; // teal with opacity
+      ctx.strokeStyle = '#0d9488'; // teal
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      for (let i = 0; i < numPoints; i++) {
+        const angle = -Math.PI / 2 + (i * angleStep);
+        const value = data[i].A;
+        const normalizedValue = value / 100; // Normalize to 0-1
+        const r = radius * normalizedValue;
+        const x = centerX + r * Math.cos(angle);
+        const y = centerY + r * Math.sin(angle);
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw labels
+      ctx.font = 'bold 10px ' + ARABIC_FONT_STACK;
+      ctx.fillStyle = '#6b7280';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let i = 0; i < numPoints; i++) {
+        const angle = -Math.PI / 2 + (i * angleStep);
+        const labelRadius = radius + 15;
+        const x = centerX + labelRadius * Math.cos(angle);
+        const y = centerY + labelRadius * Math.sin(angle);
+        
+        ctx.fillText(data[i].subject, x, y);
+      }
+
+      // Draw performance level text at bottom
+      ctx.font = 'bold 10px ' + ARABIC_FONT_STACK;
+      ctx.fillStyle = '#0d9488';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      const performanceText = `التقدير العام: ${performanceLevel}`;
+      ctx.fillText(performanceText, centerX, height - 5);
+
+      canvas.toBlob((blob) => {
+        if (!blob) reject(new Error('Blob creation failed'));
+        else blob.arrayBuffer().then(buf => resolve({ 
+          buffer: new Uint8Array(buf), 
+          width: width, 
+          height: height 
+        }));
+      }, 'image/png');
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+/**
  * Load image from URL
  */
 async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
@@ -294,6 +403,28 @@ export async function generatePDFReport(
     const participationInfo = getStatusDisplay(record.participation, 'academic');
     const homeworkInfo = getStatusDisplay(record.homework, 'academic');
     const behaviorInfo = getStatusDisplay(record.behavior, 'academic');
+
+    // Chart Data Preparation (matching PDFReport.tsx)
+    const scoreMap: Record<string, number> = { excellent: 100, good: 75, average: 50, poor: 25, none: 0 };
+    const partScore = record.attendance === 'present' ? (scoreMap[record.participation] || 0) : 0;
+    const homeScore = record.attendance === 'present' ? (scoreMap[record.homework] || 0) : 0;
+    const behScore = record.attendance === 'present' ? (scoreMap[record.behavior] || 0) : 0;
+
+    const chartData = [
+      { subject: 'المشاركة', A: partScore, fullMark: 100 },
+      { subject: 'الواجبات', A: homeScore, fullMark: 100 },
+      { subject: 'السلوك', A: behScore, fullMark: 100 },
+    ];
+
+    // Calculate Average Score
+    const totalScore = (partScore + homeScore + behScore) / 3;
+    let performanceLevel = 'غير محدد';
+    if (record.attendance === 'present') {
+      if (totalScore >= 90) performanceLevel = 'ممتاز';
+      else if (totalScore >= 75) performanceLevel = 'جيد جداً';
+      else if (totalScore >= 60) performanceLevel = 'جيد';
+      else performanceLevel = 'يحتاج متابعة';
+    }
 
     // ================= HEADER SECTION (3 columns like PDFReport.tsx) =================
     const headerSectionHeight = 120;
@@ -683,10 +814,11 @@ export async function generatePDFReport(
       }
     }
 
-    // Chart placeholder (right side)
+    // Chart (right side)
     const chartX = margin;
     const chartY = cursorY - summaryBoxHeight;
     const chartHeight = summaryBoxHeight * 2 + 10;
+    const chartPadding = 10;
     
     page.drawRectangle({
       x: chartX,
@@ -704,23 +836,24 @@ export async function generatePDFReport(
     });
     const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
     page.drawImage(chartTitleEmb, {
-      x: chartX + chartWidth - chartTitleImg.width - 10,
+      x: chartX + chartWidth - chartTitleImg.width - chartPadding,
       y: chartY - 15,
       width: chartTitleImg.width,
       height: chartTitleImg.height
     });
     
-    // Chart placeholder text
+    // Draw radar chart
     if (record.attendance === 'present') {
-      const chartPlaceholderImg = await textToImage('رسم بياني للأداء', {
-        fontSize: 10, color: '#9CA3AF', align: 'center', isBold: false
-      });
-      const chartPlaceholderEmb = await pdfDoc.embedPng(chartPlaceholderImg.buffer);
-      page.drawImage(chartPlaceholderEmb, {
-        x: chartX + chartWidth / 2 - chartPlaceholderImg.width / 2,
-        y: chartY - chartHeight / 2 - chartPlaceholderImg.height / 2,
-        width: chartPlaceholderImg.width,
-        height: chartPlaceholderImg.height
+      const chartImageWidth = chartWidth - (chartPadding * 2);
+      const chartImageHeight = chartHeight - 40; // Leave space for title and performance text
+      const radarChart = await drawRadarChart(chartData, performanceLevel, chartImageWidth, chartImageHeight);
+      const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
+      
+      page.drawImage(radarChartEmb, {
+        x: chartX + chartPadding,
+        y: chartY - chartHeight + chartPadding + 5,
+        width: radarChart.width,
+        height: radarChart.height
       });
     } else {
       const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
