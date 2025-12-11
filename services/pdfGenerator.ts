@@ -1422,7 +1422,12 @@ export async function generatePDFReport(
     if (stampUrl && stampUrl !== '') {
       // Use stamp image from settings
       try {
-        console.log('Attempting to load stamp from URL:', stampUrl);
+        console.log('Attempting to load stamp from URL:', {
+          urlPrefix: stampUrl.substring(0, 50) + (stampUrl.length > 50 ? '...' : ''),
+          isDataUrl: stampUrl.startsWith('data:'),
+          isBlobUrl: stampUrl.startsWith('blob:'),
+          urlLength: stampUrl.length
+        });
         const stamp = await loadImage(pdfDoc, stampUrl);
         if (stamp) {
           console.log('Stamp loaded successfully, dimensions:', {
