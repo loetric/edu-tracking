@@ -157,19 +157,63 @@ async function drawCheckmark(
  */
 async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
   try {
-    if (!imageUrl) return null;
-    const response = await fetch(imageUrl);
-    if (!response.ok) return null;
+    if (!imageUrl || imageUrl.trim() === '') {
+      console.warn('Empty logo URL provided');
+      return null;
+    }
+    
+    // Handle data URLs (base64)
+    if (imageUrl.startsWith('data:')) {
+      const base64Data = imageUrl.split(',')[1];
+      const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      
+      if (imageUrl.includes('image/png')) {
+        return await pdfDoc.embedPng(imageBytes);
+      } else {
+        return await pdfDoc.embedJpg(imageBytes);
+      }
+    }
+    
+    // Handle regular URLs
+    console.log('Fetching image from URL:', imageUrl);
+    const response = await fetch(imageUrl, {
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    
+    if (!response.ok) {
+      console.warn('Failed to fetch image:', response.status, response.statusText);
+      return null;
+    }
+    
     const arrayBuffer = await response.arrayBuffer();
     const imageBytes = new Uint8Array(arrayBuffer);
     
-    if (imageUrl.toLowerCase().endsWith('.png')) {
+    // Try to detect image type from content or URL
+    const contentType = response.headers.get('content-type') || '';
+    const urlLower = imageUrl.toLowerCase();
+    
+    if (contentType.includes('png') || urlLower.includes('.png') || urlLower.includes('png')) {
       return await pdfDoc.embedPng(imageBytes);
-    } else {
+    } else if (contentType.includes('jpeg') || contentType.includes('jpg') || 
+               urlLower.includes('.jpg') || urlLower.includes('.jpeg') ||
+               urlLower.includes('jpeg') || urlLower.includes('jpg')) {
       return await pdfDoc.embedJpg(imageBytes);
+    } else {
+      // Try PNG first, then JPG
+      try {
+        return await pdfDoc.embedPng(imageBytes);
+      } catch (pngError) {
+        try {
+          return await pdfDoc.embedJpg(imageBytes);
+        } catch (jpgError) {
+          console.error('Failed to embed image as PNG or JPG:', pngError, jpgError);
+          return null;
+        }
+      }
     }
   } catch (error) {
-    console.warn('Error loading image:', error);
+    console.error('Error loading image:', error);
     return null;
   }
 }
@@ -323,22 +367,27 @@ export async function generatePDFReport(
     // ================= HEADER SECTION - All data from settings =================
     
     // Top Right: Kingdom, Ministry, Region, School Name (all from settings)
+    // Unified font size and color for all header texts
+    const headerFontSize = 11;
+    const headerColor = '#2B2B2B'; // Unified dark gray color
+    const headerBold = true;
+    
     const kingdomText = 'المملكة العربية السعودية';
     const ministryText = safeSettings.ministry || 'وزارة التعليم';
     const regionText = safeSettings.region || 'الإدارة العامة للتعليم';
     const schoolNameText = safeSettings.name || 'المدرسة';
 
     const kingdomImg = await textToImage(kingdomText, {
-      fontSize: 11, color: '#17496D', align: 'right', isBold: true
+      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
     });
     const ministryImg = await textToImage(ministryText, {
-      fontSize: 10, color: '#2B2B2B', align: 'right', isBold: true
+      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
     });
     const regionImg = await textToImage(regionText, {
-      fontSize: 9, color: '#737373', align: 'right'
+      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
     });
     const schoolNameImg = await textToImage(schoolNameText, {
-      fontSize: 12, color: '#17496D', align: 'right', isBold: true
+      fontSize: headerFontSize, color: headerColor, align: 'right', isBold: headerBold
     });
 
     const kEmb = await pdfDoc.embedPng(kingdomImg.buffer);
@@ -347,12 +396,13 @@ export async function generatePDFReport(
     const sEmb = await pdfDoc.embedPng(schoolNameImg.buffer);
 
     let rightY = cursorY;
+    const lineSpacing = 20; // Unified spacing between lines
     page.drawImage(kEmb, { x: width - margin - kingdomImg.width, y: rightY, width: kingdomImg.width, height: kingdomImg.height });
-    rightY -= 20;
+    rightY -= lineSpacing;
     page.drawImage(mEmb, { x: width - margin - ministryImg.width, y: rightY, width: ministryImg.width, height: ministryImg.height });
-    rightY -= 18;
+    rightY -= lineSpacing;
     page.drawImage(rEmb, { x: width - margin - regionImg.width, y: rightY, width: regionImg.width, height: regionImg.height });
-    rightY -= 20;
+    rightY -= lineSpacing;
     page.drawImage(sEmb, { x: width - margin - schoolNameImg.width, y: rightY, width: schoolNameImg.width, height: schoolNameImg.height });
 
     // Top Left: Report Title, Date, and Slogan (from settings)
@@ -400,29 +450,60 @@ export async function generatePDFReport(
     }
 
     // Center: Logo (from settings.logoUrl)
-    if (safeSettings.logoUrl) {
-      const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
-      if (logo) {
-        const logoSize = 70;
-        const logoX = width / 2 - logoSize / 2;
-        const logoY = cursorY - 25;
-        
-        // Draw subtle background for logo
-        page.drawRectangle({
-          x: logoX - 3,
-          y: logoY - 3,
-          width: logoSize + 6,
-          height: logoSize + 6,
-          color: rgb(0.95, 0.95, 0.95),
-        });
-        
-        page.drawImage(logo, {
-          x: logoX,
-          y: logoY,
-          width: logoSize,
-          height: logoSize,
-        });
+    // Try to load logo with better error handling
+    try {
+      if (safeSettings.logoUrl && safeSettings.logoUrl.trim() !== '') {
+        console.log('Attempting to load logo from:', safeSettings.logoUrl);
+        const logo = await loadImage(pdfDoc, safeSettings.logoUrl);
+        if (logo) {
+          const logoSize = 70;
+          const logoX = width / 2 - logoSize / 2;
+          const logoY = cursorY - 25;
+          
+          // Get logo dimensions to maintain aspect ratio
+          const logoDims = logo.scale(1);
+          const logoAspectRatio = logoDims.width / logoDims.height;
+          let finalLogoWidth = logoSize;
+          let finalLogoHeight = logoSize;
+          
+          if (logoAspectRatio > 1) {
+            // Logo is wider than tall
+            finalLogoHeight = logoSize / logoAspectRatio;
+          } else {
+            // Logo is taller than wide
+            finalLogoWidth = logoSize * logoAspectRatio;
+          }
+          
+          // Center the logo
+          const adjustedLogoX = logoX + (logoSize - finalLogoWidth) / 2;
+          const adjustedLogoY = logoY + (logoSize - finalLogoHeight) / 2;
+          
+          // Draw subtle background for logo
+          page.drawRectangle({
+            x: logoX - 3,
+            y: logoY - 3,
+            width: logoSize + 6,
+            height: logoSize + 6,
+            color: rgb(0.95, 0.95, 0.95),
+          });
+          
+          page.drawImage(logo, {
+            x: adjustedLogoX,
+            y: adjustedLogoY,
+            width: finalLogoWidth,
+            height: finalLogoHeight,
+          });
+          
+          console.log('Logo loaded and drawn successfully');
+        } else {
+          console.warn('Logo image could not be loaded from URL:', safeSettings.logoUrl);
+        }
+      } else {
+        console.log('No logo URL provided in settings');
       }
+    } catch (error) {
+      console.error('Error loading logo:', error);
+      // Continue without logo if there's an error
     }
 
     // ================= STUDENT INFO CARD =================
