@@ -148,6 +148,19 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
               <span className="font-medium text-gray-700 text-xs">الفلاتر:</span>
             </div>
 
+            {/* Class Filter - First filter as requested */}
+            <div className="w-[160px] flex-shrink-0">
+              <CustomSelect
+                value={selectedClass}
+                onChange={(value) => setSelectedClass(value)}
+                options={uniqueClasses.map(c => ({ 
+                  value: c, 
+                  label: c === 'all' ? 'جميع الفصول' : c 
+                }))}
+                className="w-full text-xs"
+              />
+            </div>
+
             {/* Date Range */}
             <div className="w-[150px] flex-shrink-0">
               <CustomSelect
@@ -185,19 +198,6 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                 </div>
               </>
             )}
-
-            {/* Class Filter */}
-            <div className="w-[160px] flex-shrink-0">
-              <CustomSelect
-                value={selectedClass}
-                onChange={(value) => setSelectedClass(value)}
-                options={uniqueClasses.map(c => ({ 
-                  value: c, 
-                  label: c === 'all' ? 'جميع الفصول' : c 
-                }))}
-                className="w-full text-xs"
-              />
-            </div>
 
             {/* Search */}
             <div className="flex-1 min-w-[150px]">
