@@ -238,42 +238,89 @@ async function drawRadarChart(
 async function loadImage(pdfDoc: PDFDocument, imageUrl: string): Promise<any> {
   try {
     if (!imageUrl || imageUrl.trim() === '') {
+      console.warn('loadImage: Empty image URL');
       return null;
     }
     
+    console.log('loadImage: Attempting to load:', imageUrl);
+    
     if (imageUrl.startsWith('data:')) {
+      console.log('loadImage: Processing data URL');
       const base64Data = imageUrl.split(',')[1];
+      if (!base64Data) {
+        console.error('loadImage: Invalid data URL format');
+        return null;
+      }
+      
       const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
       
       if (imageUrl.includes('image/png')) {
+        console.log('loadImage: Embedding PNG from data URL');
         return await pdfDoc.embedPng(imageBytes);
       } else {
+        console.log('loadImage: Embedding JPG from data URL');
         return await pdfDoc.embedJpg(imageBytes);
       }
     }
     
+    console.log('loadImage: Fetching image from URL');
     const response = await fetch(imageUrl, {
       mode: 'cors',
-      cache: 'no-cache'
+      cache: 'no-cache',
+      credentials: 'omit'
     });
     
     if (!response.ok) {
+      console.error('loadImage: Fetch failed:', response.status, response.statusText);
       return null;
     }
     
     const arrayBuffer = await response.arrayBuffer();
     const imageBytes = new Uint8Array(arrayBuffer);
     
+    if (imageBytes.length === 0) {
+      console.error('loadImage: Empty image data');
+      return null;
+    }
+    
     const contentType = response.headers.get('content-type') || '';
     const urlLower = imageUrl.toLowerCase();
     
-    if (contentType.includes('png') || urlLower.includes('.png') || urlLower.includes('png')) {
-      return await pdfDoc.embedPng(imageBytes);
+    console.log('loadImage: Content type:', contentType, 'URL lower:', urlLower);
+    
+    // Try PNG first
+    if (contentType.includes('png') || urlLower.includes('.png')) {
+      console.log('loadImage: Attempting to embed as PNG');
+      try {
+        return await pdfDoc.embedPng(imageBytes);
+      } catch (pngError) {
+        console.warn('loadImage: PNG embedding failed, trying JPG:', pngError);
+        // Fallback to JPG
+        try {
+          return await pdfDoc.embedJpg(imageBytes);
+        } catch (jpgError) {
+          console.error('loadImage: Both PNG and JPG embedding failed:', jpgError);
+          return null;
+        }
+      }
     } else {
-      return await pdfDoc.embedJpg(imageBytes);
+      // Try JPG
+      console.log('loadImage: Attempting to embed as JPG');
+      try {
+        return await pdfDoc.embedJpg(imageBytes);
+      } catch (jpgError) {
+        console.warn('loadImage: JPG embedding failed, trying PNG:', jpgError);
+        // Fallback to PNG
+        try {
+          return await pdfDoc.embedPng(imageBytes);
+        } catch (pngError) {
+          console.error('loadImage: Both JPG and PNG embedding failed:', pngError);
+          return null;
+        }
+      }
     }
   } catch (error) {
-    console.error('Error loading image:', error);
+    console.error('loadImage: Unexpected error:', error);
     return null;
   }
 }
@@ -1220,13 +1267,28 @@ export async function generatePDFReport(
     // Center - QR Code or stamp (use stampUrl from settings if available, otherwise QR code or placeholder)
     const footerCenterX = width / 2;
     const stampUrl = safeSettings.stampUrl?.trim();
+    const stampY = footerY + 13; // Y position for stamp/QR code
+    
+    console.log('Footer stamp/QR code check:', {
+      hasStampUrl: !!stampUrl,
+      stampUrl: stampUrl,
+      hasReportLink: !!safeSettings.reportLink,
+      reportLink: safeSettings.reportLink,
+      footerY: footerY,
+      stampY: stampY,
+      footerCenterX: footerCenterX
+    });
+    
     if (stampUrl && stampUrl !== '') {
       // Use stamp image from settings
       try {
         console.log('Attempting to load stamp from URL:', stampUrl);
         const stamp = await loadImage(pdfDoc, stampUrl);
         if (stamp) {
-          console.log('Stamp loaded successfully');
+          console.log('Stamp loaded successfully, dimensions:', {
+            width: stamp.width,
+            height: stamp.height
+          });
           const stampDims = stamp.scale(1);
           const stampAspectRatio = stampDims.width / stampDims.height;
           let stampWidth = 60;
@@ -1238,18 +1300,26 @@ export async function generatePDFReport(
             stampWidth = 60 * stampAspectRatio;
           }
           
+          console.log('Drawing stamp at:', {
+            x: footerCenterX - stampWidth / 2,
+            y: stampY,
+            width: stampWidth,
+            height: stampHeight
+          });
+          
           page.drawImage(stamp, {
             x: footerCenterX - stampWidth / 2,
-            y: footerY + 13, // Moved down 7px
+            y: stampY,
             width: stampWidth,
             height: stampHeight,
           });
+          console.log('Stamp drawn successfully');
         } else {
           console.warn('Stamp image is null, falling back to placeholder');
           // Fallback to placeholder
           page.drawRectangle({
             x: footerCenterX - 30,
-            y: footerY + 13,
+            y: stampY,
             width: 60,
             height: 60,
             borderColor: COLORS.gray300,
@@ -1262,7 +1332,7 @@ export async function generatePDFReport(
         // Fallback to placeholder
         page.drawRectangle({
           x: footerCenterX - 30,
-          y: footerY + 13,
+          y: stampY,
           width: 60,
           height: 60,
           borderColor: COLORS.gray300,
@@ -1270,26 +1340,37 @@ export async function generatePDFReport(
           borderDashArray: [3, 3],
         });
       }
-    } else if (safeSettings.reportLink) {
+    } else if (safeSettings.reportLink && safeSettings.reportLink.trim() !== '') {
       const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(safeSettings.reportLink)}`;
+      console.log('Attempting to load QR code from URL:', qrCodeUrl);
       try {
         const qrCode = await loadImage(pdfDoc, qrCodeUrl);
         if (qrCode) {
+          console.log('QR code loaded successfully, drawing at:', {
+            x: footerCenterX - 30,
+            y: stampY,
+            width: 60,
+            height: 60
+          });
           page.drawImage(qrCode, {
             x: footerCenterX - 30,
-            y: footerY + 13, // Moved down 7px
+            y: stampY,
             width: 60,
             height: 60,
           });
+          console.log('QR code drawn successfully');
+        } else {
+          console.warn('QR code image is null');
         }
       } catch (e) {
-        console.warn('Could not load QR code:', e);
+        console.error('Could not load QR code:', e);
       }
     } else {
+      console.log('No stamp or QR code, drawing placeholder');
       // Stamp placeholder
       page.drawRectangle({
         x: footerCenterX - 30,
-        y: footerY + 13, // Moved down 7px
+        y: stampY,
         width: 60,
         height: 60,
         borderColor: COLORS.gray300,
@@ -1303,7 +1384,7 @@ export async function generatePDFReport(
       const stampPlaceholderEmb = await pdfDoc.embedPng(stampPlaceholderImg.buffer);
       page.drawImage(stampPlaceholderEmb, {
         x: footerCenterX - stampPlaceholderImg.width / 2,
-        y: footerY + 38, // Moved down 7px
+        y: stampY + 25, // Center text in placeholder box
         width: stampPlaceholderImg.width,
         height: stampPlaceholderImg.height
       });
