@@ -565,14 +565,16 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                   return (
                     <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white print:p-0.5 print:border print:border-gray-700 print:min-h-0 print:align-middle print:border-b-2 print:border-b-gray-700">
                       {sessions.length > 0 ? (
-                        <div className="flex flex-col gap-1 print:gap-0.5">
+                        <div className="flex flex-col gap-1 print:gap-0 print:space-y-1">
                             {sessions.map((session, idx) => {
                                 const isCompleted = completedSessions.includes(session.id);
+                                // In print, use original teacher if available, otherwise use teacher
+                                const printTeacher = session.originalTeacher || session.teacher;
                                 return (
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80 print:border print:border-gray-700 print:rounded-none print:shadow-none print:p-1 print:text-[7px]`}
+                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80 print:border print:border-gray-700 print:rounded-none print:shadow-none print:p-1 print:text-[7px] print:bg-white print:text-gray-800 print:mb-1 print:last:mb-0`}
                                     >
                                         <div className="flex justify-between items-start mb-0.5 gap-1 print:mb-0 print:flex-col print:items-start">
                                             <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1 print:text-[7px] print:font-bold print:mb-0.5">{session.subject}</span>
@@ -593,9 +595,9 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                                             {session.originalTeacher}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-0.5 print:gap-0">
-                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0 print:hidden" />
-                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight print:text-[6px] print:text-gray-600">
+                                                    <div className="flex items-center gap-0.5 print:gap-0 print:hidden">
+                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0" />
+                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight">
                                                             احتياط: {session.teacher}
                                                         </span>
                                                     </div>
@@ -608,6 +610,12 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                                     </span>
                                                 </div>
                                             )}
+                                            {/* In print, always show original teacher or teacher */}
+                                            <div className="hidden print:flex items-center gap-0 print:gap-0">
+                                                <span className="truncate text-[6px] text-gray-800">
+                                                    {printTeacher}
+                                                </span>
+                                            </div>
                                             <div className="flex items-center gap-0.5 print:gap-0">
                                                 <BookOpen size={7} className="flex-shrink-0 print:hidden" />
                                                 <span className="text-[8px] leading-tight truncate print:text-[6px]">{session.classRoom}</span>
