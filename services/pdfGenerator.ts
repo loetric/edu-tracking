@@ -841,15 +841,16 @@ export async function generatePDFReport(
 
     
 
+    // الاسم الرباعي وجوال ولي الأمر في الخانات اليمنى (col 0)
     const studentDetails = [
 
-      { label: 'الاسم الرباعي', value: student.name || '-', row: 0, col: 0 },
+      { label: 'الاسم الرباعي', value: student.name || '-', row: 0, col: 0 }, // Right column, top
 
-      { label: 'الفصل', value: student.classGrade || '-', row: 0, col: 1 },
+      { label: 'الفصل', value: student.classGrade || '-', row: 0, col: 1 }, // Left column, top
 
-      { label: 'جوال ولي الأمر', value: student.parentPhone || '-', row: 1, col: 0 },
+      { label: 'جوال ولي الأمر', value: student.parentPhone || '-', row: 1, col: 0 }, // Right column, bottom
 
-      { label: 'حالة التقرير', value: 'معتمد من المدرسة', row: 1, col: 1, isSpecial: true }
+      { label: 'حالة التقرير', value: 'معتمد من المدرسة', row: 1, col: 1, isSpecial: true } // Left column, bottom
 
     ];
 
@@ -1828,9 +1829,10 @@ export async function generatePDFReport(
     if (counselorMessage && counselorMessage !== '') {
       console.log('Drawing counselor message:', counselorMessage);
       const messageBoxHeight = 50;
+      // Lower the message box by 10px
       page.drawRectangle({
         x: margin,
-        y: cursorY - messageBoxHeight,
+        y: cursorY - messageBoxHeight - 10, // Lowered 10px
         width: contentWidth,
         height: messageBoxHeight,
         color: COLORS.blue50,
@@ -1844,7 +1846,7 @@ export async function generatePDFReport(
       const messageTitleEmb = await pdfDoc.embedPng(messageTitleImg.buffer);
       page.drawImage(messageTitleEmb, {
         x: width - margin - messageTitleImg.width - 10,
-        y: cursorY - 20, // Lowered 5px (from 15 to 20)
+        y: cursorY - 30, // Adjusted to maintain text formatting (lowered 10px)
         width: messageTitleImg.width,
         height: messageTitleImg.height
       });
@@ -1855,12 +1857,12 @@ export async function generatePDFReport(
       const messageContentEmb = await pdfDoc.embedPng(messageContentImg.buffer);
       page.drawImage(messageContentEmb, {
         x: margin + contentWidth / 2 - messageContentImg.width / 2,
-        y: cursorY - 40, // Lowered 5px (from 35 to 40)
+        y: cursorY - 50, // Adjusted to maintain text formatting (lowered 10px)
         width: messageContentImg.width,
         height: messageContentImg.height
       });
       
-      cursorY -= (messageBoxHeight + 15);
+      cursorY -= (messageBoxHeight + 5); // Reduced spacing - removed separator line
     }
 
     // ================= FOOTER SECTION (Enhanced) =================
@@ -1868,25 +1870,7 @@ export async function generatePDFReport(
     const footerHeight = 65;
     
 
-    // Top border with gradient
-
-    for (let i = 0; i < 3; i++) {
-
-      page.drawLine({
-
-        start: { x: margin, y: footerY + footerHeight - i },
-
-        end: { x: width - margin, y: footerY + footerHeight - i },
-
-        thickness: 0.5,
-
-        color: rgb(0.13 - i * 0.03, 0.15 - i * 0.03, 0.15 - i * 0.03),
-
-        opacity: 0.3 - i * 0.1
-
-      });
-
-    }
+    // Top border with gradient - removed (no separator line between message and footer)
 
 
 
