@@ -1261,9 +1261,9 @@ export async function generatePDFReport(
         x: boxX + (summaryBoxWidth - 10) / 2 - valueImg.width / 2,
         y: boxY - summaryBoxHeight + 20, // At bottom of card
 
-        width: labelImg.width,
+        width: valueImg.width,
 
-        height: labelImg.height
+        height: valueImg.height
 
       });
 
