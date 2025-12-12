@@ -587,35 +587,22 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                         </div>
                                         
                                         <div className="space-y-0.5 print:space-y-0">
-                                            {session.isSubstituted && session.originalTeacher ? (
-                                                <div className="space-y-0.5 print:space-y-0">
-                                                    <div className="flex items-center gap-0.5 print:gap-0">
-                                                        <User size={7} className="flex-shrink-0 print:hidden" />
-                                                        <span className="truncate text-[8px] font-bold leading-tight print:text-[6px] print:font-normal">
-                                                            {session.originalTeacher}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-0.5 print:gap-0 print:hidden">
-                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0" />
-                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight">
-                                                            احتياط: {session.teacher}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-0.5 print:gap-0">
-                                                    <User size={7} className="flex-shrink-0 print:hidden" />
-                                                    <span className="truncate text-[8px] leading-tight print:text-[6px]">
-                                                        {session.teacher}
+                                            {/* Show original teacher in print, otherwise show current teacher */}
+                                            <div className="flex items-center gap-0.5 print:gap-0">
+                                                <User size={7} className="flex-shrink-0 print:hidden" />
+                                                <span className="truncate text-[8px] leading-tight print:text-[6px]">
+                                                    {session.isSubstituted && session.originalTeacher ? session.originalTeacher : session.teacher}
+                                                </span>
+                                            </div>
+                                            {/* Hide substitute info in print */}
+                                            {session.isSubstituted && session.originalTeacher && (
+                                                <div className="flex items-center gap-0.5 print:hidden">
+                                                    <RefreshCw size={7} className="text-purple-600 flex-shrink-0" />
+                                                    <span className="truncate text-[7px] font-medium text-purple-700 leading-tight">
+                                                        احتياط: {session.teacher}
                                                     </span>
                                                 </div>
                                             )}
-                                            {/* In print, always show original teacher or teacher */}
-                                            <div className="hidden print:flex items-center gap-0 print:gap-0">
-                                                <span className="truncate text-[6px] text-gray-800">
-                                                    {printTeacher}
-                                                </span>
-                                            </div>
                                             <div className="flex items-center gap-0.5 print:gap-0">
                                                 <BookOpen size={7} className="flex-shrink-0 print:hidden" />
                                                 <span className="text-[8px] leading-tight truncate print:text-[6px]">{session.classRoom}</span>
