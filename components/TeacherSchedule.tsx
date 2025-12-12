@@ -347,17 +347,17 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             </div>
             
             {/* Print Button & Substitution Requests Button & Legend */}
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+            <div className="flex flex-row items-center gap-2 md:gap-3 flex-wrap">
                 {role === 'admin' && (
                     <button
                         onClick={() => setShowAdminRequestsPanel(!showAdminRequestsPanel)}
-                        className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-[10px] md:text-xs font-bold shadow-sm flex-shrink-0 print:hidden"
+                        className="flex items-center gap-1 md:gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-[10px] md:text-xs font-bold shadow-sm flex-shrink-0 print:hidden whitespace-nowrap"
                     >
-                        <Bell size={12} className="md:w-3.5 md:h-3.5" />
+                        <Bell size={12} className="md:w-3.5 md:h-3.5 flex-shrink-0" />
                         <span className="hidden sm:inline">طلبات الإسناد</span>
                         <span className="sm:hidden">طلبات</span>
                         {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
-                            <span className="bg-orange-500 text-white text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded-full">
+                            <span className="bg-orange-500 text-white text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded-full flex-shrink-0">
                                 {substitutionRequests.filter(r => r.status === 'pending').length}
                             </span>
                         )}
