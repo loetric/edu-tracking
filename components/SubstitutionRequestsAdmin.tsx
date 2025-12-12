@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SubstitutionRequest, ScheduleItem } from '../types';
-import { CheckCircle, XCircle, Clock, AlertCircle, Filter, Search, X, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, AlertCircle, Filter, Search, X, Trash2, Printer } from 'lucide-react';
 import { api } from '../services/api';
 import { useModal } from '../hooks/useModal';
 import { CustomSelect } from './CustomSelect';
@@ -119,10 +119,24 @@ export const SubstitutionRequestsAdmin: React.FC<SubstitutionRequestsAdminProps>
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">إدارة طلبات الإسناد</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-800">إدارة طلبات الإسناد</h3>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-sm print:hidden"
+          >
+            <Printer size={16} />
+            <span>طباعة</span>
+          </button>
+        </div>
+        
+        {/* Print Title */}
+        <div className="hidden print:block mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 text-center">طلبات الإسناد</h2>
+        </div>
         
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-3 mb-4">
+        <div className="flex flex-col md:flex-row gap-3 mb-4 print:hidden">
           <div className="flex-1">
             <div className="relative">
               <Search size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -165,21 +179,21 @@ export const SubstitutionRequestsAdmin: React.FC<SubstitutionRequestsAdminProps>
               const sessionInfo = getSessionInfo(request.scheduleItemId);
               
               return (
-                <div key={request.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
+                <div key={request.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 print:border print:border-gray-700 print:rounded-none print:p-3 print:mb-2">
+                  <div className="flex items-start justify-between mb-3 print:mb-2">
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-2 print:mb-1">
                         <div className="flex items-center gap-2">
-                          {request.status === 'pending' && <Clock size={16} className="text-orange-500" />}
-                          {request.status === 'accepted' && <CheckCircle size={16} className="text-green-500" />}
-                          {request.status === 'rejected' && <XCircle size={16} className="text-red-500" />}
-                          <span className={`text-xs font-bold px-2 py-1 rounded border ${getStatusColor(request.status)}`}>
+                          {request.status === 'pending' && <Clock size={16} className="text-orange-500 print:hidden" />}
+                          {request.status === 'accepted' && <CheckCircle size={16} className="text-green-500 print:hidden" />}
+                          {request.status === 'rejected' && <XCircle size={16} className="text-red-500 print:hidden" />}
+                          <span className={`text-xs font-bold px-2 py-1 rounded border print:border-gray-700 print:bg-white print:text-gray-800 ${getStatusColor(request.status)}`}>
                             {getStatusLabel(request.status)}
                           </span>
                         </div>
                         <button
                           onClick={() => handleCancelRequest(request)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                          className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition-colors print:hidden"
                           title="إلغاء الطلب"
                         >
                           <Trash2 size={14} />
@@ -189,33 +203,33 @@ export const SubstitutionRequestsAdmin: React.FC<SubstitutionRequestsAdminProps>
                       
                       {sessionInfo ? (
                         <>
-                          <p className="text-sm font-bold text-gray-800 mb-1">
+                          <p className="text-sm font-bold text-gray-800 mb-1 print:text-xs print:mb-0.5">
                             {sessionInfo.subject} - {sessionInfo.classRoom}
                           </p>
-                          <p className="text-xs text-gray-500 mb-1">
+                          <p className="text-xs text-gray-500 mb-1 print:text-xs print:mb-0.5">
                             {sessionInfo.day} - الحصة {sessionInfo.period}
                           </p>
                         </>
                       ) : (
-                        <p className="text-sm text-gray-600">معلومات الحصة غير متوفرة</p>
+                        <p className="text-sm text-gray-600 print:text-xs">معلومات الحصة غير متوفرة</p>
                       )}
                       
-                      <div className="mt-2 space-y-1">
-                        <p className="text-xs text-gray-600">
+                      <div className="mt-2 space-y-1 print:mt-1 print:space-y-0.5">
+                        <p className="text-xs text-gray-600 print:text-xs">
                           <span className="font-bold">المعلم البديل:</span> {request.substituteTeacher}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 print:text-xs">
                           <span className="font-bold">تاريخ الطلب:</span> {new Date(request.requestedAt).toLocaleString('ar-SA')}
                         </p>
                         {request.respondedAt && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 print:text-xs">
                             <span className="font-bold">تاريخ الرد:</span> {new Date(request.respondedAt).toLocaleString('ar-SA')}
                           </p>
                         )}
                         {request.rejectionReason && (
-                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                            <p className="text-xs font-bold text-red-700 mb-1">سبب الرفض:</p>
-                            <p className="text-xs text-red-600">{request.rejectionReason}</p>
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded print:mt-1 print:p-1 print:border-gray-700 print:bg-white">
+                            <p className="text-xs font-bold text-red-700 mb-1 print:text-xs print:text-gray-800 print:mb-0.5">سبب الرفض:</p>
+                            <p className="text-xs text-red-600 print:text-xs print:text-gray-700">{request.rejectionReason}</p>
                           </div>
                         )}
                       </div>
@@ -226,11 +240,23 @@ export const SubstitutionRequestsAdmin: React.FC<SubstitutionRequestsAdminProps>
             })}
           </div>
         ) : (
-          <div className="p-8 text-center text-gray-400">
+          <div className="p-8 text-center text-gray-400 print:hidden">
             <AlertCircle size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-sm">لا توجد طلبات إسناد</p>
           </div>
         )}
+      </div>
+      
+      {/* Print Footer */}
+      <div className="hidden print:block mt-4 pt-4 border-t border-gray-300 print-footer">
+        <div className="flex justify-between items-center text-xs text-gray-600">
+          <div>
+            <p>تاريخ الطباعة: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div>
+            <p>هذا التقرير صادر من نظام التتبع الذكي</p>
+          </div>
+        </div>
       </div>
       
       {alertModal.isOpen && <AlertModal {...alertModal} />}
