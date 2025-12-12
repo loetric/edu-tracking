@@ -1669,10 +1669,10 @@ export async function generatePDFReport(
     if (counselorMessage && counselorMessage !== '') {
       console.log('Drawing counselor message:', counselorMessage);
       const messageBoxHeight = 50;
-      // Lower the message box by 10px more (total 20px from original)
+      // Lower the message box by 20px more (total 40px from original)
       page.drawRectangle({
         x: margin,
-        y: cursorY - messageBoxHeight - 20, // Lowered 10px more (from -10 to -20)
+        y: cursorY - messageBoxHeight - 40, // Lowered 20px more (from -20 to -40)
         width: contentWidth,
         height: messageBoxHeight,
         color: COLORS.blue50,
@@ -1703,80 +1703,6 @@ export async function generatePDFReport(
       });
       
       cursorY -= (messageBoxHeight + 5); // Reduced spacing - removed separator line
-    }
-
-    // ================= CHART ABOVE FOOTER (Right side) =================
-    // Chart box above footer on the right - larger size
-    const chartAboveFooterY = 120; // Above footer
-    const chartAboveFooterX = width - margin - 180; // Right side, 180px width
-    const chartAboveFooterWidth = 180; // Larger width
-    const chartAboveFooterHeight = 120; // Larger height
-    
-    // Chart shadow
-    page.drawRectangle({
-      x: chartAboveFooterX + 2,
-      y: chartAboveFooterY - chartAboveFooterHeight - 2,
-      width: chartAboveFooterWidth,
-      height: chartAboveFooterHeight,
-      color: rgb(0, 0, 0),
-      opacity: 0.05
-    });
-    
-    page.drawRectangle({
-      x: chartAboveFooterX,
-      y: chartAboveFooterY - chartAboveFooterHeight,
-      width: chartAboveFooterWidth,
-      height: chartAboveFooterHeight,
-      color: COLORS.white,
-      borderColor: COLORS.gray300,
-      borderWidth: 1.5,
-    });
-    
-    // Chart title
-    const chartTitleImg = await textToImage('📊 مؤشر الأداء', {
-      fontSize: 11, color: '#4B5563', align: 'right', isBold: true
-    });
-    const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
-    page.drawImage(chartTitleEmb, {
-      x: chartAboveFooterX + chartAboveFooterWidth - chartTitleImg.width - 10,
-      y: chartAboveFooterY - 20,
-      width: chartTitleImg.width,
-      height: chartTitleImg.height
-    });
-    
-    // Draw chart - larger size
-    if (record.attendance === 'present') {
-      const radarChart = await drawRadarChart(chartData, '', chartAboveFooterWidth - 20, chartAboveFooterHeight - 50);
-      const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
-      page.drawImage(radarChartEmb, {
-        x: chartAboveFooterX + 10,
-        y: chartAboveFooterY - chartAboveFooterHeight + 35,
-        width: radarChart.width,
-        height: radarChart.height
-      });
-      
-      // Performance text
-      const performanceImg = await textToImage(`التقدير العام: ${performanceLevel}`, {
-        fontSize: 10, color: '#0D9488', align: 'center', isBold: true
-      });
-      const performanceEmb = await pdfDoc.embedPng(performanceImg.buffer);
-      page.drawImage(performanceEmb, {
-        x: chartAboveFooterX + chartAboveFooterWidth / 2 - performanceImg.width / 2,
-        y: chartAboveFooterY - chartAboveFooterHeight + 15,
-        width: performanceImg.width,
-        height: performanceImg.height
-      });
-    } else {
-      const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
-        fontSize: 11, color: '#9CA3AF', align: 'center', isBold: false
-      });
-      const noDataEmb = await pdfDoc.embedPng(noDataImg.buffer);
-      page.drawImage(noDataEmb, {
-        x: chartAboveFooterX + chartAboveFooterWidth / 2 - noDataImg.width / 2,
-        y: chartAboveFooterY - chartAboveFooterHeight / 2 - noDataImg.height / 2,
-        width: noDataImg.width,
-        height: noDataImg.height
-      });
     }
 
     // ================= FOOTER SECTION (Enhanced) =================
