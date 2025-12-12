@@ -39,6 +39,9 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedStudentForReport, setSelectedStudentForReport] = useState<Student | null>(null);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewStudentName, setPreviewStudentName] = useState<string>('');
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState<string | null>(null);
   const { alert } = useModal();
   
   // Get unique classes from settings only (not from student data) - without 'all' option
@@ -317,43 +320,36 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                               }
                               
                               try {
-                                // Generate and open PDF for preview
+                                setIsGeneratingPreview(student.id);
+                                // Generate PDF for preview
                                 const pdfBytes = await generatePDFReport(student, latestRecord, settings, schedule);
                                 const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
                                 const pdfUrl = URL.createObjectURL(blob);
                                 
-                                // Open PDF in new window for preview only
-                                const newWindow = window.open('', '_blank');
-                                if (newWindow) {
-                                  newWindow.document.write(`
-                                    <!DOCTYPE html>
-                                    <html>
-                                      <head>
-                                        <title>معاينة التقرير - ${student.name}</title>
-                                        <style>
-                                          body { margin: 0; padding: 0; overflow: hidden; }
-                                          iframe { width: 100%; height: 100vh; border: none; }
-                                        </style>
-                                      </head>
-                                      <body>
-                                        <iframe src="${pdfUrl}" type="application/pdf"></iframe>
-                                      </body>
-                                    </html>
-                                  `);
-                                  newWindow.document.close();
-                                } else {
-                                  window.open(pdfUrl, '_blank');
-                                }
+                                setPreviewPdfUrl(pdfUrl);
+                                setPreviewStudentName(student.name);
                               } catch (error) {
                                 console.error('Error generating PDF:', error);
                                 alert({ message: `حدث خطأ أثناء توليد تقرير ${student.name}. يرجى المحاولة مرة أخرى.`, type: 'error' });
+                              } finally {
+                                setIsGeneratingPreview(null);
                               }
                             }}
-                            className="text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                            disabled={isGeneratingPreview === student.id}
+                            className="text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="معاينة التقرير"
                           >
-                            <Eye size={14} />
-                            معاينة
+                            {isGeneratingPreview === student.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                                <span>جاري التحميل...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Eye size={14} />
+                                معاينة
+                              </>
+                            )}
                           </button>
                           <button
                             onClick={() => {
@@ -408,6 +404,80 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
           settings={settings || {} as SchoolSettings}
           schedule={schedule}
         />
+      )}
+
+      {/* PDF Preview Modal */}
+      {previewPdfUrl && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm overflow-y-auto p-2 md:p-4" 
+          dir="rtl"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              URL.revokeObjectURL(previewPdfUrl);
+              setPreviewPdfUrl(null);
+              setPreviewStudentName('');
+            }
+          }}
+          style={{ touchAction: 'none' }}
+          onTouchMove={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-6xl my-auto max-h-[95vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between z-10 rounded-t-xl">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <Eye size={20} className="text-blue-600" />
+                <span>معاينة التقرير - {previewStudentName}</span>
+              </h2>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewPdfUrl}
+                  download={`تقرير_${previewStudentName}.pdf`}
+                  className="flex items-center gap-2 px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold"
+                >
+                  <Download size={16} />
+                  <span className="hidden md:inline">تحميل</span>
+                </a>
+                <a
+                  href={previewPdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold"
+                >
+                  <Printer size={16} />
+                  <span className="hidden md:inline">فتح في نافذة جديدة</span>
+                </a>
+                <button
+                  onClick={() => {
+                    URL.revokeObjectURL(previewPdfUrl);
+                    setPreviewPdfUrl(null);
+                    setPreviewStudentName('');
+                  }}
+                  className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} className="text-gray-400" />
+                </button>
+              </div>
+            </div>
+            
+            {/* PDF Content */}
+            <div className="flex-1 overflow-y-auto p-2 md:p-4">
+              <iframe
+                src={previewPdfUrl}
+                className="w-full h-full min-h-[400px] md:min-h-[600px] border border-gray-200 rounded-lg"
+                title={`معاينة التقرير - ${previewStudentName}`}
+                style={{ 
+                  minHeight: '400px',
+                  maxHeight: 'calc(95vh - 120px)'
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
