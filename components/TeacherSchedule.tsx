@@ -172,7 +172,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         </div>
       )}
 
-    <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-3 md:p-6 lg:p-8 animate-in fade-in relative">
+    <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-100 p-3 md:p-6 lg:p-8 animate-in fade-in relative schedule-print">
       
       {/* Substitute Modal */}
       {selectedSessionForSub && onAssignSubstitute && (
@@ -506,9 +506,9 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         )}
       </div>
 
-      {/* Desktop Schedule */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm">
-        <table className="w-full border-collapse text-xs table-fixed">
+      {/* Desktop Schedule - Show in print even on mobile */}
+      <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-2 print:border-gray-800">
+        <table className="w-full border-collapse text-xs table-fixed print:text-sm">
           <colgroup>
             <col className="w-[12%]" />
             {periods.map(() => <col key={Math.random()} className="w-[12.5%]" />)}
@@ -629,8 +629,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         </table>
       </div>
 
-      {/* Mobile Schedule - Simplified List */}
-      <div className="md:hidden space-y-4">
+      {/* Mobile Schedule - Simplified List - Hide in print */}
+      <div className="md:hidden print:hidden space-y-4">
         {days.map(day => {
           const daySessions = schedule.filter(s => s.day === day).sort((a, b) => a.period - b.period);
           if (daySessions.length === 0) return null;

@@ -9,6 +9,20 @@
     margin: 1cm;
   }
   
+  /* A3 Landscape for Schedule Table */
+  @page:has(table[class*="schedule"]) {
+    size: A3 landscape;
+    margin: 0.5cm;
+  }
+  
+  /* Alternative: Use class-based approach */
+  body.schedule-print {
+    @page {
+      size: A3 landscape;
+      margin: 0.5cm;
+    }
+  }
+  
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
