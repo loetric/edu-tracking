@@ -529,7 +529,8 @@ export async function generatePDFReport(
   student: Student,
   record: DailyRecord,
   settings: SchoolSettings,
-  schedule: ScheduleItem[]
+  schedule: ScheduleItem[],
+  allRecords?: Record<string, DailyRecord>
 ): Promise<Uint8Array> {
   try {
     if (!student || !student.name) {

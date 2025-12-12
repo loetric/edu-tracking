@@ -326,7 +326,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                               try {
                                 setIsGeneratingPreview(student.id);
                                 // Generate PDF for preview
-                                const pdfBytes = await generatePDFReport(student, latestRecord, settings, schedule);
+                                const pdfBytes = await generatePDFReport(student, latestRecord, settings, schedule, records);
                                 const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
                                 const pdfUrl = URL.createObjectURL(blob);
                                 

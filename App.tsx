@@ -1715,6 +1715,9 @@ const App: React.FC = () => {
             students={students}
             records={currentRecords}
             settings={effectiveSettings}
+            onUpdateRecord={async (studentId, record) => {
+              setCurrentRecords(prev => ({ ...prev, [studentId]: record }));
+            }}
           />
         ) : null;
       case 'files':

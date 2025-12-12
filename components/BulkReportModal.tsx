@@ -91,7 +91,7 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
 
       // Generate PDF report
       setGeneratingPdf(student.id);
-      const pdfBytes = await generatePDFReport(student, record, settings, schedule);
+      const pdfBytes = await generatePDFReport(student, record, settings, schedule, records);
       
       // Create blob for preview in modal
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
@@ -127,7 +127,7 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
 
       // Generate PDF report
       setGeneratingPdf(student.id);
-      const pdfBytes = await generatePDFReport(student, record, settings, schedule);
+      const pdfBytes = await generatePDFReport(student, record, settings, schedule, records);
       
       // Create blob and download link
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });

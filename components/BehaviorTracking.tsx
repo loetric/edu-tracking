@@ -1,21 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Student, DailyRecord, SchoolSettings } from '../types';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X } from 'lucide-react';
+import { Student, DailyRecord, SchoolSettings, StatusType } from '../types';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X, Edit2, Save } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '../constants';
 import { CustomSelect } from './CustomSelect';
+import { api } from '../services/api';
+import { useModal } from '../hooks/useModal';
 
 interface BehaviorTrackingProps {
   students: Student[];
   records: Record<string, DailyRecord>;
   settings: SchoolSettings;
+  onUpdateRecord?: (studentId: string, record: DailyRecord) => void;
 }
 
-type BehaviorCategory = 'excellent' | 'good' | 'needs_attention';
+type BehaviorCategory = 'all' | 'excellent' | 'good' | 'needs_attention';
 
-export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings }) => {
-  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('excellent');
+export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings, onUpdateRecord }) => {
+  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('');
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  const [editingBehavior, setEditingBehavior] = useState<StatusType>('excellent');
+  const { alert } = useModal();
 
   // Get unique classes from settings only (not from student data) - without 'all'
   const uniqueClasses = useMemo(() => {
@@ -35,6 +41,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
   // Categorize students based on behavior records
   const categorizedStudents = useMemo(() => {
     const categorized: Record<BehaviorCategory, Student[]> = {
+      all: [],
       excellent: [],
       good: [],
       needs_attention: []
@@ -47,6 +54,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       if (studentRecords.length === 0) {
         // No records - default to good
         categorized.good.push(student);
+        categorized.all.push(student);
         return;
       }
 
@@ -65,6 +73,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
 
       if (behaviorScores.length === 0) {
         categorized.good.push(student);
+        categorized.all.push(student);
         return;
       }
 
@@ -78,6 +87,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       } else {
         categorized.needs_attention.push(student);
       }
+      categorized.all.push(student);
     });
 
     return categorized;
@@ -90,11 +100,15 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       return [];
     }
 
-    // Filter by category
-    let filtered: Student[] = categorizedStudents[selectedCategory];
+    // Filter by class first (required)
+    let filtered: Student[] = students.filter(s => s.classGrade === selectedClass);
 
-    // Filter by class (required)
-    filtered = filtered.filter(s => s.classGrade === selectedClass);
+    // Then filter by category if not 'all'
+    if (selectedCategory !== 'all') {
+      const categoryStudents = categorizedStudents[selectedCategory];
+      const categoryStudentIds = new Set(categoryStudents.map(s => s.id));
+      filtered = filtered.filter(s => categoryStudentIds.has(s.id));
+    }
 
     // Filter by search query
     if (searchQuery) {
@@ -112,18 +126,23 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
   const categoryCounts = useMemo(() => {
     if (!selectedClass) {
       return {
+        all: 0,
         excellent: 0,
         good: 0,
         needs_attention: 0
       };
     }
 
+    const classStudents = students.filter(s => s.classGrade === selectedClass);
+    const classStudentIds = new Set(classStudents.map(s => s.id));
+
     return {
-      excellent: categorizedStudents.excellent.filter(s => s.classGrade === selectedClass).length,
-      good: categorizedStudents.good.filter(s => s.classGrade === selectedClass).length,
-      needs_attention: categorizedStudents.needs_attention.filter(s => s.classGrade === selectedClass).length
+      all: classStudents.length,
+      excellent: categorizedStudents.excellent.filter(s => classStudentIds.has(s.id)).length,
+      good: categorizedStudents.good.filter(s => classStudentIds.has(s.id)).length,
+      needs_attention: categorizedStudents.needs_attention.filter(s => classStudentIds.has(s.id)).length
     };
-  }, [categorizedStudents, selectedClass]);
+  }, [categorizedStudents, selectedClass, students]);
 
   const getCategoryLabel = (cat: BehaviorCategory): string => {
     switch (cat) {
@@ -211,6 +230,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 value={selectedCategory}
                 onChange={(value) => setSelectedCategory(value as BehaviorCategory)}
                 options={[
+                  { value: 'all', label: 'جميع الفئات' },
                   { value: 'excellent', label: 'ممتاز' },
                   { value: 'good', label: 'جيد' },
                   { value: 'needs_attention', label: 'يحتاج إلى متابعة' }
@@ -309,10 +329,87 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{student.classGrade || '-'}</td>
                       <td className="px-4 py-3 print:hidden">
-                        <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border-2 ${getCategoryColor(category)}`}>
-                          {getCategoryIcon(category)}
-                          {getCategoryLabel(category)}
-                        </div>
+                        {editingStudentId === student.id ? (
+                          <div className="flex items-center gap-2">
+                            <CustomSelect
+                              value={editingBehavior}
+                              onChange={(value) => setEditingBehavior(value as StatusType)}
+                              options={[
+                                { value: 'excellent', label: 'ممتاز' },
+                                { value: 'good', label: 'جيد' },
+                                { value: 'average', label: 'متوسط' },
+                                { value: 'poor', label: 'ضعيف' }
+                              ]}
+                              className="w-[120px] text-xs"
+                            />
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const today = new Date().toISOString().split('T')[0];
+                                  const existingRecord = Object.values(records).find(
+                                    r => r.studentId === student.id && r.date === today
+                                  );
+                                  
+                                  const updatedRecord: DailyRecord = existingRecord 
+                                    ? { ...existingRecord, behavior: editingBehavior }
+                                    : {
+                                        studentId: student.id,
+                                        date: today,
+                                        attendance: 'present',
+                                        participation: 'none',
+                                        homework: 'none',
+                                        behavior: editingBehavior,
+                                        notes: ''
+                                      };
+                                  
+                                  await api.saveDailyRecords({ [student.id]: updatedRecord });
+                                  
+                                  if (onUpdateRecord) {
+                                    onUpdateRecord(student.id, updatedRecord);
+                                  }
+                                  
+                                  setEditingStudentId(null);
+                                  alert({ message: 'تم تحديث التقييم بنجاح', type: 'success' });
+                                } catch (error) {
+                                  console.error('Error updating behavior:', error);
+                                  alert({ message: 'فشل في تحديث التقييم', type: 'error' });
+                                }
+                              }}
+                              className="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+                              title="حفظ"
+                            >
+                              <Save size={14} />
+                            </button>
+                            <button
+                              onClick={() => setEditingStudentId(null)}
+                              className="p-1.5 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
+                              title="إلغاء"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border-2 ${getCategoryColor(category)}`}>
+                              {getCategoryIcon(category)}
+                              {getCategoryLabel(category)}
+                            </div>
+                            <button
+                              onClick={() => {
+                                const today = new Date().toISOString().split('T')[0];
+                                const existingRecord = Object.values(records).find(
+                                  r => r.studentId === student.id && r.date === today
+                                );
+                                setEditingBehavior(existingRecord?.behavior || 'excellent');
+                                setEditingStudentId(student.id);
+                              }}
+                              className="p-1.5 text-teal-600 hover:bg-teal-50 rounded transition-colors"
+                              title="تحرير"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
