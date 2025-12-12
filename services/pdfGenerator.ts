@@ -1027,17 +1027,17 @@ export async function generatePDFReport(
 
 
     cursorY -= 30;
-    const summaryBoxHeight = 55;
+    const summaryBoxHeight = 45; // Reduced from 55 to 45
     const summaryBoxWidth = (contentWidth * 0.65 - 30) / 2;
     const chartWidth = contentWidth * 0.35;
     const gapBetween = 15;
     
 
-    // Chart box (left) with enhanced styling
+    // Chart box (left) with enhanced styling - smaller
 
     const chartX = margin;
     const chartY = cursorY;
-    const chartHeight = summaryBoxHeight * 2 + 10;
+    const chartHeight = summaryBoxHeight * 2 + 5; // Reduced from +10 to +5 (total 95 instead of 120)
     
 
     // Chart shadow
@@ -1236,22 +1236,22 @@ export async function generatePDFReport(
         borderWidth: 1,
       });
 
-      // Label with icon - at top of card (above values)
+      // Label with icon - at top of card (above values) - adjusted for smaller box
       const labelText = `${item.icon} ${item.label}`;
       const labelImg = await textToImage(labelText, {
-        fontSize: 9, color: '#4B5563', align: 'center', isBold: true
+        fontSize: 8, color: '#4B5563', align: 'center', isBold: true // Reduced from 9 to 8
       });
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
         x: boxX + (summaryBoxWidth - 10) / 2 - labelImg.width / 2,
-        y: boxY - 15, // Lowered 3px (from -12 to -15)
+        y: boxY - 12, // Adjusted for smaller box (from -15 to -12)
         width: labelImg.width,
         height: labelImg.height
       });
 
-      // Value text - at bottom of card (below label) - larger and lowered
+      // Value text - at bottom of card (below label) - adjusted for smaller box
       const valueImg = await textToImage(item.info.text, {
-        fontSize: 9, // Increased from 8 to 9 (slightly larger)
+        fontSize: 9, // Keep at 9 (slightly larger)
         color: `rgb(${Math.round(item.info.textCol.r * 255)}, ${Math.round(item.info.textCol.g * 255)}, ${Math.round(item.info.textCol.b * 255)})`, 
         align: 'center', 
         isBold: true, 
@@ -1260,7 +1260,7 @@ export async function generatePDFReport(
       const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
       page.drawImage(valueEmb, {
         x: boxX + (summaryBoxWidth - 10) / 2 - valueImg.width / 2,
-        y: boxY - summaryBoxHeight + 17, // Lowered 3px (from 20 to 17)
+        y: boxY - summaryBoxHeight + 15, // Adjusted for smaller box (from 17 to 15)
 
         width: valueImg.width,
 
