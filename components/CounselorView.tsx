@@ -21,17 +21,27 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       reportGeneralMessage: settings?.reportGeneralMessage || ''
   });
 
-  const [selectedClass, setSelectedClass] = useState<string>('all');
+  // Initialize with first class if available
+  const [selectedClass, setSelectedClass] = useState<string>('');
+  
+  // Update selectedClass when settings change
+  useEffect(() => {
+    if (settings?.classGrades && settings.classGrades.length > 0 && !selectedClass) {
+      const sortedClasses = [...settings.classGrades].sort();
+      setSelectedClass(sortedClasses[0]);
+    }
+  }, [settings?.classGrades, selectedClass]);
   const [selectedChallengeFilter, setSelectedChallengeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStudentForEdit, setSelectedStudentForEdit] = useState<Student | null>(null);
 
   // Get classes from settings only (not from student data)
   const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
-    ? settings.classGrades
+    ? settings.classGrades.sort()
     : [];
   
-  const classes = classesFromSettings.length > 0 ? ['all', ...classesFromSettings.sort()] : ['all'];
+  // Get first class as default, or empty string if no classes
+  const firstClass = classesFromSettings.length > 0 ? classesFromSettings[0] : '';
 
   const challengeTypes: { type: ChallengeType; label: string; icon: any; color: string }[] = [
     { type: 'none', label: 'طبيعي / لا يوجد', icon: User, color: 'bg-gray-100 text-gray-600 border-gray-200' },
@@ -147,22 +157,16 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                   <span className="font-medium text-gray-700 text-[10px] md:text-xs">الفلاتر:</span>
               </div>
 
-              {/* Class Filter - Required */}
+              {/* Class Filter */}
               <div className="w-[120px] md:w-[150px] flex-shrink-0">
                   <CustomSelect
                     value={selectedClass}
                     onChange={(value) => setSelectedClass(value)}
-                    options={[
-                      { value: 'all', label: 'اختر الفصل' },
-                      ...classes.filter(c => c !== 'all').map(c => ({ value: c, label: c }))
-                    ]}
+                    options={classesFromSettings.map(c => ({ value: c, label: c }))}
                     placeholder="اختر الفصل"
                     className="w-full text-[10px] md:text-xs"
                   />
               </div>
-              {selectedClass === 'all' && (
-                  <span className="text-[9px] md:text-[10px] text-red-500 flex-shrink-0">* مطلوب</span>
-              )}
 
               {/* Search by Name */}
               <div className="flex-1 min-w-[120px] md:min-w-[200px]">
@@ -174,7 +178,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="بحث بالاسم..."
                           className="w-full pr-7 pl-2 py-1 text-[10px] md:text-xs border border-gray-300 rounded-md focus:outline-none focus:border-teal-500"
-                          disabled={selectedClass === 'all'}
+                          disabled={!selectedClass}
                       />
                       {searchQuery && (
                           <button
@@ -199,7 +203,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                     ]}
                     placeholder="كافة الطلاب"
                     className="w-full text-[10px] md:text-xs"
-                    disabled={selectedClass === 'all'}
+                    disabled={!selectedClass}
                   />
               </div>
 
@@ -221,7 +225,7 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">كشف الطلاب - توجيه وإرشاد</h1>
               <div className="flex flex-wrap justify-center gap-3 text-sm md:text-base text-gray-700 mb-3">
                   <span className="bg-white px-4 py-2 rounded-lg border-2 border-gray-400 font-bold">
-                      {selectedClass === 'all' ? 'جميع الفصول' : `الفصل: ${selectedClass}`}
+                      {selectedClass ? `الفصل: ${selectedClass}` : 'لا يوجد فصل محدد'}
                   </span>
                   <span className="bg-white px-4 py-2 rounded-lg border-2 border-gray-400 font-bold">
                       {selectedChallengeFilter === 'all' ? 'كافة الطلاب' : challengeTypes.find(c => c.type === selectedChallengeFilter)?.label}
@@ -370,11 +374,11 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
                 })}
             </div>
             </>
-          ) : selectedClass === 'all' ? (
+          ) : !selectedClass ? (
              <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                  <Filter size={48} className="mb-4 opacity-20" />
-                 <p className="font-bold text-gray-600 mb-2">الرجاء اختيار فصل لعرض الطلاب</p>
-                 <p className="text-sm text-gray-400">اختر الفصل من القائمة أعلاه لعرض قائمة الطلاب</p>
+                 <p className="font-bold text-gray-600 mb-2">لا توجد فصول متاحة</p>
+                 <p className="text-sm text-gray-400">يرجى تعريف الفصول في إعدادات النظام</p>
              </div>
           ) : (
              <div className="p-12 text-center text-gray-400 flex flex-col items-center">
