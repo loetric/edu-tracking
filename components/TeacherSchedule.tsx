@@ -363,7 +363,15 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             {/* Print Button & Legend */}
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
                 <button
-                    onClick={() => window.print()}
+                    onClick={() => {
+                        // Add schedule-print class to body for A3 landscape printing
+                        document.body.classList.add('schedule-print');
+                        window.print();
+                        // Remove class after print dialog closes (with delay to ensure it's after)
+                        setTimeout(() => {
+                            document.body.classList.remove('schedule-print');
+                        }, 1000);
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
                 >
                     <Printer size={16} />
