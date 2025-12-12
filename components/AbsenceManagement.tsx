@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings } from '../types';
 import { Calendar, Users, AlertTriangle, Filter, Search, Clock, TrendingUp, FileText, Download, XCircle, CheckCircle } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
@@ -29,20 +29,27 @@ interface AbsentStudentInfo {
 
 export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, records, settings }) => {
   const [filterType, setFilterType] = useState<AbsenceFilterType>('today');
-  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: new Date().toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
   });
 
-  // Get unique classes from settings
+  // Get unique classes from settings (without 'all')
   const uniqueClasses = useMemo(() => {
     if (settings?.classGrades && settings.classGrades.length > 0) {
-      return ['all', ...settings.classGrades.sort()];
+      return settings.classGrades.sort();
     }
-    return ['all'];
+    return [];
   }, [settings]);
+
+  // Set initial class to first class
+  useEffect(() => {
+    if (uniqueClasses.length > 0 && !selectedClass) {
+      setSelectedClass(uniqueClasses[0]);
+    }
+  }, [uniqueClasses, selectedClass]);
 
   // Convert records object to array
   const recordsArray = useMemo(() => {
@@ -157,7 +164,7 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
     }
 
     // Filter by class
-    if (selectedClass !== 'all') {
+    if (selectedClass) {
       result = result.filter(info => 
         info.student.classGrade === selectedClass || 
         info.student.classGrade.startsWith(selectedClass + '/') ||
@@ -258,9 +265,9 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
           <div className="flex-1 min-w-0">
             <label className="block text-xs font-bold text-gray-700 mb-1.5">الفصل</label>
             <CustomSelect
-              value={selectedClass}
+              value={selectedClass || (uniqueClasses.length > 0 ? uniqueClasses[0] : '')}
               onChange={setSelectedClass}
-              options={uniqueClasses.map(c => ({ value: c, label: c === 'all' ? 'جميع الفصول' : c }))}
+              options={uniqueClasses.map(c => ({ value: c, label: c }))}
               placeholder="اختر الفصل"
               className="text-xs md:text-sm"
             />

@@ -15,15 +15,22 @@ type BehaviorCategory = 'excellent' | 'good' | 'needs_attention';
 export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings }) => {
   const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<string>('');
 
-  // Get unique classes from settings only (not from student data)
+  // Get unique classes from settings only (not from student data) - without 'all'
   const uniqueClasses = useMemo(() => {
     const classesFromSettings = settings?.classGrades && settings.classGrades.length > 0
       ? settings.classGrades
       : [];
-    return ['all', ...classesFromSettings.sort()];
+    return classesFromSettings.sort();
   }, [settings]);
+
+  // Set initial class to first class
+  useEffect(() => {
+    if (uniqueClasses.length > 0 && !selectedClass) {
+      setSelectedClass(uniqueClasses[0]);
+    }
+  }, [uniqueClasses, selectedClass]);
 
   // Categorize students based on behavior records
   const categorizedStudents = useMemo(() => {
@@ -202,7 +209,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                   { value: 'needs_attention', label: 'يحتاج إلى متابعة' }
                 ]}
                 className="w-full text-xs"
-                disabled={selectedClass === 'all'}
+                disabled={!selectedClass}
               />
             </div>
 
@@ -213,7 +220,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 onChange={(value) => setSelectedClass(value)}
                 options={uniqueClasses.map(c => ({ 
                   value: c, 
-                  label: c === 'all' ? 'جميع الفصول' : c 
+                  label: c 
                 }))}
                 className="w-full text-xs"
               />

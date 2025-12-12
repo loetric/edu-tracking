@@ -597,12 +597,11 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
                 setFilterClassRoom(value);
               }}
               options={uniqueClassRooms.length > 0 ? [
-                { value: '', label: 'جميع الفصول' },
                 ...uniqueClassRooms.map(room => ({ value: room, label: room }))
               ] : [
                 { value: '', label: 'لا توجد فصول - يرجى تعريف الفصول في الإعدادات' }
               ]}
-              placeholder={uniqueClassRooms.length > 0 ? "جميع الفصول" : "لا توجد فصول"}
+              placeholder={uniqueClassRooms.length > 0 ? "اختر الفصل" : "لا توجد فصول"}
               className="w-full text-[11px] md:text-xs"
               disabled={false}
             />
