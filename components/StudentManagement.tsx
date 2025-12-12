@@ -870,6 +870,18 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           onClose={alertModal.onClose}
         />
       )}
+      
+      {/* Print Footer */}
+      <div className="hidden print:block mt-4 pt-4 border-t border-gray-300 print-footer">
+        <div className="flex justify-between items-center text-xs text-gray-600">
+          <div>
+            <p>تاريخ الطباعة: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div>
+            <p>هذا التقرير صادر من نظام التتبع الذكي</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
