@@ -16,7 +16,7 @@ interface BehaviorTrackingProps {
 type BehaviorCategory = 'all' | 'excellent' | 'good' | 'needs_attention';
 
 export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings, onUpdateRecord }) => {
-  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('excellent');
+  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
@@ -52,8 +52,8 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       const studentRecords = Object.values(records).filter(r => r.studentId === student.id);
       
       if (studentRecords.length === 0) {
-        // No records - default to good
-        categorized.good.push(student);
+        // No records - default to excellent
+        categorized.excellent.push(student);
         categorized.all.push(student);
         return;
       }
@@ -72,7 +72,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
         });
 
       if (behaviorScores.length === 0) {
-        categorized.good.push(student);
+        categorized.excellent.push(student);
         categorized.all.push(student);
         return;
       }
@@ -311,7 +311,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                   // Calculate actual category for this student based on their records
                   const studentRecords = Object.values(records).filter(r => r.studentId === student.id);
                   
-                  let actualCategory: BehaviorCategory = 'good';
+                  let actualCategory: BehaviorCategory = 'excellent';
                   if (studentRecords.length > 0) {
                     const behaviorScores = studentRecords
                       .filter(r => r.attendance === 'present')
