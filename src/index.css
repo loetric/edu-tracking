@@ -247,6 +247,48 @@
     display: block !important;
   }
   
+  /* Behavior Tracking Print Styles */
+  @media print {
+    /* Ensure table is properly formatted */
+    table {
+      page-break-inside: avoid !important;
+      border-collapse: collapse !important;
+    }
+    
+    thead {
+      display: table-header-group !important;
+    }
+    
+    tbody {
+      display: table-row-group !important;
+    }
+    
+    tr {
+      page-break-inside: avoid !important;
+      page-break-after: auto !important;
+    }
+    
+    /* Hide empty pages */
+    body:empty {
+      display: none !important;
+    }
+    
+    /* Ensure footer appears at bottom */
+    .print-footer {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      page-break-inside: avoid !important;
+    }
+    
+    /* Prevent page breaks in table rows */
+    tbody tr {
+      page-break-inside: avoid !important;
+      page-break-after: auto !important;
+    }
+  }
+  
   /* Ensure main content is visible */
   body > div {
     display: block !important;

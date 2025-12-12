@@ -303,7 +303,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الطالب</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الفصل</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">الحالة السلوكية</th>
+                  <th className="px-4 py-3 text-xs font-bold text-gray-700">الحالة السلوكية</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -353,85 +353,93 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{student.classGrade || '-'}</td>
-                      <td className="px-4 py-3 print:hidden">
+                      <td className="px-4 py-3">
                         {editingStudentId === student.id ? (
-                          <CustomSelect
-                            value={editingBehavior}
-                            onChange={async (value) => {
-                              const newBehavior = value as StatusType;
-                              try {
+                          <div className="print:hidden">
+                            <CustomSelect
+                              value={editingBehavior}
+                              onChange={async (value) => {
+                                const newBehavior = value as StatusType;
+                                try {
+                                  const today = new Date().toISOString().split('T')[0];
+                                  const existingRecord = Object.values(records).find(
+                                    r => r.studentId === student.id && r.date === today
+                                  );
+                                  
+                                  const updatedRecord: DailyRecord = existingRecord 
+                                    ? { ...existingRecord, behavior: newBehavior }
+                                    : {
+                                        studentId: student.id,
+                                        date: today,
+                                        attendance: 'present',
+                                        participation: 'none',
+                                        homework: 'none',
+                                        behavior: newBehavior,
+                                        notes: ''
+                                      };
+                                  
+                                  await api.saveDailyRecords({ [student.id]: updatedRecord });
+                                  
+                                  if (onUpdateRecord) {
+                                    onUpdateRecord(student.id, updatedRecord);
+                                  }
+                                  
+                                  setEditingStudentId(null);
+                                  alert({ message: 'تم تحديث التقييم بنجاح', type: 'success' });
+                                } catch (error) {
+                                  console.error('Error updating behavior:', error);
+                                  alert({ message: 'فشل في تحديث التقييم', type: 'error' });
+                                }
+                              }}
+                              options={[
+                                { value: 'excellent', label: 'ممتاز' },
+                                { value: 'good', label: 'جيد' },
+                                { value: 'poor', label: 'يحتاج إلى متابعة' }
+                              ]}
+                              className="w-[150px] text-xs"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <div 
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 cursor-pointer hover:opacity-80 transition-opacity print:hidden ${getCategoryColor(actualCategory)}`}
+                              onClick={() => {
                                 const today = new Date().toISOString().split('T')[0];
                                 const existingRecord = Object.values(records).find(
                                   r => r.studentId === student.id && r.date === today
                                 );
-                                
-                                const updatedRecord: DailyRecord = existingRecord 
-                                  ? { ...existingRecord, behavior: newBehavior }
-                                  : {
-                                      studentId: student.id,
-                                      date: today,
-                                      attendance: 'present',
-                                      participation: 'none',
-                                      homework: 'none',
-                                      behavior: newBehavior,
-                                      notes: ''
-                                    };
-                                
-                                await api.saveDailyRecords({ [student.id]: updatedRecord });
-                                
-                                if (onUpdateRecord) {
-                                  onUpdateRecord(student.id, updatedRecord);
-                                }
-                                
-                                setEditingStudentId(null);
-                                alert({ message: 'تم تحديث التقييم بنجاح', type: 'success' });
-                              } catch (error) {
-                                console.error('Error updating behavior:', error);
-                                alert({ message: 'فشل في تحديث التقييم', type: 'error' });
-                              }
-                            }}
-                            options={[
-                              { value: 'excellent', label: 'ممتاز' },
-                              { value: 'good', label: 'جيد' },
-                              { value: 'poor', label: 'يحتاج إلى متابعة' }
-                            ]}
-                            className="w-[150px] text-xs"
-                          />
-                        ) : (
-                          <div 
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 cursor-pointer hover:opacity-80 transition-opacity ${getCategoryColor(actualCategory)}`}
-                            onClick={() => {
-                              const today = new Date().toISOString().split('T')[0];
-                              const existingRecord = Object.values(records).find(
-                                r => r.studentId === student.id && r.date === today
-                              );
-                              // Map category to behavior status for editing
-                              let defaultBehavior: StatusType = 'excellent';
-                              if (existingRecord?.behavior) {
-                                // Use existing behavior, but map 'average' to 'poor' (needs attention)
-                                if (existingRecord.behavior === 'average' || existingRecord.behavior === 'poor') {
-                                  defaultBehavior = 'poor';
+                                // Map category to behavior status for editing
+                                let defaultBehavior: StatusType = 'excellent';
+                                if (existingRecord?.behavior) {
+                                  // Use existing behavior, but map 'average' to 'poor' (needs attention)
+                                  if (existingRecord.behavior === 'average' || existingRecord.behavior === 'poor') {
+                                    defaultBehavior = 'poor';
+                                  } else {
+                                    defaultBehavior = existingRecord.behavior;
+                                  }
                                 } else {
-                                  defaultBehavior = existingRecord.behavior;
+                                  // Map category to behavior status
+                                  if (actualCategory === 'excellent') {
+                                    defaultBehavior = 'excellent';
+                                  } else if (actualCategory === 'good') {
+                                    defaultBehavior = 'good';
+                                  } else {
+                                    defaultBehavior = 'poor'; // needs_attention maps to poor
+                                  }
                                 }
-                              } else {
-                                // Map category to behavior status
-                                if (actualCategory === 'excellent') {
-                                  defaultBehavior = 'excellent';
-                                } else if (actualCategory === 'good') {
-                                  defaultBehavior = 'good';
-                                } else {
-                                  defaultBehavior = 'poor'; // needs_attention maps to poor
-                                }
-                              }
-                              setEditingBehavior(defaultBehavior);
-                              setEditingStudentId(student.id);
-                            }}
-                            title="انقر للتحرير"
-                          >
-                            <span className="flex-shrink-0">{getCategoryIcon(actualCategory)}</span>
-                            <span>{getCategoryLabel(actualCategory)}</span>
-                          </div>
+                                setEditingBehavior(defaultBehavior);
+                                setEditingStudentId(student.id);
+                              }}
+                              title="انقر للتحرير"
+                            >
+                              <span className="flex-shrink-0">{getCategoryIcon(actualCategory)}</span>
+                              <span>{getCategoryLabel(actualCategory)}</span>
+                            </div>
+                            {/* Show category label in print */}
+                            <span className="hidden print:inline text-xs font-bold text-gray-800">
+                              {getCategoryLabel(actualCategory)}
+                            </span>
+                          </>
                         )}
                       </td>
                     </tr>
