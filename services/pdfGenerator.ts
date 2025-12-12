@@ -1686,7 +1686,7 @@ export async function generatePDFReport(
       const messageTitleEmb = await pdfDoc.embedPng(messageTitleImg.buffer);
       page.drawImage(messageTitleEmb, {
         x: width - margin - messageTitleImg.width - 10,
-        y: cursorY - 40, // Adjusted to maintain text formatting (lowered 10px more)
+        y: cursorY - 60, // Adjusted for lowered box (from -40 to -60)
         width: messageTitleImg.width,
         height: messageTitleImg.height
       });
@@ -1697,7 +1697,7 @@ export async function generatePDFReport(
       const messageContentEmb = await pdfDoc.embedPng(messageContentImg.buffer);
       page.drawImage(messageContentEmb, {
         x: margin + contentWidth / 2 - messageContentImg.width / 2,
-        y: cursorY - 60, // Adjusted to maintain text formatting (lowered 10px more)
+        y: cursorY - 80, // Adjusted for lowered box (from -60 to -80)
         width: messageContentImg.width,
         height: messageContentImg.height
       });
