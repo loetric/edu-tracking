@@ -16,7 +16,7 @@ interface BehaviorTrackingProps {
 type BehaviorCategory = 'all' | 'excellent' | 'good' | 'needs_attention';
 
 export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings, onUpdateRecord }) => {
-  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('all');
+  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('excellent');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
