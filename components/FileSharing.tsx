@@ -378,9 +378,9 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
       </div>
 
       {/* Email-like Layout: List on left, Content on right */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-200px)] md:h-[calc(100vh-250px)] min-h-[400px] md:min-h-[600px]">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-180px)] md:h-[calc(100vh-250px)] min-h-[300px] md:min-h-[600px]">
         {/* Left Side: Announcements List */}
-        <div className="w-full md:w-1/3 border-l md:border-l-0 md:border-r border-gray-200 flex flex-col">
+        <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col max-h-[40vh] md:max-h-none">
           {/* Search and Filters */}
           <div className="p-3 border-b border-gray-200 bg-gray-50">
             <div className="relative mb-2">
@@ -494,11 +494,11 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
         </div>
 
         {/* Right Side: File Preview/Content */}
-        <div className="w-full md:w-2/3 flex flex-col">
+        <div className="w-full md:w-2/3 flex flex-col min-h-0 flex-1">
           {previewFile ? (
             <>
               {/* File Header */}
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <div className="p-3 md:p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
                 <div className="flex items-start justify-between gap-4 mb-2">
                   <div className="flex-1 min-w-0">
                     {previewFile.description ? (
@@ -571,36 +571,37 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
               </div>
 
               {/* File Content/Preview */}
-              <div className="flex-1 overflow-y-auto p-2 md:p-4 bg-white">
+              <div className="flex-1 overflow-y-auto p-2 md:p-4 bg-white min-h-0">
                 {previewFile.file_category === 'pdf' ? (
-                  <div className="w-full h-full min-h-[400px] md:min-h-[500px] flex flex-col">
+                  <div className="w-full h-full flex flex-col min-h-[300px] md:min-h-[500px]">
                     <iframe
                       src={previewFile.file_url}
                       className="w-full flex-1 border border-gray-200 rounded-lg"
                       title={previewFile.name}
                       style={{ 
-                        minHeight: '400px',
-                        maxHeight: 'calc(100vh - 200px)'
+                        minHeight: '300px',
+                        maxHeight: 'calc(100vh - 300px)',
+                        width: '100%'
                       }}
                     />
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex gap-2 flex-shrink-0">
                       <a
                         href={previewFile.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm font-bold"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm font-bold"
                       >
-                        <Download size={16} />
-                        <span>فتح في نافذة جديدة</span>
+                        <Download size={14} className="md:w-4 md:h-4" />
+                        <span className="text-xs md:text-sm">فتح في نافذة جديدة</span>
                       </a>
                     </div>
                   </div>
                 ) : previewFile.file_category === 'image' ? (
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center min-h-[300px]">
                     <img
                       src={previewFile.file_url}
                       alt={previewFile.name}
-                      className="max-w-full max-h-[600px] rounded-lg shadow-lg"
+                      className="max-w-full max-h-[calc(100vh-300px)] md:max-h-[600px] rounded-lg shadow-lg object-contain"
                     />
                   </div>
                 ) : (
@@ -613,15 +614,15 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
               </div>
 
               {/* Download Button */}
-              <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="p-3 md:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
                 <a
                   href={previewFile.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   download
-                  className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md"
+                  className="flex items-center justify-center gap-2 w-full px-4 md:px-6 py-2 md:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-sm md:text-base"
                 >
-                  <Download size={20} />
+                  <Download size={18} className="md:w-5 md:h-5" />
                   <span>تحميل الملف</span>
                 </a>
               </div>
