@@ -3,7 +3,7 @@ import { SharedFile, FileType, FileAccessLevel, Role } from '../types';
 import { 
   FileText, Upload, Edit, Trash2, Download, Search, X, 
   FileSpreadsheet, File, Image, FileType as FileTypeIcon,
-  Filter, ChevronDown, AlertCircle, CheckCircle2, Eye, ExternalLink, Users, CheckCircle
+  Filter, ChevronDown, AlertCircle, CheckCircle2, Eye, ExternalLink, Users, CheckCircle, Printer
 } from 'lucide-react';
 import { useModal } from '../hooks/useModal';
 import { AlertModal } from './AlertModal';
