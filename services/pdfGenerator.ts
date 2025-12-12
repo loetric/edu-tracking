@@ -199,14 +199,14 @@ async function drawRadarChart(
       ctx.stroke();
 
       // Draw labels (smaller font, further out to avoid overlap) - ALL labels including المشاركة
-      ctx.font = 'bold 8px ' + ARABIC_FONT_STACK;
+      ctx.font = 'bold 9px ' + ARABIC_FONT_STACK; // Increased font size for better visibility
       ctx.fillStyle = '#6b7280';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       for (let i = 0; i < numPoints; i++) {
         const angle = -Math.PI / 2 + (i * angleStep);
-        const labelRadius = radius + 25; // Further out to ensure visibility
+        const labelRadius = radius + 30; // Further out to ensure visibility
         const x = centerX + labelRadius * Math.cos(angle);
         const y = centerY + labelRadius * Math.sin(angle);
         
@@ -765,7 +765,7 @@ export async function generatePDFReport(
 
     // ================= STUDENT INFO CARD (Enhanced) =================
 
-    cursorY -= 15;
+    cursorY -= 0; // Remove space between header and report
 
     const cardHeight = 85;
 
@@ -925,7 +925,7 @@ export async function generatePDFReport(
 
       
 
-      // Label (perfectly aligned) - lowered 5px
+      // Label (perfectly aligned) - lowered 5px more
 
       const labelImg = await textToImage(detail.label, {
 
@@ -939,7 +939,7 @@ export async function generatePDFReport(
 
         x: cellX + cellWidth - labelImg.width - 12,
 
-        y: cellY - cellHeight / 2 + 3, // Lowered 5px (from 8 to 3)
+        y: cellY - cellHeight / 2 - 2, // Lowered 5px more (from 3 to -2)
 
         width: labelImg.width,
 
@@ -1224,48 +1224,42 @@ export async function generatePDFReport(
       });
 
       
-
-      await drawStatusBox(
-
-        pdfDoc, page,
-
-        item.info.text,
-
-        item.info.bg,
-
-        item.info.border,
-
-        item.info.textCol,
-
-        boxX + summaryBoxWidth / 2 - 5,
-
-        boxY - summaryBoxHeight / 2,
-
-        summaryBoxWidth - 10,
-
-        summaryBoxHeight
-
-      );
-
-      
-
-      // Label with icon - raised to be under top border
-
-      const labelText = `${item.icon} ${item.label}`;
-
-      const labelImg = await textToImage(labelText, {
-
-        fontSize: 9, color: '#4B5563', align: 'center', isBold: true
-
+      // Draw card background and border
+      page.drawRectangle({
+        x: boxX,
+        y: boxY - summaryBoxHeight,
+        width: summaryBoxWidth - 10,
+        height: summaryBoxHeight,
+        color: item.info.bg,
+        borderColor: item.info.border,
+        borderWidth: 1,
       });
 
+      // Label with icon - at top of card (above values)
+      const labelText = `${item.icon} ${item.label}`;
+      const labelImg = await textToImage(labelText, {
+        fontSize: 9, color: '#4B5563', align: 'center', isBold: true
+      });
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
-
       page.drawImage(labelEmb, {
+        x: boxX + (summaryBoxWidth - 10) / 2 - labelImg.width / 2,
+        y: boxY - 12, // At top of card
+        width: labelImg.width,
+        height: labelImg.height
+      });
 
-        x: boxX + summaryBoxWidth / 2 - 5 - labelImg.width / 2,
-
-        y: boxY - summaryBoxHeight + 2, // Raised to be under top border (from 12 to 2)
+      // Value text - at bottom of card (below label)
+      const valueImg = await textToImage(item.info.text, {
+        fontSize: 10, 
+        color: `rgb(${Math.round(item.info.textCol.r * 255)}, ${Math.round(item.info.textCol.g * 255)}, ${Math.round(item.info.textCol.b * 255)})`, 
+        align: 'center', 
+        isBold: true, 
+        maxWidth: summaryBoxWidth - 20
+      });
+      const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
+      page.drawImage(valueEmb, {
+        x: boxX + (summaryBoxWidth - 10) / 2 - valueImg.width / 2,
+        y: boxY - summaryBoxHeight + 20, // At bottom of card
 
         width: labelImg.width,
 
@@ -1297,7 +1291,7 @@ export async function generatePDFReport(
     cursorY -= (summaryBoxHeight * 2 + 35);
     
 
-    // Table title with icon
+    // Table title with icon - lowered 3px
 
     const tableTitleImg = await textToImage('📋 كشف المتابعة والحصص الدراسية', {
 
@@ -1311,7 +1305,7 @@ export async function generatePDFReport(
 
       x: width - margin - tableTitleImg.width,
 
-      y: cursorY,
+      y: cursorY - 3, // Lowered 3px
 
       width: tableTitleImg.width,
 
@@ -1340,8 +1334,8 @@ export async function generatePDFReport(
     
 
     const tableY = cursorY;
-    const rowHeight = 32;
-    const tableHeaderHeight = 38;
+    const rowHeight = 26; // Smaller table
+    const tableHeaderHeight = 30; // Smaller header, less padding
     const numRows = Math.min(dailySchedule.length, 7);
     
 
@@ -1438,7 +1432,7 @@ export async function generatePDFReport(
 
       const hImg = await textToImage(header.text, {
 
-        fontSize: 10,
+        fontSize: 9, // Smaller font
 
         color: '#374151',
 
@@ -1446,7 +1440,7 @@ export async function generatePDFReport(
 
         isBold: true,
 
-        maxWidth: header.width - 10
+        maxWidth: header.width - 6 // Less padding
 
       });
 
@@ -1896,10 +1890,10 @@ export async function generatePDFReport(
 
 
 
-    // QR Code/Stamp (centered) - lowered 8px
+    // QR Code/Stamp (centered) - lowered 10px more (can overlap with footer box)
 
     const footerCenterX = width / 2;
-    const stampY = footerY + 7; // Lowered 8px (from 15 to 7)
+    const stampY = footerY - 3; // Lowered 10px more (from 7 to -3, can overlap)
     
 
     if (safeSettings.stampUrl && safeSettings.stampUrl.trim() !== '') {
@@ -2014,7 +2008,7 @@ export async function generatePDFReport(
 
 
 
-    // Manager signature (left) - lowered 8px and moved to left
+    // Manager signature (left) - lowered 5px more
 
     const managerTitleImg = await textToImage('مدير المدرسة', {
 
@@ -2028,7 +2022,7 @@ export async function generatePDFReport(
 
       x: margin + 60 - managerTitleImg.width / 2, // Moved to left (from width - margin - 60)
 
-      y: footerY + 27, // Lowered 8px (from 35 to 27)
+      y: footerY + 22, // Lowered 5px more (from 27 to 22)
 
       width: managerTitleImg.width,
 
@@ -2052,7 +2046,7 @@ export async function generatePDFReport(
 
         x: margin + 60 - managerNameImg.width / 2, // Moved to left (from width - margin - 60)
 
-        y: footerY + 12, // Lowered 8px (from 20 to 12)
+        y: footerY + 7, // Lowered 5px more (from 12 to 7)
 
         width: managerNameImg.width,
 
