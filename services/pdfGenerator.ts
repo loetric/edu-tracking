@@ -974,7 +974,7 @@ export async function generatePDFReport(
 
         x: cellX + cellWidth - valueImg.width - 12,
 
-        y: cellY - cellHeight / 2 - 14, // Lowered 4px (from -10 to -14)
+        y: cellY - cellHeight / 2 - 18, // Lowered 4px more (from -14 to -18)
 
         width: valueImg.width,
 
@@ -1335,8 +1335,8 @@ export async function generatePDFReport(
     
 
     const tableY = cursorY;
-    const rowHeight = 26; // Smaller table
-    const tableHeaderHeight = 30; // Smaller header, less padding
+    const rowHeight = 22; // Even smaller table
+    const tableHeaderHeight = 26; // Even smaller header
     const numRows = Math.min(dailySchedule.length, 7);
     
 
@@ -1550,11 +1550,11 @@ export async function generatePDFReport(
 
       
 
-      // Serial (centered)
+      // Serial (centered) - smaller font
 
       const serialImg = await textToImage(String(session.period), {
 
-        fontSize: 10, color: '#1F2937', align: 'center', isBold: true
+        fontSize: 8, color: '#1F2937', align: 'center', isBold: true
 
       });
 
@@ -1576,11 +1576,11 @@ export async function generatePDFReport(
 
 
 
-      // Subject (right aligned)
+      // Subject (right aligned) - smaller font
 
       const subjectImg = await textToImage(session.subject || '-', {
 
-        fontSize: 10, color: '#1F2937', align: 'right', maxWidth: colWidths.subject - 12, isBold: true
+        fontSize: 8, color: '#1F2937', align: 'right', maxWidth: colWidths.subject - 12, isBold: true
 
       });
 
@@ -1602,11 +1602,11 @@ export async function generatePDFReport(
 
 
 
-      // Teacher (right aligned)
+      // Teacher (right aligned) - smaller font
 
       const teacherImg = await textToImage(session.teacher || '-', {
 
-        fontSize: 9, color: '#4B5563', align: 'right', maxWidth: colWidths.teacher - 12
+        fontSize: 7, color: '#4B5563', align: 'right', maxWidth: colWidths.teacher - 12
 
       });
 
@@ -1746,13 +1746,13 @@ export async function generatePDFReport(
 
 
 
-      // Notes
+      // Notes - smaller font
 
       const notesText = record.notes || '-';
 
       const notesImg = await textToImage(notesText, {
 
-        fontSize: 8, color: '#4B5563', align: 'right', maxWidth: colWidths.notes - 12
+        fontSize: 7, color: '#4B5563', align: 'right', maxWidth: colWidths.notes - 12
 
       });
 
