@@ -166,6 +166,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                 onRequestUpdate={() => {
                   if (onRequestUpdate) onRequestUpdate();
                 }}
+                onRemoveSubstitute={onRemoveSubstitute}
               />
             </div>
           </div>

@@ -1333,13 +1333,21 @@ const App: React.FC = () => {
       
       setIsDataLoading(true);
       try {
+          const today = new Date().toISOString().split('T')[0];
+          
           // Find the substitution to remove - try multiple ways to find it
-          let substitution = substitutions.find(sub => sub.scheduleItemId === scheduleItemId);
+          let substitution = substitutions.find(sub => 
+              sub.scheduleItemId === scheduleItemId && 
+              sub.date === today
+          );
           
           // If not found in local state, try fetching from database
           if (!substitution) {
               const allSubs = await api.getSubstitutions();
-              substitution = allSubs.find(sub => sub.scheduleItemId === scheduleItemId);
+              substitution = allSubs.find(sub => 
+                  sub.scheduleItemId === scheduleItemId && 
+                  sub.date === today
+              );
               if (substitution) {
                   // Update local state
                   setSubstitutions(allSubs);
@@ -1355,6 +1363,20 @@ const App: React.FC = () => {
               } catch (dbError) {
                   console.error('Error removing from database:', dbError);
                   // Continue to update UI even if DB removal fails
+              }
+          }
+          
+          // Also check if there's an accepted substitution request and delete it
+          const acceptedRequest = substitutionRequests.find(req => 
+              req.scheduleItemId === scheduleItemId && 
+              req.status === 'accepted'
+          );
+          if (acceptedRequest) {
+              try {
+                  await api.deleteSubstitutionRequest(acceptedRequest.id);
+                  setSubstitutionRequests(prev => prev.filter(req => req.id !== acceptedRequest.id));
+              } catch (error) {
+                  console.error('Error deleting substitution request:', error);
               }
           }
           
