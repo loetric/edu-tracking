@@ -351,13 +351,6 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
           <h2 className="text-xl md:text-2xl font-bold text-gray-800">التعاميم</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
-          >
-            <Printer size={16} />
-            <span>طباعة</span>
-          </button>
           {isAdmin && (
             <button
               onClick={() => {

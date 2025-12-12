@@ -105,7 +105,16 @@
   body.schedule-print .schedule-print [class*="Clock"],
   body.schedule-print .schedule-print [class*="User"],
   body.schedule-print .schedule-print [class*="BookOpen"],
-  body.schedule-print .schedule-print [class*="RefreshCw"] {
+  body.schedule-print .schedule-print [class*="RefreshCw"],
+  body.schedule-print .schedule-print [class*="Lock"],
+  body.schedule-print .schedule-print svg {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Hide all icons in print - more comprehensive */
+  body.schedule-print .schedule-print * svg,
+  body.schedule-print .schedule-print svg * {
     display: none !important;
     visibility: hidden !important;
   }

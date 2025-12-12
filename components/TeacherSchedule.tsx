@@ -560,8 +560,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                             <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1 print:text-[7px] print:font-bold print:mb-0.5">{session.subject}</span>
                                             {isCompleted && (
                                                 <div className="flex items-center gap-0.5 flex-shrink-0 print:hidden">
-                                                    <span className="text-[7px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded">تم الرصد</span>
-                                                    <Check size={8} className="text-green-600"/>
+                                                    <span className="text-[7px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded print:hidden">تم الرصد</span>
+                                                    <Check size={8} className="text-green-600 print:hidden"/>
                                                 </div>
                                             )}
                                         </div>
