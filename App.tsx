@@ -707,6 +707,11 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
+      // Prevent multiple clicks
+      if (isDataLoading) {
+        return;
+      }
+      setIsDataLoading(true);
       try {
           console.log('=== handleLogout: Starting logout ===');
           // Sign out from Supabase
@@ -741,6 +746,7 @@ const App: React.FC = () => {
       setStudents([]); // Clear sensitive data from state
       setLogs([]);
           setIsAppLoading(false);
+          setIsDataLoading(false);
       }
   };
 
@@ -1532,11 +1538,19 @@ const App: React.FC = () => {
                 students={students}
                 subjects={subjects}
                 onSave={async (s) => { 
-                   await api.updateSettings(s); 
-                   // Always refresh from database to ensure consistency
-                   const freshSettings = await api.getSettings();
-                   setSettings(freshSettings);
-                   handleAddLog('تعديل إعدادات', 'تم تحديث بيانات المدرسة'); 
+                   if (isDataLoading) return;
+                   setIsDataLoading(true);
+                   try {
+                     await api.updateSettings(s); 
+                     // Always refresh from database to ensure consistency
+                     const freshSettings = await api.getSettings();
+                     setSettings(freshSettings);
+                     handleAddLog('تعديل إعدادات', 'تم تحديث بيانات المدرسة'); 
+                   } catch (error) {
+                     console.error('Error saving settings:', error);
+                   } finally {
+                     setIsDataLoading(false);
+                   }
                 }} 
                 onUpdateUsers={async (u) => { 
                    await api.updateUsers(u); 

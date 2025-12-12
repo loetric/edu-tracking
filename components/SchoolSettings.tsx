@@ -100,19 +100,38 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
   const [newSession, setNewSession] = useState<Partial<ScheduleItem>>({ day: 'الأحد', period: 1, subject: '', classRoom: '', teacher: '' });
   const [isAddingSession, setIsAddingSession] = useState(false);
   const [editingSession, setEditingSession] = useState<ScheduleItem | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
   const periods = [1, 2, 3, 4, 5, 6, 7];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...formData, classGrades });
-    alert({ message: 'تم حفظ إعدادات المدرسة بنجاح', type: 'success' });
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await onSave({ ...formData, classGrades });
+      alert({ message: 'تم حفظ إعدادات المدرسة بنجاح', type: 'success' });
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert({ message: 'فشل في حفظ الإعدادات', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSave = () => {
-    onSave({ ...formData, classGrades });
-    alert({ message: 'تم حفظ إعدادات التقارير بنجاح', type: 'success' });
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await onSave({ ...formData, classGrades });
+      alert({ message: 'تم حفظ إعدادات التقارير بنجاح', type: 'success' });
+    } catch (error) {
+      console.error('Error saving report settings:', error);
+      alert({ message: 'فشل في حفظ الإعدادات', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddClassGrade = async () => {
@@ -883,7 +902,7 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
                   className="w-full flex justify-center items-center gap-2 bg-teal-600 text-white py-3 rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md"
                 >
                   <Save size={20} />
-                  حفظ إعدادات المدرسة
+                  {isSaving ? 'جاري الحفظ...' : 'حفظ إعدادات المدرسة'}
                 </button>
 
                 {onReset && (

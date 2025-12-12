@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Student, ChallengeType, SchoolSettings } from '../types';
 import { getChallengeColor, getChallengeLabel } from '../constants';
 import { ShieldAlert, Heart, Coins, AlertOctagon, User, FileText, Settings, Save, Link as LinkIcon, MessageSquare, Filter, ChevronDown, Printer, Search, X, Edit } from 'lucide-react';
