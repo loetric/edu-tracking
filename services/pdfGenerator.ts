@@ -1027,150 +1027,9 @@ export async function generatePDFReport(
 
 
     cursorY -= 30;
-    const summaryBoxHeight = 45; // Reduced from 55 to 45
-    const summaryBoxWidth = (contentWidth * 0.65 - 30) / 2;
-    const chartWidth = contentWidth * 0.35;
-    const gapBetween = 15;
-    
-
-    // Chart box (left) with enhanced styling - smaller
-
-    const chartX = margin;
-    const chartY = cursorY;
-    const chartHeight = summaryBoxHeight * 2 - 5; // Smaller box (total 85 instead of 95)
-    
-
-    // Chart shadow
-
-    page.drawRectangle({
-
-      x: chartX + 2,
-
-      y: chartY - chartHeight - 2,
-
-      width: chartWidth,
-
-      height: chartHeight,
-
-      color: rgb(0, 0, 0),
-
-      opacity: 0.05
-
-    });
-
-    
-
-    page.drawRectangle({
-
-      x: chartX,
-
-      y: chartY - chartHeight,
-
-      width: chartWidth,
-
-      height: chartHeight,
-
-      color: COLORS.white,
-
-      borderColor: COLORS.gray300,
-
-      borderWidth: 1.5,
-
-    });
-
-    
-
-    // Chart title - lowered 5px
-
-    const chartTitleImg = await textToImage('📊 مؤشر الأداء', {
-
-      fontSize: 10, color: '#4B5563', align: 'right', isBold: true
-
-    });
-
-    const chartTitleEmb = await pdfDoc.embedPng(chartTitleImg.buffer);
-
-    page.drawImage(chartTitleEmb, {
-
-      x: chartX + chartWidth - chartTitleImg.width - 10,
-
-      y: chartY - 23, // Lowered 5px (from 18 to 23)
-
-      width: chartTitleImg.width,
-
-      height: chartTitleImg.height
-
-    });
-
-    
-
-    // Draw chart
-
-    if (record.attendance === 'present') {
-
-      const radarChart = await drawRadarChart(chartData, '', chartWidth - 20, chartHeight - 60); // Restored to original size
-
-      const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
-
-      page.drawImage(radarChartEmb, {
-
-        x: chartX + 10,
-
-        y: chartY - chartHeight + 30, // Restored to original position
-
-        width: radarChart.width,
-
-        height: radarChart.height
-
-      });
-
-      
-
-      // Performance text - restored to original
-
-      const performanceImg = await textToImage(`التقدير العام: ${performanceLevel}`, {
-
-        fontSize: 10, color: '#0D9488', align: 'center', isBold: true // Restored to original size
-
-      });
-
-      const performanceEmb = await pdfDoc.embedPng(performanceImg.buffer);
-
-      page.drawImage(performanceEmb, {
-
-        x: chartX + chartWidth / 2 - performanceImg.width / 2,
-
-        y: chartY - chartHeight + 15, // Restored to original position
-
-        width: performanceImg.width,
-
-        height: performanceImg.height
-
-      });
-
-    } else {
-
-      const noDataImg = await textToImage('لا يوجد تقييم (غائب)', {
-
-        fontSize: 11, color: '#9CA3AF', align: 'center', isBold: false
-
-      });
-
-      const noDataEmb = await pdfDoc.embedPng(noDataImg.buffer);
-
-      page.drawImage(noDataEmb, {
-
-        x: chartX + chartWidth / 2 - noDataImg.width / 2,
-
-        y: chartY - chartHeight / 2 - noDataImg.height / 2,
-
-        width: noDataImg.width,
-
-        height: noDataImg.height
-
-      });
-
-    }
+    // Cards only - no chart here (chart moved to footer)
+    const summaryBoxHeight = 40; // Smaller boxes
+    const summaryBoxWidth = (contentWidth - 45) / 4; // 4 cards in one row (instead of 2x2)
 
 
 
@@ -1190,19 +1049,14 @@ export async function generatePDFReport(
 
     
 
+    // All cards in one row (4 cards)
     let summaryX = width - margin;
-
-    let summaryRow = 0;
-
-    let summaryCol = 0;
-
-    
 
     for (const item of summaryItems) {
 
       const boxX = summaryX - summaryBoxWidth;
 
-      const boxY = cursorY - summaryRow * (summaryBoxHeight + 10);
+      const boxY = cursorY; // All in same row
 
       
 
@@ -1243,8 +1097,8 @@ export async function generatePDFReport(
       });
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
-        x: boxX + (summaryBoxWidth - 10) / 2 - labelImg.width / 2,
-        y: boxY - 3, // Under top border by 3px
+        x: boxX + (summaryBoxWidth - 5) / 2 - labelImg.width / 2,
+        y: boxY - 8, // Lowered 5px (from -3 to -8)
         width: labelImg.width,
         height: labelImg.height
       });
@@ -1259,8 +1113,8 @@ export async function generatePDFReport(
       });
       const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
       page.drawImage(valueEmb, {
-        x: boxX + (summaryBoxWidth - 10) / 2 - valueImg.width / 2,
-        y: boxY - summaryBoxHeight + 15, // Adjusted for smaller box (from 17 to 15)
+        x: boxX + (summaryBoxWidth - 5) / 2 - valueImg.width / 2,
+        y: boxY - summaryBoxHeight + 12, // Lowered 3px (from 15 to 12)
 
         width: valueImg.width,
 
@@ -1270,26 +1124,12 @@ export async function generatePDFReport(
 
       
 
-      summaryCol++;
-
-      if (summaryCol === 2) {
-
-        summaryCol = 0;
-
-        summaryRow++;
-
-        summaryX = width - margin;
-
-      } else {
-
-        summaryX -= summaryBoxWidth;
-
-      }
-
+      // Move to next card (all in one row)
+      summaryX -= summaryBoxWidth;
     }
 
     // ================= TABLE SECTION (Enhanced) =================
-    cursorY -= (summaryBoxHeight * 2 + 30); // Adjusted spacing for smaller boxes (from 35 to 30)
+    cursorY -= (summaryBoxHeight + 25); // Adjusted spacing for single row (from 2 rows to 1 row)
     
 
     // Table title with icon - lowered 3px
