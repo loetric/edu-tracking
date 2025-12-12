@@ -308,9 +308,34 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredStudents.map((student) => {
-                  const studentRecords = Object.values(records).filter(r => r.studentId === student.id && r.attendance === 'present');
-                  const latestRecord = studentRecords[studentRecords.length - 1];
-                  const category = selectedCategory;
+                  // Calculate actual category for this student based on their records
+                  const studentRecords = Object.values(records).filter(r => r.studentId === student.id);
+                  
+                  let actualCategory: BehaviorCategory = 'good';
+                  if (studentRecords.length > 0) {
+                    const behaviorScores = studentRecords
+                      .filter(r => r.attendance === 'present')
+                      .map(r => {
+                        switch (r.behavior) {
+                          case 'excellent': return 5;
+                          case 'good': return 4;
+                          case 'average': return 3;
+                          case 'poor': return 1;
+                          default: return 0;
+                        }
+                      });
+
+                    if (behaviorScores.length > 0) {
+                      const avgScore = behaviorScores.reduce((sum, score) => sum + score, 0) / behaviorScores.length;
+                      if (avgScore >= 4.5) {
+                        actualCategory = 'excellent';
+                      } else if (avgScore >= 3.5) {
+                        actualCategory = 'good';
+                      } else {
+                        actualCategory = 'needs_attention';
+                      }
+                    }
+                  }
 
                   return (
                     <tr key={student.id} className="hover:bg-gray-50 transition-colors">
@@ -390,9 +415,9 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border-2 ${getCategoryColor(category)}`}>
-                              {getCategoryIcon(category)}
-                              {getCategoryLabel(category)}
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${getCategoryColor(actualCategory)}`}>
+                              <span className="flex-shrink-0">{getCategoryIcon(actualCategory)}</span>
+                              <span>{getCategoryLabel(actualCategory)}</span>
                             </div>
                             <button
                               onClick={() => {
