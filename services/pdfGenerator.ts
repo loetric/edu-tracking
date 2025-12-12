@@ -1393,7 +1393,7 @@ export async function generatePDFReport(
 
       // Serial (centered) - smaller font
 
-      const serialImg = await textToImage(String(session.period), {
+      const serialImg = await textToImage(String(i + 1), {
 
         fontSize: 8, color: '#1F2937', align: 'center', isBold: true
 

@@ -1731,11 +1731,16 @@ const App: React.FC = () => {
             <span className="font-bold text-gray-800 truncate text-xs">{effectiveSettings.name}</span>
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-             <div className="relative p-1">
+             <div className="relative p-1 hidden md:block">
                 <Bell size={16} className="text-gray-500" />
                 <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
              </div>
-             <img src={currentUser.avatar} alt="User" className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0" />
+             <button
+               onClick={() => setActiveTab('profile')}
+               className="flex items-center justify-center"
+             >
+               <img src={currentUser.avatar} alt="User" className="w-7 h-7 rounded-full border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" />
+             </button>
         </div>
       </div>
 
