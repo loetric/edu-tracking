@@ -1708,7 +1708,6 @@ export async function generatePDFReport(
         height: messageContentImg.height
       });
     }
-    const footerHeight = 65;
     
 
     // Top border with gradient - removed (no separator line between message and footer)
