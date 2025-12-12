@@ -534,7 +534,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       </div>
 
       {/* Desktop Schedule - Show in print even on mobile */}
-      <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-0 print:rounded-none print:overflow-visible">
+      <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-0 print:rounded-none print:overflow-visible print:mt-6">
         <table className="w-full border-collapse text-xs table-fixed print:text-[9px] print:border-2 print:border-gray-900">
           <colgroup>
             <col className="w-[12%]" />
