@@ -18,8 +18,7 @@ interface CounselorViewProps {
 export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdateChallenge, onViewReport, settings, onUpdateSettings }) => {
   const { alert, alertModal } = useModal();
   const [localSettings, setLocalSettings] = useState<Partial<SchoolSettings>>({
-      reportGeneralMessage: settings?.reportGeneralMessage || '',
-      reportLink: settings?.reportLink || ''
+      reportGeneralMessage: settings?.reportGeneralMessage || ''
   });
 
   const [selectedClass, setSelectedClass] = useState<string>('all');
@@ -48,10 +47,9 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       if (settings && onUpdateSettings) {
           onUpdateSettings({
               ...settings,
-              reportGeneralMessage: localSettings.reportGeneralMessage,
-              reportLink: localSettings.reportLink
+              reportGeneralMessage: localSettings.reportGeneralMessage
           });
-          alert({ message: 'تم تحديث إعدادات التقرير بنجاح', type: 'success' });
+          alert({ message: 'تم تحديث رسالة الموجه بنجاح', type: 'success' });
       }
   };
 
@@ -100,48 +98,39 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
               <details className="group">
                   <summary className="flex justify-between items-center font-bold text-gray-800 cursor-pointer list-none">
                       <span className="flex items-center gap-2">
-                          <Settings size={20} className="text-teal-600"/>
-                          إعدادات التقرير العام (رسالة الموجه والروابط)
+                          <MessageSquare size={20} className="text-teal-600"/>
+                          رسالة الموجه في التقارير
                       </span>
                       <span className="transition group-open:rotate-180">
                           <ChevronDown size={20} />
                       </span>
                   </summary>
                   <div className="mt-4 pt-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                                <MessageSquare size={16} />
-                                رسالة عامة في التقرير
+                            <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                <MessageSquare size={18} className="text-teal-600" />
+                                <span>رسالة عامة تظهر في جميع تقارير الطلاب</span>
                             </label>
                             <textarea 
-                                value={localSettings.reportGeneralMessage}
+                                value={localSettings.reportGeneralMessage || ''}
                                 onChange={(e) => setLocalSettings(prev => ({...prev, reportGeneralMessage: e.target.value}))}
-                                className="w-full border-gray-300 rounded-lg p-3 text-sm focus:ring-teal-500 focus:border-teal-500 min-h-[80px]"
-                                placeholder="اكتب ملاحظة تظهر في جميع تقارير الطلاب..."
+                                className="w-full border-2 border-gray-300 rounded-xl p-4 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 min-h-[120px] resize-y shadow-sm transition-all"
+                                placeholder="اكتب رسالة عامة من الموجه تظهر في جميع تقارير الطلاب..."
                             />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                                <LinkIcon size={16} />
-                                رابط خارجي (يتحول لباركود)
-                            </label>
-                            <input 
-                                type="url"
-                                value={localSettings.reportLink}
-                                onChange={(e) => setLocalSettings(prev => ({...prev, reportLink: e.target.value}))}
-                                className="w-full border-gray-300 rounded-lg p-3 text-sm focus:ring-teal-500 focus:border-teal-500 mb-2"
-                                placeholder="https://example.com"
-                            />
+                            <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                                <FileText size={12} />
+                                هذه الرسالة ستظهر في قسم "رسالة الموجه الطلابي / الإدارة" في جميع التقارير
+                            </p>
                         </div>
                     </div>
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-6 flex justify-end">
                         <button 
                             onClick={handleSaveSettings}
-                            className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 flex items-center gap-2 font-bold shadow-sm"
+                            className="bg-teal-600 text-white px-8 py-3 rounded-xl hover:bg-teal-700 flex items-center gap-2 font-bold shadow-md transition-all hover:shadow-lg"
                         >
                             <Save size={18} />
-                            حفظ الإعدادات
+                            حفظ الرسالة
                         </button>
                     </div>
                   </div>
