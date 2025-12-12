@@ -42,6 +42,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
   const [previewFile, setPreviewFile] = useState<SharedFile | null>(null);
   const [showReadersModal, setShowReadersModal] = useState<SharedFile | null>(null);
   const [readers, setReaders] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  const [showListOnMobile, setShowListOnMobile] = useState(true); // Control list visibility on mobile
 
   const isAdmin = role === 'admin';
 
@@ -381,7 +382,7 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
       {/* Email-like Layout: List on left, Content on right */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row h-[calc(100vh-180px)] md:h-[calc(100vh-250px)] min-h-[300px] md:min-h-[600px]">
         {/* Left Side: Announcements List */}
-        <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col max-h-[45vh] md:max-h-none">
+        <div className={`w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 flex flex-col ${showListOnMobile && !previewFile ? 'flex' : 'hidden md:flex'} ${previewFile ? 'md:max-h-none' : 'max-h-[45vh] md:max-h-none'}`}>
           {/* Search and Filters */}
           <div className="p-2 md:p-3 border-b border-gray-200 bg-gray-50">
             <div className="relative mb-2">
@@ -430,7 +431,10 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
                   return (
                   <button
                     key={file.id}
-                    onClick={() => handleFileClick(file)}
+                    onClick={() => {
+                      handleFileClick(file);
+                      setShowListOnMobile(false); // Hide list on mobile when file is selected
+                    }}
                     className={`w-full text-right p-2.5 md:p-4 hover:bg-gray-50 transition-colors border-r-4 ${
                       isSelected
                         ? 'bg-teal-50 border-r-teal-500' 
@@ -497,11 +501,22 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
         </div>
 
         {/* Right Side: File Preview/Content */}
-        <div className="w-full md:w-2/3 flex flex-col min-h-0 flex-1">
+        <div className={`w-full md:w-2/3 flex flex-col min-h-0 flex-1 ${!previewFile ? 'hidden md:flex' : 'flex'}`}>
           {previewFile ? (
             <>
               {/* File Header */}
               <div className="p-2.5 md:p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                {/* Back button for mobile */}
+                <button
+                  onClick={() => {
+                    setPreviewFile(null);
+                    setShowListOnMobile(true);
+                  }}
+                  className="md:hidden flex items-center gap-2 mb-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  <X size={18} />
+                  <span className="text-sm font-bold">رجوع للقائمة</span>
+                </button>
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-1 md:mb-2">
                   <div className="flex-1 min-w-0">
                     {previewFile.description ? (
@@ -575,25 +590,26 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
               </div>
 
               {/* File Content/Preview */}
-              <div className="flex-1 overflow-y-auto p-2 md:p-4 bg-white min-h-0">
+              <div className="flex-1 overflow-y-auto p-1 md:p-4 bg-white min-h-0">
                 {previewFile.file_category === 'pdf' ? (
-                  <div className="w-full h-full flex flex-col min-h-[300px] md:min-h-[500px]">
+                  <div className="w-full h-full flex flex-col min-h-[calc(100vh-250px)] md:min-h-[500px]">
                     <iframe
                       src={previewFile.file_url}
-                      className="w-full flex-1 border border-gray-200 rounded-lg"
+                      className="w-full flex-1 border-0 md:border border-gray-200 rounded-none md:rounded-lg"
                       title={previewFile.name}
                       style={{ 
-                        minHeight: '300px',
-                        maxHeight: 'calc(100vh - 300px)',
-                        width: '100%'
+                        minHeight: 'calc(100vh - 280px)',
+                        maxHeight: 'calc(100vh - 280px)',
+                        width: '100%',
+                        height: '100%'
                       }}
                     />
-                    <div className="mt-2 flex gap-2 flex-shrink-0">
+                    <div className="mt-2 md:mt-2 flex gap-2 flex-shrink-0 px-1 md:px-0">
                       <a
                         href={previewFile.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-1 flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm font-bold"
+                        className="flex-1 flex items-center justify-center gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm font-bold"
                       >
                         <Download size={14} className="md:w-4 md:h-4" />
                         <span className="text-xs md:text-sm">فتح في نافذة جديدة</span>
