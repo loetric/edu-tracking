@@ -314,10 +314,10 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </div>
       )}
 
-      <div className="flex flex-col gap-6 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-6 mb-8 print:mb-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
             <div className="flex items-center gap-4 flex-1">
-                <div className="p-3 bg-teal-50 text-teal-600 rounded-xl">
+                <div className="p-3 bg-teal-50 text-teal-600 rounded-xl print:hidden">
                     <Calendar size={28} />
                 </div>
                 <div className="flex-1">
@@ -390,7 +390,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
         {/* Admin Filters */}
         {role === 'admin' && (
-            <div className="bg-white p-2 md:p-3 rounded-lg border border-gray-100 shadow-sm">
+            <div className="bg-white p-2 md:p-3 rounded-lg border border-gray-100 shadow-sm print:hidden">
                 <div className="flex flex-wrap items-center gap-2 md:gap-3">
                     {/* Filter Icon & Label */}
                     <div className="flex items-center gap-1 flex-shrink-0">
