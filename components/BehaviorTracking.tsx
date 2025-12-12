@@ -167,7 +167,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 print:hidden">
           <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -198,7 +198,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
         </div>
 
         {/* Filters */}
-        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 print:hidden">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1 flex-shrink-0">
               <Filter size={14} className="text-teal-600" />
@@ -283,7 +283,6 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الطالب</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الفصل</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-700">التقييم السلوكي</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">الفئة</th>
                 </tr>
               </thead>
@@ -309,15 +308,6 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{student.classGrade || '-'}</td>
-                      <td className="px-4 py-3">
-                        {latestRecord ? (
-                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(latestRecord.behavior)}`}>
-                            {getStatusLabel(latestRecord.behavior)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">لا توجد بيانات</span>
-                        )}
-                      </td>
                       <td className="px-4 py-3 print:hidden">
                         <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border-2 ${getCategoryColor(category)}`}>
                           {getCategoryIcon(category)}
@@ -336,6 +326,18 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
             <p className="text-gray-500 font-bold">لا توجد نتائج</p>
           </div>
         )}
+      </div>
+      
+      {/* Print Footer */}
+      <div className="hidden print:block mt-4 pt-4 border-t border-gray-300 print-footer">
+        <div className="flex justify-between items-center text-xs text-gray-600">
+          <div>
+            <p>تاريخ الطباعة: {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          </div>
+          <div>
+            <p>هذا التقرير صادر من نظام التتبع الأكاديمي</p>
+          </div>
+        </div>
       </div>
     </div>
   );

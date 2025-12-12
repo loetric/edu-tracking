@@ -353,6 +353,45 @@
   .bg-white {
     background-color: white !important;
   }
+  
+  /* Hide all buttons, filters, and non-essential elements in print */
+  button,
+  [role="button"],
+  [class*="filter"],
+  [class*="Filter"],
+  [class*="search"],
+  [class*="Search"],
+  input[type="text"],
+  input[type="search"],
+  select,
+  [class*="CustomSelect"],
+  [class*="print\\:hidden"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Show print footer */
+  .print-footer,
+  [class*="print-footer"] {
+    display: block !important;
+    visibility: visible !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 10px 20px !important;
+    border-top: 1px solid #ccc !important;
+    background: white !important;
+    font-size: 10px !important;
+    color: #666 !important;
+  }
+  
+  /* Ensure print footer content is visible */
+  .print-footer *,
+  [class*="print-footer"] * {
+    display: block !important;
+    visibility: visible !important;
+  }
 }
 
 body {
