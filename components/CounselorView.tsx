@@ -67,11 +67,10 @@ export const CounselorView: React.FC<CounselorViewProps> = ({ students, onUpdate
       window.print();
   };
 
-  // Filter Logic - Only show students when a class is selected (not 'all')
+  // Filter Logic - Show students for selected class
   const filteredStudents = students.filter(student => {
-      // Require a specific class to be selected (not 'all')
-      if (selectedClass === 'all') {
-          return false; // Don't show any students until a class is selected
+      if (!selectedClass) {
+          return false; // Don't show any students if no class is selected
       }
       
       const matchClass = student.classGrade === selectedClass;
