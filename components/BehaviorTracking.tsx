@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings } from '../types';
 import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '../constants';
