@@ -339,6 +339,10 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                                 setIsGeneratingPreview(null);
                               }
                             }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
                             disabled={isGeneratingPreview === student.id}
                             className="text-blue-600 hover:text-blue-700 bg-blue-50 px-2 md:px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             title="معاينة التقرير"

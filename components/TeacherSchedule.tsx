@@ -638,7 +638,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </tbody>
         </table>
         {/* Footer text for print */}
-        <div className="hidden print:block text-center mt-4 print:mt-2">
+        <div className="hidden print:block text-center mt-4 print:mt-2 print-footer-text">
           <p className="text-[8px] text-gray-600 print:text-[7px]">هذه الورقة صادرة من نظام التتبع الأكاديمي</p>
         </div>
       </div>
