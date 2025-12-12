@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings, StatusType } from '../types';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X, Edit2, Save } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '../constants';
 import { CustomSelect } from './CustomSelect';
 import { api } from '../services/api';
@@ -355,63 +355,48 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                       <td className="px-4 py-3 text-sm text-gray-700">{student.classGrade || '-'}</td>
                       <td className="px-4 py-3 print:hidden">
                         {editingStudentId === student.id ? (
-                          <div className="flex items-center gap-2">
-                            <CustomSelect
-                              value={editingBehavior}
-                              onChange={(value) => setEditingBehavior(value as StatusType)}
-                              options={[
-                                { value: 'excellent', label: 'ممتاز' },
-                                { value: 'good', label: 'جيد' },
-                                { value: 'poor', label: 'يحتاج إلى متابعة' }
-                              ]}
-                              className="w-[150px] text-xs"
-                            />
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const today = new Date().toISOString().split('T')[0];
-                                  const existingRecord = Object.values(records).find(
-                                    r => r.studentId === student.id && r.date === today
-                                  );
-                                  
-                                  const updatedRecord: DailyRecord = existingRecord 
-                                    ? { ...existingRecord, behavior: editingBehavior }
-                                    : {
-                                        studentId: student.id,
-                                        date: today,
-                                        attendance: 'present',
-                                        participation: 'none',
-                                        homework: 'none',
-                                        behavior: editingBehavior,
-                                        notes: ''
-                                      };
-                                  
-                                  await api.saveDailyRecords({ [student.id]: updatedRecord });
-                                  
-                                  if (onUpdateRecord) {
-                                    onUpdateRecord(student.id, updatedRecord);
-                                  }
-                                  
-                                  setEditingStudentId(null);
-                                  alert({ message: 'تم تحديث التقييم بنجاح', type: 'success' });
-                                } catch (error) {
-                                  console.error('Error updating behavior:', error);
-                                  alert({ message: 'فشل في تحديث التقييم', type: 'error' });
+                          <CustomSelect
+                            value={editingBehavior}
+                            onChange={async (value) => {
+                              const newBehavior = value as StatusType;
+                              try {
+                                const today = new Date().toISOString().split('T')[0];
+                                const existingRecord = Object.values(records).find(
+                                  r => r.studentId === student.id && r.date === today
+                                );
+                                
+                                const updatedRecord: DailyRecord = existingRecord 
+                                  ? { ...existingRecord, behavior: newBehavior }
+                                  : {
+                                      studentId: student.id,
+                                      date: today,
+                                      attendance: 'present',
+                                      participation: 'none',
+                                      homework: 'none',
+                                      behavior: newBehavior,
+                                      notes: ''
+                                    };
+                                
+                                await api.saveDailyRecords({ [student.id]: updatedRecord });
+                                
+                                if (onUpdateRecord) {
+                                  onUpdateRecord(student.id, updatedRecord);
                                 }
-                              }}
-                              className="p-1.5 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
-                              title="حفظ"
-                            >
-                              <Save size={14} />
-                            </button>
-                            <button
-                              onClick={() => setEditingStudentId(null)}
-                              className="p-1.5 bg-gray-400 text-white rounded hover:bg-gray-500 transition-colors"
-                              title="إلغاء"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
+                                
+                                setEditingStudentId(null);
+                                alert({ message: 'تم تحديث التقييم بنجاح', type: 'success' });
+                              } catch (error) {
+                                console.error('Error updating behavior:', error);
+                                alert({ message: 'فشل في تحديث التقييم', type: 'error' });
+                              }
+                            }}
+                            options={[
+                              { value: 'excellent', label: 'ممتاز' },
+                              { value: 'good', label: 'جيد' },
+                              { value: 'poor', label: 'يحتاج إلى متابعة' }
+                            ]}
+                            className="w-[150px] text-xs"
+                          />
                         ) : (
                           <div 
                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 cursor-pointer hover:opacity-80 transition-opacity ${getCategoryColor(actualCategory)}`}
