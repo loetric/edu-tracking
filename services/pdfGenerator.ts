@@ -973,7 +973,7 @@ export async function generatePDFReport(
 
         x: cellX + cellWidth - valueImg.width - 12,
 
-        y: cellY - cellHeight / 2 - 10,
+        y: cellY - cellHeight / 2 - 14, // Lowered 4px (from -10 to -14)
 
         width: valueImg.width,
 
@@ -1248,9 +1248,9 @@ export async function generatePDFReport(
         height: labelImg.height
       });
 
-      // Value text - at bottom of card (below label)
+      // Value text - at bottom of card (below label) - smaller and consistent
       const valueImg = await textToImage(item.info.text, {
-        fontSize: 10, 
+        fontSize: 8, // Reduced from 10 to 8 for consistency
         color: `rgb(${Math.round(item.info.textCol.r * 255)}, ${Math.round(item.info.textCol.g * 255)}, ${Math.round(item.info.textCol.b * 255)})`, 
         align: 'center', 
         isBold: true, 
