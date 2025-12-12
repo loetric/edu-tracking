@@ -74,9 +74,47 @@
     visibility: hidden !important;
   }
   
-  /* Hide all divs that contain buttons, filters, or legend */
-  body.schedule-print .schedule-print > div:first-child,
-  body.schedule-print .schedule-print > div:nth-child(2) {
+  /* Hide all divs that contain buttons, filters, or legend - target by class patterns */
+  body.schedule-print .schedule-print > div[class*="flex"][class*="gap-6"],
+  body.schedule-print .schedule-print > div[class*="flex"][class*="gap-4"],
+  body.schedule-print .schedule-print > div[class*="flex"][class*="gap-3"],
+  body.schedule-print .schedule-print > div[class*="mb-8"],
+  body.schedule-print .schedule-print > div[class*="mb-"]:not(:has(table)) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Show only the table container div */
+  body.schedule-print .schedule-print > div:has(table),
+  body.schedule-print .schedule-print > div[class*="hidden"][class*="md:block"][class*="print:block"] {
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  /* Hide all buttons, icons, and interactive elements more aggressively */
+  body.schedule-print .schedule-print button,
+  body.schedule-print .schedule-print [role="button"],
+  body.schedule-print .schedule-print svg:not([class*="print:block"]),
+  body.schedule-print .schedule-print [class*="Bell"],
+  body.schedule-print .schedule-print [class*="Printer"],
+  body.schedule-print .schedule-print [class*="Calendar"],
+  body.schedule-print .schedule-print [class*="Check"],
+  body.schedule-print .schedule-print [class*="Clock"],
+  body.schedule-print .schedule-print [class*="User"],
+  body.schedule-print .schedule-print [class*="BookOpen"],
+  body.schedule-print .schedule-print [class*="RefreshCw"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Hide legend and status indicators */
+  body.schedule-print .schedule-print [class*="legend"],
+  body.schedule-print .schedule-print [class*="Legend"],
+  body.schedule-print .schedule-print [class*="تم الدخول"],
+  body.schedule-print .schedule-print [class*="احتياط"],
+  body.schedule-print .schedule-print [class*="معلق"],
+  body.schedule-print .schedule-print [class*="ring-"],
+  body.schedule-print .schedule-print [class*="bg-gray-50"][class*="p-3"][class*="rounded-lg"] {
     display: none !important;
     visibility: hidden !important;
   }
