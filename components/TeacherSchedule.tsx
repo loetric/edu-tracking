@@ -314,6 +314,21 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
           </div>
       )}
 
+      {/* Print Title - Only visible in print */}
+      <div className="hidden print:block mb-4 text-center">
+        <h1 className="text-2xl font-bold text-gray-800">
+          {role === 'admin' && filterType === 'teacher' && filterValue
+            ? `جدول المعلم (${filterValue})`
+            : role === 'admin' && filterType === 'class' && filterValue
+            ? `جدول الفصل (${filterValue})`
+            : role === 'admin'
+            ? 'الجدول الدراسي العام'
+            : currentUser
+            ? `جدول المعلم (${currentUser.name})`
+            : 'جدولي الدراسي'}
+        </h1>
+      </div>
+
       <div className="flex flex-col gap-6 mb-8 print:mb-2">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
             <div className="flex items-center gap-4 flex-1">
