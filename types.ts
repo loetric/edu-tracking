@@ -24,7 +24,6 @@ export interface SchoolSettings {
   classGrades?: string[]; // قائمة الفصول المعرفة من قبل مدير النظام
   academicYear?: string; // العام الدراسي (مثال: 1445-1446)
   principalName?: string; // اسم مدير المدرسة
-  educationalAffairsOfficer?: string; // وكيل الشؤون التعليمية
   stampUrl?: string; // ختم المدرسة (صورة)
 }
 

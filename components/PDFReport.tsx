@@ -382,14 +382,8 @@ export const PDFReport: React.FC<PDFReportProps> = ({ student, record, settings,
 
             {/* 6. Footer & Signatures */}
             <footer className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex justify-between items-end px-4 mb-4">
-                    <div className="text-center">
-                        <p className="text-xs font-bold text-gray-500 mb-8">وكيل الشؤون التعليمية</p>
-                        <div className="h-px w-32 bg-gray-300"></div>
-                        <p className="text-[10px] text-gray-400 mt-1">التوقيع</p>
-                    </div>
-                    
-                    <div className="text-center flex flex-col items-center">
+                <div className="flex justify-center items-end px-4 mb-4">
+                    <div className="text-center flex flex-col items-center mr-16">
                          {qrCodeUrl ? (
                              <img src={qrCodeUrl} alt="QR" className="w-16 h-16 mix-blend-multiply mb-1" />
                          ) : (

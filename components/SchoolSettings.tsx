@@ -802,17 +802,6 @@ export const SchoolSettingsForm: React.FC<SchoolSettingsProps> = ({ settings, us
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">وكيل الشؤون التعليمية</label>
-                <input
-                  type="text"
-                  value={formData.educationalAffairsOfficer || ''}
-                  onChange={e => setFormData({...formData, educationalAffairsOfficer: e.target.value})}
-                  className="w-full rounded-lg border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 p-2 border"
-                  placeholder="مثال: أ. خالد بن سعيد المطيري"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">رقم المدرسة</label>
                 <div className="relative">
                     <Phone size={16} className="absolute top-3 right-3 text-gray-400" />

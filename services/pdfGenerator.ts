@@ -565,7 +565,6 @@ export async function generatePDFReport(
       academicYear: settings.academicYear || '',
       classGrades: settings.classGrades || [],
       principalName: settings.principalName || '',
-      educationalAffairsOfficer: settings.educationalAffairsOfficer || '',
       stampUrl: settings.stampUrl || '',
       ...settings
     };
@@ -1377,33 +1376,6 @@ export async function generatePDFReport(
       color: COLORS.gray200
     });
 
-    // Right - Educational affairs signature (no signature line)
-    // Title first, then name below if available - aligned with manager title
-    const affairsTitleImg = await textToImage('وكيل الشؤون التعليمية', {
-      fontSize: 10, color: '#6B7280', align: 'center', isBold: true
-    });
-    const affairsTitleEmb = await pdfDoc.embedPng(affairsTitleImg.buffer);
-    page.drawImage(affairsTitleEmb, {
-      x: width - margin - 50 - affairsTitleImg.width / 2,
-      y: footerY + 25, // Same height as manager title
-      width: affairsTitleImg.width,
-      height: affairsTitleImg.height
-    });
-    
-    // Name below title if available - fixed position to avoid overlap
-    if (safeSettings.educationalAffairsOfficer) {
-      const affairsNameImg = await textToImage(safeSettings.educationalAffairsOfficer, {
-        fontSize: 9, color: '#6B7280', align: 'center', isBold: false
-      });
-      const affairsNameEmb = await pdfDoc.embedPng(affairsNameImg.buffer);
-      page.drawImage(affairsNameEmb, {
-        x: width - margin - 50 - affairsNameImg.width / 2,
-        y: footerY + 12, // Below the title (same as manager name)
-        width: affairsNameImg.width,
-        height: affairsNameImg.height
-      });
-    }
-
     // Center - QR Code or stamp (use stampUrl from settings if available, otherwise QR code or placeholder)
     const footerCenterX = width / 2;
     const stampUrl = safeSettings.stampUrl?.trim();
@@ -1535,14 +1507,14 @@ export async function generatePDFReport(
       });
     }
 
-    // Left - School manager signature (no signature line)
+    // Right - School manager signature (no signature line)
     // Title first, then name below if available - moved down 8px
     const managerTitleImg = await textToImage('مدير المدرسة', {
       fontSize: 10, color: '#6B7280', align: 'center', isBold: true
     });
     const managerTitleEmb = await pdfDoc.embedPng(managerTitleImg.buffer);
     page.drawImage(managerTitleEmb, {
-      x: margin + 50 - managerTitleImg.width / 2,
+      x: width - margin - 50 - managerTitleImg.width / 2,
       y: footerY + 25, // Moved down 8px (33 - 8 = 25)
       width: managerTitleImg.width,
       height: managerTitleImg.height

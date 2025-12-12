@@ -133,10 +133,9 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
           } else if (error.message?.includes('academicYear')) {
             console.warn('academicYear column not found, updating without it. Please run migration: sql/add_academic_year_to_settings.sql');
             delete updateData.academicYear;
-          } else if (error.message?.includes('principalName') || error.message?.includes('educationalAffairsOfficer') || error.message?.includes('stampUrl')) {
+          } else if (error.message?.includes('principalName') || error.message?.includes('stampUrl')) {
             console.warn('New school info columns not found, updating without them. Please run migration: sql/add_school_info_fields.sql');
             delete updateData.principalName;
-            delete updateData.educationalAffairsOfficer;
             delete updateData.stampUrl;
           } else {
             console.error('Update settings error:', error);
@@ -173,10 +172,9 @@ export const updateSettings = async (settings: SchoolSettings): Promise<void> =>
           } else if (error.message?.includes('academicYear')) {
             console.warn('academicYear column not found, inserting without it. Please run migration: sql/add_academic_year_to_settings.sql');
             delete insertData.academicYear;
-          } else if (error.message?.includes('principalName') || error.message?.includes('educationalAffairsOfficer') || error.message?.includes('stampUrl')) {
+          } else if (error.message?.includes('principalName') || error.message?.includes('stampUrl')) {
             console.warn('New school info columns not found, inserting without them. Please run migration: sql/add_school_info_fields.sql');
             delete insertData.principalName;
-            delete insertData.educationalAffairsOfficer;
             delete insertData.stampUrl;
           } else {
             console.error('Insert settings error:', error);
