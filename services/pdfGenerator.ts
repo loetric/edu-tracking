@@ -1002,7 +1002,7 @@ export async function generatePDFReport(
 
       x: width - margin - summaryTitleImg.width,
 
-      y: cursorY,
+      y: cursorY - 3, // Lowered 3px
 
       width: summaryTitleImg.width,
 
@@ -1014,9 +1014,9 @@ export async function generatePDFReport(
 
     page.drawLine({
 
-      start: { x: width - margin - summaryTitleImg.width, y: cursorY - 4 },
+      start: { x: width - margin - summaryTitleImg.width, y: cursorY - 7 }, // Adjusted for lowered title
 
-      end: { x: width - margin, y: cursorY - 4 },
+      end: { x: width - margin, y: cursorY - 7 },
 
       thickness: 2,
 
@@ -1244,14 +1244,14 @@ export async function generatePDFReport(
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
         x: boxX + (summaryBoxWidth - 10) / 2 - labelImg.width / 2,
-        y: boxY - 12, // At top of card
+        y: boxY - 15, // Lowered 3px (from -12 to -15)
         width: labelImg.width,
         height: labelImg.height
       });
 
-      // Value text - at bottom of card (below label) - smaller and consistent
+      // Value text - at bottom of card (below label) - larger and lowered
       const valueImg = await textToImage(item.info.text, {
-        fontSize: 8, // Reduced from 10 to 8 for consistency
+        fontSize: 9, // Increased from 8 to 9 (slightly larger)
         color: `rgb(${Math.round(item.info.textCol.r * 255)}, ${Math.round(item.info.textCol.g * 255)}, ${Math.round(item.info.textCol.b * 255)})`, 
         align: 'center', 
         isBold: true, 
@@ -1260,7 +1260,7 @@ export async function generatePDFReport(
       const valueEmb = await pdfDoc.embedPng(valueImg.buffer);
       page.drawImage(valueEmb, {
         x: boxX + (summaryBoxWidth - 10) / 2 - valueImg.width / 2,
-        y: boxY - summaryBoxHeight + 20, // At bottom of card
+        y: boxY - summaryBoxHeight + 17, // Lowered 3px (from 20 to 17)
 
         width: valueImg.width,
 
