@@ -39,8 +39,11 @@
   body.schedule-print .schedule-print table,
   body.schedule-print .schedule-print table *,
   body.schedule-print .schedule-print [class*="Footer"],
-  body.schedule-print .schedule-print .print\\:block {
+  body.schedule-print .schedule-print .print\\:block,
+  body.schedule-print .schedule-print .print-footer-text,
+  body.schedule-print .schedule-print .print-footer-text * {
     visibility: visible !important;
+    display: block !important;
   }
   
   /* Ensure table container is visible and properly positioned */
