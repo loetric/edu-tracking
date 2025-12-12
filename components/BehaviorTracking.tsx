@@ -13,7 +13,7 @@ interface BehaviorTrackingProps {
 type BehaviorCategory = 'excellent' | 'good' | 'needs_attention';
 
 export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, records, settings }) => {
-  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<BehaviorCategory>('excellent');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('');
 
@@ -90,17 +90,8 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
       return [];
     }
 
-    let filtered: Student[] = [];
-
-    if (selectedCategory === 'all') {
-      filtered = [
-        ...categorizedStudents.excellent,
-        ...categorizedStudents.good,
-        ...categorizedStudents.needs_attention
-      ];
-    } else {
-      filtered = categorizedStudents[selectedCategory];
-    }
+    // Filter by category
+    let filtered: Student[] = categorizedStudents[selectedCategory];
 
     // Filter by class (required)
     filtered = filtered.filter(s => s.classGrade === selectedClass);
@@ -116,6 +107,23 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
 
     return filtered;
   }, [categorizedStudents, selectedCategory, selectedClass, searchQuery]);
+
+  // Calculate counts for selected class
+  const categoryCounts = useMemo(() => {
+    if (!selectedClass) {
+      return {
+        excellent: 0,
+        good: 0,
+        needs_attention: 0
+      };
+    }
+
+    return {
+      excellent: categorizedStudents.excellent.filter(s => s.classGrade === selectedClass).length,
+      good: categorizedStudents.good.filter(s => s.classGrade === selectedClass).length,
+      needs_attention: categorizedStudents.needs_attention.filter(s => s.classGrade === selectedClass).length
+    };
+  }, [categorizedStudents, selectedClass]);
 
   const getCategoryLabel = (cat: BehaviorCategory): string => {
     switch (cat) {
@@ -164,7 +172,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium mb-1">ممتاز</p>
-                <h3 className="text-2xl font-bold text-green-800">{categorizedStudents.excellent.length}</h3>
+                <h3 className="text-2xl font-bold text-green-800">{categoryCounts.excellent}</h3>
               </div>
               <CheckCircle size={32} className="text-green-600" />
             </div>
@@ -173,7 +181,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium mb-1">جيد</p>
-                <h3 className="text-2xl font-bold text-blue-800">{categorizedStudents.good.length}</h3>
+                <h3 className="text-2xl font-bold text-blue-800">{categoryCounts.good}</h3>
               </div>
               <TrendingUp size={32} className="text-blue-600" />
             </div>
@@ -182,7 +190,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-600 text-sm font-medium mb-1">يحتاج إلى متابعة</p>
-                <h3 className="text-2xl font-bold text-orange-800">{categorizedStudents.needs_attention.length}</h3>
+                <h3 className="text-2xl font-bold text-orange-800">{categoryCounts.needs_attention}</h3>
               </div>
               <AlertCircle size={32} className="text-orange-600" />
             </div>
@@ -201,9 +209,8 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
             <div className="w-[150px] flex-shrink-0">
               <CustomSelect
                 value={selectedCategory}
-                onChange={(value) => setSelectedCategory(value as BehaviorCategory | 'all')}
+                onChange={(value) => setSelectedCategory(value as BehaviorCategory)}
                 options={[
-                  { value: 'all', label: 'جميع الفئات' },
                   { value: 'excellent', label: 'ممتاز' },
                   { value: 'good', label: 'جيد' },
                   { value: 'needs_attention', label: 'يحتاج إلى متابعة' }
@@ -284,10 +291,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 {filteredStudents.map((student) => {
                   const studentRecords = Object.values(records).filter(r => r.studentId === student.id && r.attendance === 'present');
                   const latestRecord = studentRecords[studentRecords.length - 1];
-                  const category = selectedCategory === 'all' 
-                    ? (categorizedStudents.excellent.includes(student) ? 'excellent' :
-                       categorizedStudents.good.includes(student) ? 'good' : 'needs_attention')
-                    : selectedCategory;
+                  const category = selectedCategory;
 
                   return (
                     <tr key={student.id} className="hover:bg-gray-50 transition-colors">
