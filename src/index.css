@@ -96,9 +96,17 @@
   
   /* Show only the table container div */
   body.schedule-print .schedule-print > div:has(table),
-  body.schedule-print .schedule-print > div[class*="hidden"][class*="md:block"][class*="print:block"] {
+  body.schedule-print .schedule-print > div[class*="hidden"][class*="md:block"][class*="print:block"],
+  body.schedule-print .schedule-print > div[class*="print:block"] {
     display: block !important;
     visibility: visible !important;
+  }
+  
+  /* Force table to be visible in print from mobile */
+  body.schedule-print .schedule-print table {
+    display: table !important;
+    visibility: visible !important;
+    width: 100% !important;
   }
   
   /* Hide all buttons, icons, and interactive elements more aggressively */
