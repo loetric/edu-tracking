@@ -1669,6 +1669,7 @@ export async function generatePDFReport(
     });
     // ================= FOOTER SECTION (Enhanced) =================
     const footerY = 55;
+    const footerHeight = 65; // Define footerHeight before using it
     
     // Counselor message - aligned with footer position
     if (counselorMessage && counselorMessage !== '') {
