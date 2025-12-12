@@ -1064,17 +1064,17 @@ export async function generatePDFReport(
 
       page.drawRectangle({
 
-        x: boxX + 2,
+        x: boxX + 1,
 
-        y: boxY - summaryBoxHeight - 2,
+        y: boxY - summaryBoxHeight - 1,
 
-        width: summaryBoxWidth - 10,
+        width: summaryBoxWidth - 5,
 
         height: summaryBoxHeight,
 
         color: rgb(0, 0, 0),
 
-        opacity: 0.04
+        opacity: 0.03
 
       });
 
@@ -1083,11 +1083,11 @@ export async function generatePDFReport(
       page.drawRectangle({
         x: boxX,
         y: boxY - summaryBoxHeight,
-        width: summaryBoxWidth - 10,
+        width: summaryBoxWidth - 5,
         height: summaryBoxHeight,
         color: item.info.bg,
         borderColor: item.info.border,
-        borderWidth: 1,
+        borderWidth: 0.8,
       });
 
       // Label with icon - at top of card (above values) - adjusted for smaller box
