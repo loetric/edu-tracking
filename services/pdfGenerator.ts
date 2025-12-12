@@ -1108,7 +1108,7 @@ export async function generatePDFReport(
 
     if (record.attendance === 'present') {
 
-      const radarChart = await drawRadarChart(chartData, '', chartWidth - 20, chartHeight - 60);
+      const radarChart = await drawRadarChart(chartData, '', chartWidth - 20, chartHeight - 50); // Reduced from 60 to 50
 
       const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
 
@@ -1116,7 +1116,7 @@ export async function generatePDFReport(
 
         x: chartX + 10,
 
-        y: chartY - chartHeight + 30,
+        y: chartY - chartHeight + 25, // Adjusted for smaller box (from 30 to 25)
 
         width: radarChart.width,
 
@@ -1126,11 +1126,11 @@ export async function generatePDFReport(
 
       
 
-      // Performance text
+      // Performance text - adjusted for smaller box
 
       const performanceImg = await textToImage(`التقدير العام: ${performanceLevel}`, {
 
-        fontSize: 10, color: '#0D9488', align: 'center', isBold: true
+        fontSize: 9, color: '#0D9488', align: 'center', isBold: true // Reduced from 10 to 9
 
       });
 
@@ -1140,7 +1140,7 @@ export async function generatePDFReport(
 
         x: chartX + chartWidth / 2 - performanceImg.width / 2,
 
-        y: chartY - chartHeight + 15,
+        y: chartY - chartHeight + 12, // Adjusted for smaller box (from 15 to 12)
 
         width: performanceImg.width,
 
@@ -1289,7 +1289,7 @@ export async function generatePDFReport(
     }
 
     // ================= TABLE SECTION (Enhanced) =================
-    cursorY -= (summaryBoxHeight * 2 + 35);
+    cursorY -= (summaryBoxHeight * 2 + 30); // Adjusted spacing for smaller boxes (from 35 to 30)
     
 
     // Table title with icon - lowered 3px
