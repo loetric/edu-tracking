@@ -925,7 +925,7 @@ export async function generatePDFReport(
 
       
 
-      // Label (perfectly aligned)
+      // Label (perfectly aligned) - lowered 5px
 
       const labelImg = await textToImage(detail.label, {
 
@@ -939,7 +939,7 @@ export async function generatePDFReport(
 
         x: cellX + cellWidth - labelImg.width - 12,
 
-        y: cellY - cellHeight / 2 + 8,
+        y: cellY - cellHeight / 2 + 3, // Lowered 5px (from 8 to 3)
 
         width: labelImg.width,
 
@@ -1079,7 +1079,7 @@ export async function generatePDFReport(
 
     
 
-    // Chart title
+    // Chart title - lowered 5px
 
     const chartTitleImg = await textToImage('📊 مؤشر الأداء', {
 
@@ -1093,7 +1093,7 @@ export async function generatePDFReport(
 
       x: chartX + chartWidth - chartTitleImg.width - 10,
 
-      y: chartY - 18,
+      y: chartY - 23, // Lowered 5px (from 18 to 23)
 
       width: chartTitleImg.width,
 
@@ -1249,7 +1249,7 @@ export async function generatePDFReport(
 
       
 
-      // Label with icon
+      // Label with icon - raised to be under top border
 
       const labelText = `${item.icon} ${item.label}`;
 
@@ -1265,7 +1265,7 @@ export async function generatePDFReport(
 
         x: boxX + summaryBoxWidth / 2 - 5 - labelImg.width / 2,
 
-        y: boxY - summaryBoxHeight + 12,
+        y: boxY - summaryBoxHeight + 2, // Raised to be under top border (from 12 to 2)
 
         width: labelImg.width,
 
@@ -1850,7 +1850,7 @@ export async function generatePDFReport(
       const messageTitleEmb = await pdfDoc.embedPng(messageTitleImg.buffer);
       page.drawImage(messageTitleEmb, {
         x: width - margin - messageTitleImg.width - 10,
-        y: cursorY - 15,
+        y: cursorY - 20, // Lowered 5px (from 15 to 20)
         width: messageTitleImg.width,
         height: messageTitleImg.height
       });
@@ -1861,7 +1861,7 @@ export async function generatePDFReport(
       const messageContentEmb = await pdfDoc.embedPng(messageContentImg.buffer);
       page.drawImage(messageContentEmb, {
         x: margin + contentWidth / 2 - messageContentImg.width / 2,
-        y: cursorY - 35,
+        y: cursorY - 40, // Lowered 5px (from 35 to 40)
         width: messageContentImg.width,
         height: messageContentImg.height
       });
@@ -1896,10 +1896,10 @@ export async function generatePDFReport(
 
 
 
-    // QR Code/Stamp (centered)
+    // QR Code/Stamp (centered) - lowered 8px
 
     const footerCenterX = width / 2;
-    const stampY = footerY + 15;
+    const stampY = footerY + 7; // Lowered 8px (from 15 to 7)
     
 
     if (safeSettings.stampUrl && safeSettings.stampUrl.trim() !== '') {
@@ -2014,7 +2014,7 @@ export async function generatePDFReport(
 
 
 
-    // Manager signature (right)
+    // Manager signature (left) - lowered 8px and moved to left
 
     const managerTitleImg = await textToImage('مدير المدرسة', {
 
@@ -2026,9 +2026,9 @@ export async function generatePDFReport(
 
     page.drawImage(managerTitleEmb, {
 
-      x: width - margin - 60 - managerTitleImg.width / 2,
+      x: margin + 60 - managerTitleImg.width / 2, // Moved to left (from width - margin - 60)
 
-      y: footerY + 35,
+      y: footerY + 27, // Lowered 8px (from 35 to 27)
 
       width: managerTitleImg.width,
 
@@ -2050,9 +2050,9 @@ export async function generatePDFReport(
 
       page.drawImage(managerNameEmb, {
 
-        x: width - margin - 60 - managerNameImg.width / 2,
+        x: margin + 60 - managerNameImg.width / 2, // Moved to left (from width - margin - 60)
 
-        y: footerY + 20,
+        y: footerY + 12, // Lowered 8px (from 20 to 12)
 
         width: managerNameImg.width,
 
