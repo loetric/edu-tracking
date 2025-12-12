@@ -348,24 +348,33 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
         <div className="flex-1">
           <h2 className="text-xl md:text-2xl font-bold text-gray-800">التعاميم</h2>
         </div>
-        {isAdmin && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => {
-              setShowUploadForm(true);
-              setEditingFile(null);
-              setUploadFile(null);
-              setUploadName('');
-              setUploadDescription('');
-              setUploadType('general');
-              setUploadAccess('public');
-            }}
-            className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md"
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-3 md:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
           >
-            <Upload size={18} />
-            <span className="hidden sm:inline">رفع ملف جديد</span>
-            <span className="sm:hidden">رفع</span>
+            <Printer size={16} />
+            <span>طباعة</span>
           </button>
-        )}
+          {isAdmin && (
+            <button
+              onClick={() => {
+                setShowUploadForm(true);
+                setEditingFile(null);
+                setUploadFile(null);
+                setUploadName('');
+                setUploadDescription('');
+                setUploadType('general');
+                setUploadAccess('public');
+              }}
+              className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm"
+            >
+              <Upload size={16} className="md:w-[18px] md:h-[18px]" />
+              <span className="hidden sm:inline">رفع ملف جديد</span>
+              <span className="sm:hidden">رفع</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Email-like Layout: List on left, Content on right */}
