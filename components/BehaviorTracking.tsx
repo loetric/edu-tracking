@@ -262,7 +262,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
 
       {/* Students List */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {selectedClass === 'all' ? (
+        {!selectedClass || uniqueClasses.length === 0 ? (
           <div className="p-12 text-center">
             <div className="flex flex-col items-center gap-2">
               <Filter size={48} className="mx-auto mb-4 text-gray-300" />
