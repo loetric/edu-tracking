@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings, StatusType } from '../types';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, XCircle, Printer, Filter, Search, X } from 'lucide-react';
 import { getStatusLabel, getStatusColor } from '../constants';
 import { CustomSelect } from './CustomSelect';
 import { api } from '../services/api';
