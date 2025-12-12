@@ -1311,8 +1311,18 @@ const App: React.FC = () => {
           
           setSubstitutionRequests(prev => [...prev, newRequest]);
           
-          // Send notification to teacher via internal chat
-          const notificationMessage = `طلب إسناد حصة: تم إرسال طلب إسناد حصة ${scheduleItem.subject} للفصل ${scheduleItem.classRoom} في ${scheduleItem.day} الحصة ${scheduleItem.period}. يرجى الرد على الطلب من صفحة الجدول الدراسي.`;
+          // Send notification to teacher via internal chat with full session details
+          const notificationMessage = `طلب إسناد حصة جديدة:
+
+📚 المادة: ${scheduleItem.subject || 'غير محدد'}
+🏫 الفصل: ${scheduleItem.classRoom || 'غير محدد'}
+📅 اليوم: ${scheduleItem.day || 'غير محدد'}
+⏰ الحصة: ${scheduleItem.period || 'غير محدد'}
+👨‍🏫 المعلم الأساسي: ${originalTeacher || 'غير محدد'}
+👤 المعلم البديل: ${newTeacher}
+📆 التاريخ: ${new Date(today).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+
+يرجى الرد على الطلب من صفحة الجدول الدراسي.`;
           // Note: The notification will be visible to all users in the internal chat
           // The teacher can see their pending requests in the schedule page
           await handleSendMessage(notificationMessage);
