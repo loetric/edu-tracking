@@ -303,7 +303,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الطالب</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700">الفصل</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">الفئة</th>
+                  <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">الحالة السلوكية</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -362,10 +362,9 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                               options={[
                                 { value: 'excellent', label: 'ممتاز' },
                                 { value: 'good', label: 'جيد' },
-                                { value: 'average', label: 'متوسط' },
-                                { value: 'poor', label: 'ضعيف' }
+                                { value: 'poor', label: 'يحتاج إلى متابعة' }
                               ]}
-                              className="w-[120px] text-xs"
+                              className="w-[150px] text-xs"
                             />
                             <button
                               onClick={async () => {
@@ -414,25 +413,29 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                             </button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 ${getCategoryColor(actualCategory)}`}>
-                              <span className="flex-shrink-0">{getCategoryIcon(actualCategory)}</span>
-                              <span>{getCategoryLabel(actualCategory)}</span>
-                            </div>
-                            <button
-                              onClick={() => {
-                                const today = new Date().toISOString().split('T')[0];
-                                const existingRecord = Object.values(records).find(
-                                  r => r.studentId === student.id && r.date === today
-                                );
-                                setEditingBehavior(existingRecord?.behavior || 'excellent');
-                                setEditingStudentId(student.id);
-                              }}
-                              className="p-1.5 text-teal-600 hover:bg-teal-50 rounded transition-colors"
-                              title="تحرير"
-                            >
-                              <Edit2 size={14} />
-                            </button>
+                          <div 
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 cursor-pointer hover:opacity-80 transition-opacity ${getCategoryColor(actualCategory)}`}
+                            onClick={() => {
+                              const today = new Date().toISOString().split('T')[0];
+                              const existingRecord = Object.values(records).find(
+                                r => r.studentId === student.id && r.date === today
+                              );
+                              // Map category to behavior status
+                              let defaultBehavior: StatusType = 'excellent';
+                              if (actualCategory === 'excellent') {
+                                defaultBehavior = 'excellent';
+                              } else if (actualCategory === 'good') {
+                                defaultBehavior = 'good';
+                              } else {
+                                defaultBehavior = 'poor'; // needs_attention maps to poor
+                              }
+                              setEditingBehavior(existingRecord?.behavior || defaultBehavior);
+                              setEditingStudentId(student.id);
+                            }}
+                            title="انقر للتحرير"
+                          >
+                            <span className="flex-shrink-0">{getCategoryIcon(actualCategory)}</span>
+                            <span>{getCategoryLabel(actualCategory)}</span>
                           </div>
                         )}
                       </td>
