@@ -149,7 +149,10 @@
   
   /* Ensure footer appears on same page */
   body.schedule-print .schedule-print [class*="Footer"],
-  body.schedule-print .schedule-print .print\\:block {
+  body.schedule-print .schedule-print .print\\:block,
+  body.schedule-print .schedule-print .print-footer-text {
+    visibility: visible !important;
+    display: block !important;
     page-break-before: avoid !important;
     break-before: avoid !important;
   }
