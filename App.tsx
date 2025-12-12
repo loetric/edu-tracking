@@ -511,7 +511,8 @@ const App: React.FC = () => {
             fetchedCompleted,
             fetchedSubs,
             fetchedSubjects,
-            fetchedRequests
+            fetchedRequests,
+            fetchedFiles
           ] = await Promise.all([
             api.getStudents(),
             api.getSchedule(),
@@ -521,7 +522,8 @@ const App: React.FC = () => {
             api.getCompletedSessions(),
             api.getSubstitutions(),
             api.getSubjects(),
-            api.getSubstitutionRequests()
+            api.getSubstitutionRequests(),
+            api.getFiles()
           ]);
 
           setStudents(fetchedStudents);
@@ -533,6 +535,10 @@ const App: React.FC = () => {
           setSubstitutions(fetchedSubs);
           setSubjects(fetchedSubjects);
           setSubstitutionRequests(fetchedRequests);
+          
+          // Calculate unread files count
+          const unreadCount = fetchedFiles.filter((file: any) => !file.is_read_by_current_user).length;
+          setUnreadFilesCount(unreadCount);
         } catch (error) {
           console.error("Error loading dashboard data", error);
           // Set empty arrays on error to allow app to continue
@@ -545,6 +551,7 @@ const App: React.FC = () => {
           setSubstitutions([]);
           setSubjects([]);
           setSubstitutionRequests([]);
+          setUnreadFilesCount(0);
         } finally {
           setIsDataLoading(false);
         }
