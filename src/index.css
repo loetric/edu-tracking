@@ -5,8 +5,8 @@
 /* Print Styles for Counselor View */
 @media print {
   @page {
-    size: A4;
-    margin: 1cm;
+    size: A3 landscape;
+    margin: 0.5cm;
   }
   
   /* A3 Landscape for Schedule Table - Single Page */
