@@ -348,12 +348,13 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             {role === 'admin' && (
                 <button
                     onClick={() => setShowAdminRequestsPanel(!showAdminRequestsPanel)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shadow-sm flex-shrink-0"
+                    className="flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-bold shadow-sm flex-shrink-0 print:hidden"
                 >
-                    <Bell size={16} />
-                    <span>طلبات الإسناد</span>
+                    <Bell size={14} className="md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">طلبات الإسناد</span>
+                    <span className="sm:hidden">طلبات</span>
                     {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
-                        <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-orange-500 text-white text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 rounded-full">
                             {substitutionRequests.filter(r => r.status === 'pending').length}
                         </span>
                     )}

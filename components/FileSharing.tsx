@@ -54,16 +54,17 @@ export const FileSharing: React.FC<FileSharingProps> = ({ role, onAddLog, onUnre
     try {
       const { api } = await import('../services/api');
       const loadedFiles = await api.getFiles();
-      setFiles(loadedFiles);
+      setFiles(loadedFiles || []);
       
       // Calculate unread files count
-      const unreadCount = loadedFiles.filter(file => !file.is_read_by_current_user).length;
+      const unreadCount = (loadedFiles || []).filter(file => !file.is_read_by_current_user).length;
       if (onUnreadCountChange) {
         onUnreadCountChange(unreadCount);
       }
     } catch (error) {
       console.error('Error loading files:', error);
-      alert({ message: 'فشل في تحميل الملفات', type: 'error' });
+      setFiles([]);
+      alert({ message: 'فشل في تحميل الملفات. يرجى المحاولة مرة أخرى.', type: 'error' });
     } finally {
       setIsLoading(false);
     }
