@@ -13,8 +13,124 @@
   body.schedule-print {
     @page {
       size: A3 landscape;
-      margin: 0.5cm;
+      margin: 0.3cm;
     }
+  }
+  
+  /* Hide everything except the schedule table when printing */
+  body.schedule-print * {
+    visibility: hidden;
+  }
+  
+  body.schedule-print .schedule-print,
+  body.schedule-print .schedule-print * {
+    visibility: visible;
+  }
+  
+  /* Hide all elements except the table container */
+  body.schedule-print > div,
+  body.schedule-print > div > *,
+  body.schedule-print main,
+  body.schedule-print main > * {
+    visibility: hidden;
+  }
+  
+  /* Show only the schedule table */
+  body.schedule-print .schedule-print table,
+  body.schedule-print .schedule-print table * {
+    visibility: visible !important;
+  }
+  
+  /* Ensure table container is visible and properly positioned */
+  body.schedule-print .schedule-print {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+  
+  /* Hide all header, buttons, filters, etc. */
+  body.schedule-print header,
+  body.schedule-print [class*="header"],
+  body.schedule-print button,
+  body.schedule-print [class*="button"],
+  body.schedule-print [class*="filter"],
+  body.schedule-print [class*="Filter"],
+  body.schedule-print [class*="legend"],
+  body.schedule-print [class*="Legend"],
+  body.schedule-print .print\\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Style the schedule table for print */
+  body.schedule-print .schedule-print table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    font-size: 9px !important;
+    margin: 0 !important;
+  }
+  
+  /* Ensure table fits on one page */
+  body.schedule-print .schedule-print table thead,
+  body.schedule-print .schedule-print table tbody {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  
+  body.schedule-print .schedule-print table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+  
+  /* Improve table cell styling for print */
+  body.schedule-print .schedule-print table th,
+  body.schedule-print .schedule-print table td {
+    padding: 4px 6px !important;
+    border: 1px solid #333 !important;
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+  }
+  
+  body.schedule-print .schedule-print table th {
+    background-color: #f5f5f5 !important;
+    font-weight: bold !important;
+    text-align: center !important;
+  }
+  
+  /* Remove rounded corners and shadows in print */
+  body.schedule-print .schedule-print * {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  /* Hide icons and decorative elements in print */
+  body.schedule-print .schedule-print svg,
+  body.schedule-print .schedule-print [class*="icon"],
+  body.schedule-print .schedule-print [class*="Icon"] {
+    display: none !important;
+  }
+  
+  /* Simplify session cards for print */
+  body.schedule-print .schedule-print [class*="group"],
+  body.schedule-print .schedule-print [class*="hover"] {
+    pointer-events: none !important;
+  }
+  
+  /* Ensure text is readable */
+  body.schedule-print .schedule-print {
+    color: #000 !important;
+  }
+  
+  body.schedule-print .schedule-print * {
+    color: inherit !important;
   }
   
   body {

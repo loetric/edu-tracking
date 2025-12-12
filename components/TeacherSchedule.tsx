@@ -516,8 +516,8 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
       </div>
 
       {/* Desktop Schedule - Show in print even on mobile */}
-      <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-2 print:border-gray-800">
-        <table className="w-full border-collapse text-xs table-fixed print:text-sm">
+      <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-0 print:rounded-none print:overflow-visible">
+        <table className="w-full border-collapse text-xs table-fixed print:text-[9px] print:border-2 print:border-gray-900">
           <colgroup>
             <col className="w-[12%]" />
             {periods.map(() => <col key={Math.random()} className="w-[12.5%]" />)}
@@ -545,64 +545,64 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white">
+                    <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white print:p-0.5 print:border-gray-900 print:min-h-0 print:align-middle">
                       {sessions.length > 0 ? (
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 print:gap-0.5">
                             {sessions.map((session, idx) => {
                                 const isCompleted = completedSessions.includes(session.id);
                                 return (
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80`}
+                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80 print:border-gray-900 print:rounded-none print:shadow-none print:p-1 print:text-[7px] print:border print:border-gray-700`}
                                     >
-                                        <div className="flex justify-between items-start mb-0.5 gap-1">
-                                            <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1">{session.subject}</span>
+                                        <div className="flex justify-between items-start mb-0.5 gap-1 print:mb-0 print:flex-col print:items-start">
+                                            <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1 print:text-[7px] print:font-bold print:mb-0.5">{session.subject}</span>
                                             {isCompleted && (
-                                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                                <div className="flex items-center gap-0.5 flex-shrink-0 print:hidden">
                                                     <span className="text-[7px] font-bold text-green-600 bg-green-100 px-1 py-0.5 rounded">تم الرصد</span>
                                                     <Check size={8} className="text-green-600"/>
                                                 </div>
                                             )}
                                         </div>
                                         
-                                        <div className="space-y-0.5">
+                                        <div className="space-y-0.5 print:space-y-0">
                                             {session.isSubstituted && session.originalTeacher ? (
-                                                <div className="space-y-0.5">
-                                                    <div className="flex items-center gap-0.5">
-                                                        <User size={7} className="flex-shrink-0" />
-                                                        <span className="truncate text-[8px] font-bold leading-tight">
+                                                <div className="space-y-0.5 print:space-y-0">
+                                                    <div className="flex items-center gap-0.5 print:gap-0">
+                                                        <User size={7} className="flex-shrink-0 print:hidden" />
+                                                        <span className="truncate text-[8px] font-bold leading-tight print:text-[6px] print:font-normal">
                                                             {session.originalTeacher}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-0.5">
-                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0" />
-                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight">
+                                                    <div className="flex items-center gap-0.5 print:gap-0">
+                                                        <RefreshCw size={7} className="text-purple-600 flex-shrink-0 print:hidden" />
+                                                        <span className="truncate text-[7px] font-medium text-purple-700 leading-tight print:text-[6px] print:text-gray-600">
                                                             احتياط: {session.teacher}
                                                         </span>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-0.5">
-                                                    <User size={7} className="flex-shrink-0" />
-                                                    <span className="truncate text-[8px] leading-tight">
+                                                <div className="flex items-center gap-0.5 print:gap-0">
+                                                    <User size={7} className="flex-shrink-0 print:hidden" />
+                                                    <span className="truncate text-[8px] leading-tight print:text-[6px]">
                                                         {session.teacher}
                                                     </span>
                                                 </div>
                                             )}
-                                            <div className="flex items-center gap-0.5">
-                                                <BookOpen size={7} className="flex-shrink-0" />
-                                                <span className="text-[8px] leading-tight truncate">{session.classRoom}</span>
+                                            <div className="flex items-center gap-0.5 print:gap-0">
+                                                <BookOpen size={7} className="flex-shrink-0 print:hidden" />
+                                                <span className="text-[8px] leading-tight truncate print:text-[6px]">{session.classRoom}</span>
                                             </div>
                                         </div>
 
                                         {role === 'admin' && !session.isSubstituted && !isCompleted && (
-                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
                                                 <div className="bg-gray-800 text-white text-[7px] px-1 py-0.5 rounded cursor-pointer">بديل</div>
                                             </div>
                                         )}
                                         {role === 'admin' && session.isSubstituted && session.originalTeacher && onRemoveSubstitute && (
-                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                            <div className="absolute top-0.5 left-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10 print:hidden">
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -625,8 +625,9 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full min-h-[70px] border border-dashed border-gray-300 rounded-xl flex items-center justify-center opacity-40">
-                          <Lock size={12} className="text-gray-300" />
+                        <div className="h-full min-h-[70px] border border-dashed border-gray-300 rounded-xl flex items-center justify-center opacity-40 print:min-h-0 print:h-auto print:border-gray-900 print:border-solid print:opacity-20 print:rounded-none">
+                          <Lock size={12} className="text-gray-300 print:hidden" />
+                          <span className="print:text-[6px] print:text-gray-400 hidden print:inline">-</span>
                         </div>
                       )}
                     </td>
