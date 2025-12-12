@@ -1,11 +1,12 @@
-import { PDFDocument, rgb, PDFPage } from 'pdf-lib';
-import { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
+import { PDFDocument, PDFPage, rgb } from 'pdf-lib';
+import type { Student, DailyRecord, SchoolSettings, ScheduleItem } from '../types';
 import { getStatusLabel } from '../constants';
 
 // --- Configuration ---
 const ARABIC_FONT_STACK = '"Cairo", "Tajawal", "IBM Plex Sans Arabic", "Segoe UI", "Arial", sans-serif';
 
 // --- Color Palette matching PDFReport.tsx design ---
+// Initialize COLORS after rgb is imported
 const COLORS = {
   white: rgb(1, 1, 1),
   gray50: rgb(0.98, 0.98, 0.98),
