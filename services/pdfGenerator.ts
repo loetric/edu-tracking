@@ -1666,13 +1666,18 @@ export async function generatePDFReport(
       trimmed: counselorMessage,
       length: counselorMessage?.length 
     });
+    // ================= FOOTER SECTION (Enhanced) =================
+    const footerY = 55;
+    
+    // Counselor message - aligned with footer position
     if (counselorMessage && counselorMessage !== '') {
       console.log('Drawing counselor message:', counselorMessage);
       const messageBoxHeight = 50;
-      // Lower the message box by 20px more (total 40px from original)
+      // Position message box just above footer (aligned with footer position)
+      const messageBoxY = footerY + footerHeight + 10; // 10px above footer
       page.drawRectangle({
         x: margin,
-        y: cursorY - messageBoxHeight - 40, // Lowered 20px more (from -20 to -40)
+        y: messageBoxY,
         width: contentWidth,
         height: messageBoxHeight,
         color: COLORS.blue50,
@@ -1686,7 +1691,7 @@ export async function generatePDFReport(
       const messageTitleEmb = await pdfDoc.embedPng(messageTitleImg.buffer);
       page.drawImage(messageTitleEmb, {
         x: width - margin - messageTitleImg.width - 10,
-        y: cursorY - 60, // Adjusted for lowered box (from -40 to -60)
+        y: messageBoxY + messageBoxHeight - 20, // Top of box
         width: messageTitleImg.width,
         height: messageTitleImg.height
       });
@@ -1697,16 +1702,11 @@ export async function generatePDFReport(
       const messageContentEmb = await pdfDoc.embedPng(messageContentImg.buffer);
       page.drawImage(messageContentEmb, {
         x: margin + contentWidth / 2 - messageContentImg.width / 2,
-        y: cursorY - 80, // Adjusted for lowered box (from -60 to -80)
+        y: messageBoxY + messageBoxHeight - 40, // Below title
         width: messageContentImg.width,
         height: messageContentImg.height
       });
-      
-      cursorY -= (messageBoxHeight + 5); // Reduced spacing - removed separator line
     }
-
-    // ================= FOOTER SECTION (Enhanced) =================
-    const footerY = 55;
     const footerHeight = 65;
     
 

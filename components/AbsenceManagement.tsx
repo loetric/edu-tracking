@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, DailyRecord, SchoolSettings } from '../types';
-import { Calendar, Users, AlertTriangle, Filter, Search, Clock, TrendingUp, FileText, Download, XCircle, CheckCircle } from 'lucide-react';
+import { Calendar, Users, AlertTriangle, Filter, Search, Clock, TrendingUp, FileText, Download, XCircle, CheckCircle, Printer } from 'lucide-react';
 import { CustomSelect } from './CustomSelect';
 
 interface AbsenceManagementProps {
@@ -229,6 +229,13 @@ export const AbsenceManagement: React.FC<AbsenceManagementProps> = ({ students, 
           </h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">استعراض وإدارة غياب الطلاب</p>
         </div>
+        <button
+          onClick={() => window.print()}
+          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden self-start md:self-center"
+        >
+          <Printer size={16} />
+          <span>طباعة</span>
+        </button>
       </div>
 
       {/* Filters */}

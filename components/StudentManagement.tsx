@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, SchoolSettings } from '../types';
-import { UserPlus, Upload, Search, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { UserPlus, Upload, Search, Filter, X, Edit2, Trash2, Printer } from 'lucide-react';
 import { ExcelImporter } from './ExcelImporter';
 import { useModal } from '../hooks/useModal';
 import { ConfirmModal } from './ConfirmModal';
