@@ -420,16 +420,26 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
                               const existingRecord = Object.values(records).find(
                                 r => r.studentId === student.id && r.date === today
                               );
-                              // Map category to behavior status
+                              // Map category to behavior status for editing
                               let defaultBehavior: StatusType = 'excellent';
-                              if (actualCategory === 'excellent') {
-                                defaultBehavior = 'excellent';
-                              } else if (actualCategory === 'good') {
-                                defaultBehavior = 'good';
+                              if (existingRecord?.behavior) {
+                                // Use existing behavior, but map 'average' to 'poor' (needs attention)
+                                if (existingRecord.behavior === 'average' || existingRecord.behavior === 'poor') {
+                                  defaultBehavior = 'poor';
+                                } else {
+                                  defaultBehavior = existingRecord.behavior;
+                                }
                               } else {
-                                defaultBehavior = 'poor'; // needs_attention maps to poor
+                                // Map category to behavior status
+                                if (actualCategory === 'excellent') {
+                                  defaultBehavior = 'excellent';
+                                } else if (actualCategory === 'good') {
+                                  defaultBehavior = 'good';
+                                } else {
+                                  defaultBehavior = 'poor'; // needs_attention maps to poor
+                                }
                               }
-                              setEditingBehavior(existingRecord?.behavior || defaultBehavior);
+                              setEditingBehavior(defaultBehavior);
                               setEditingStudentId(student.id);
                             }}
                             title="انقر للتحرير"
