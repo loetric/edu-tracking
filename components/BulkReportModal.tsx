@@ -33,6 +33,8 @@ export const BulkReportModal: React.FC<BulkReportModalProps> = ({
   const [sentIds, setSentIds] = useState<string[]>([]);
   const [isSendingAll, setIsSendingAll] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState<string | null>(null);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewStudentName, setPreviewStudentName] = useState<string>('');
 
   // Note: settings validation is done in previewReport and sendReport functions
   // No need to validate in useEffect as it may show false errors
@@ -91,43 +93,12 @@ ${replyLink ? `\n👇 للرد على المدرسة:\n${replyLink}` : ''}
       setGeneratingPdf(student.id);
       const pdfBytes = await generatePDFReport(student, record, settings, schedule);
       
-      // Create blob and open in new window for preview (without download)
+      // Create blob for preview in modal
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
       const pdfUrl = URL.createObjectURL(blob);
       
-      // Open PDF in new window/tab for preview only (no download)
-      // Use iframe or embed to display PDF directly in browser
-      const newWindow = window.open('', '_blank');
-      if (newWindow) {
-        newWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <title>معاينة التقرير - ${student.name}</title>
-              <style>
-                body {
-                  margin: 0;
-                  padding: 0;
-                  overflow: hidden;
-                }
-                iframe {
-                  width: 100%;
-                  height: 100vh;
-                  border: none;
-                }
-              </style>
-            </head>
-            <body>
-              <iframe src="${pdfUrl}" type="application/pdf"></iframe>
-            </body>
-          </html>
-        `);
-        newWindow.document.close();
-      } else {
-        // Fallback: open directly (may trigger download in some browsers)
-        window.open(pdfUrl, '_blank');
-      }
-      
+      setPreviewPdfUrl(pdfUrl);
+      setPreviewStudentName(student.name);
       setGeneratingPdf(null);
     } catch (error) {
       console.error('Error generating PDF for preview:', error);
