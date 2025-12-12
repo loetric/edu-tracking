@@ -38,18 +38,31 @@
     display: none !important;
   }
   
-  /* Ensure content area is full width */
+  /* Ensure content area is full width and visible */
+  main,
   .flex.flex-col.md\\:flex-row > .flex-1,
-  .flex.flex-col.md\\:flex-row > div:not([class*="Sidebar"]) {
+  .flex.flex-col.md\\:flex-row > div:not([class*="Sidebar"]):not(.print\\:hidden) {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0.5cm !important;
+    position: relative !important;
+    overflow: visible !important;
   }
   
   /* Remove fixed positioning */
   .fixed {
     position: relative !important;
+  }
+  
+  /* Ensure flex containers don't hide content */
+  .flex {
+    display: block !important;
+  }
+  
+  .flex.flex-col.md\\:flex-row {
+    display: block !important;
   }
   
   /* Ensure proper page breaks */
