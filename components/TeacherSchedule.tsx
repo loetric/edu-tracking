@@ -535,16 +535,16 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
 
       {/* Desktop Schedule - Show in print even on mobile */}
       <div className="hidden md:block print:block overflow-x-auto rounded-2xl border border-gray-300 bg-white shadow-sm print:shadow-none print:border-0 print:rounded-none print:overflow-visible print:mt-6">
-        <table className="w-full border-collapse text-xs table-fixed print:text-[9px] print:border-2 print:border-gray-900">
+        <table className="w-full border-collapse text-xs table-fixed print:text-[9px] print:border-2 print:border-gray-700">
           <colgroup>
             <col className="w-[12%]" />
             {periods.map(() => <col key={Math.random()} className="w-[12.5%]" />)}
           </colgroup>
           <thead>
             <tr>
-              <th className="p-2 bg-gray-50 border border-gray-300 text-right font-bold text-gray-800 text-xs sticky right-0 z-20">اليوم</th>
+              <th className="p-2 bg-gray-50 border border-gray-300 text-right font-bold text-gray-800 text-xs sticky right-0 z-20 print:border print:border-gray-700 print:border-b-2 print:border-b-gray-800">اليوم</th>
               {periods.map(p => (
-                <th key={p} className="p-2 bg-gray-50 border border-gray-300 text-center font-bold text-gray-800">
+                <th key={p} className="p-2 bg-gray-50 border border-gray-300 text-center font-bold text-gray-800 print:border print:border-gray-700 print:border-b-2 print:border-b-gray-800">
                   <div className="flex flex-col items-center gap-0.5">
                     <span className="text-xs">ح {p}</span>
                     <span className="text-[9px] font-normal text-gray-600 flex items-center gap-0.5 bg-white px-1 py-0.5 rounded border border-gray-300">
@@ -556,14 +556,14 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
             </tr>
           </thead>
           <tbody>
-            {days.map(day => (
-              <tr key={day} className="hover:bg-gray-50/50 transition-all duration-200">
-                <td className="p-2 border border-gray-300 font-bold text-gray-800 bg-gray-50 sticky right-0 z-10 text-xs border-r-2 border-r-gray-400">{day}</td>
+            {days.map((day, dayIndex) => (
+              <tr key={day} className="hover:bg-gray-50/50 transition-all duration-200 print:border-b-2 print:border-b-gray-700">
+                <td className="p-2 border border-gray-300 font-bold text-gray-800 bg-gray-50 sticky right-0 z-10 text-xs border-r-2 border-r-gray-400 print:border-r-2 print:border-r-gray-700 print:border-b-2 print:border-b-gray-700">{day}</td>
                 {periods.map(period => {
                   const sessions = getSessions(day, period);
                   
                   return (
-                    <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white print:p-0.5 print:border-gray-900 print:min-h-0 print:align-middle">
+                    <td key={`${day}-${period}`} className="p-1 border border-gray-300 align-top min-h-[90px] bg-white print:p-0.5 print:border print:border-gray-700 print:min-h-0 print:align-middle print:border-b-2 print:border-b-gray-700">
                       {sessions.length > 0 ? (
                         <div className="flex flex-col gap-1 print:gap-0.5">
                             {sessions.map((session, idx) => {
@@ -572,7 +572,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                                     <div 
                                         key={session.id}
                                         onClick={() => handleSessionClick(session)}
-                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80 print:border-gray-900 print:rounded-none print:shadow-none print:p-1 print:text-[7px] print:border print:border-gray-700`}
+                                        className={`border border-gray-300 rounded-lg p-1.5 transition-all duration-300 relative group shadow-sm text-[9px] ${getSessionStyle(session)} ${isCompleted ? 'border-green-400 shadow-green-200/50 hover:shadow-green-300/70' : session.isSubstituted ? 'border-purple-400 shadow-purple-200/50 hover:shadow-purple-300/70' : 'border-red-400 shadow-red-200/50 hover:shadow-red-300/70'} ${(role === 'admin' || role === 'teacher') ? 'cursor-pointer hover:scale-[1.02]' : ''} hover:shadow-lg hover:border-opacity-80 print:border print:border-gray-700 print:rounded-none print:shadow-none print:p-1 print:text-[7px]`}
                                     >
                                         <div className="flex justify-between items-start mb-0.5 gap-1 print:mb-0 print:flex-col print:items-start">
                                             <span className="font-bold line-clamp-1 text-[9px] leading-tight flex-1 print:text-[7px] print:font-bold print:mb-0.5">{session.subject}</span>
@@ -643,7 +643,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             })}
                         </div>
                       ) : (
-                        <div className="h-full min-h-[70px] border border-dashed border-gray-300 rounded-xl flex items-center justify-center opacity-40 print:min-h-0 print:h-auto print:border-gray-900 print:border-solid print:opacity-20 print:rounded-none">
+                        <div className="h-full min-h-[70px] border border-dashed border-gray-300 rounded-xl flex items-center justify-center opacity-40 print:min-h-0 print:h-auto print:border print:border-gray-700 print:border-solid print:opacity-20 print:rounded-none">
                           <Lock size={12} className="text-gray-300 print:hidden" />
                           <span className="print:text-[6px] print:text-gray-400 hidden print:inline">-</span>
                         </div>
@@ -661,7 +661,7 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         </div>
       </div>
 
-      {/* Mobile Schedule - Simplified List - Hide in print */}
+      {/* Mobile Schedule - Simplified List - Show table in print */}
       <div className="md:hidden print:hidden space-y-4">
         {days.map(day => {
           const daySessions = schedule.filter(s => s.day === day).sort((a, b) => a.period - b.period);
