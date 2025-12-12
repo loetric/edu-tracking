@@ -568,8 +568,6 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                         <div className="flex flex-col gap-1 print:gap-0 print:space-y-1">
                             {sessions.map((session, idx) => {
                                 const isCompleted = completedSessions.includes(session.id);
-                                // In print, use original teacher if available, otherwise use teacher
-                                const printTeacher = session.originalTeacher || session.teacher;
                                 return (
                                     <div 
                                         key={session.id}
