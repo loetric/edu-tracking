@@ -1786,7 +1786,7 @@ const App: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <main className={`flex-1 p-2 md:p-4 lg:p-8 transition-all duration-300 print:hidden w-full max-w-[100vw] overflow-x-hidden overflow-y-auto ${isSidebarCollapsed ? 'md:mr-20' : 'md:mr-64'}`}>
+      <main className={`flex-1 p-2 md:p-4 lg:p-8 transition-all duration-300 print:p-4 print:w-full print:max-w-full print:overflow-visible w-full max-w-[100vw] overflow-x-hidden overflow-y-auto ${isSidebarCollapsed ? 'md:mr-20' : 'md:mr-64'}`}>
         <header className="hidden md:flex justify-between items-center mb-8">
             <div>
                 <h1 className="text-2xl font-bold text-gray-800">
