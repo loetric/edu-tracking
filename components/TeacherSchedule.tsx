@@ -345,24 +345,24 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                         )}
                 </div>
             </div>
-            {role === 'admin' && (
-                <button
-                    onClick={() => setShowAdminRequestsPanel(!showAdminRequestsPanel)}
-                    className="flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs md:text-sm font-bold shadow-sm flex-shrink-0 print:hidden"
-                >
-                    <Bell size={14} className="md:w-4 md:h-4" />
-                    <span className="hidden sm:inline">طلبات الإسناد</span>
-                    <span className="sm:hidden">طلبات</span>
-                    {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
-                        <span className="bg-orange-500 text-white text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 rounded-full">
-                            {substitutionRequests.filter(r => r.status === 'pending').length}
-                        </span>
-                    )}
-                </button>
-            )}
             
-            {/* Print Button & Legend */}
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            {/* Print Button & Substitution Requests Button & Legend */}
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+                {role === 'admin' && (
+                    <button
+                        onClick={() => setShowAdminRequestsPanel(!showAdminRequestsPanel)}
+                        className="flex items-center gap-1 md:gap-1.5 px-2 md:px-3 py-1.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-[10px] md:text-xs font-bold shadow-sm flex-shrink-0 print:hidden"
+                    >
+                        <Bell size={12} className="md:w-3.5 md:h-3.5" />
+                        <span className="hidden sm:inline">طلبات الإسناد</span>
+                        <span className="sm:hidden">طلبات</span>
+                        {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
+                            <span className="bg-orange-500 text-white text-[9px] md:text-[10px] font-bold px-1 md:px-1.5 py-0.5 rounded-full">
+                                {substitutionRequests.filter(r => r.status === 'pending').length}
+                            </span>
+                        )}
+                    </button>
+                )}
                 <button
                     onClick={() => {
                         // Add schedule-print class to body for A3 landscape printing
@@ -373,9 +373,9 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
                             document.body.classList.remove('schedule-print');
                         }, 1000);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
+                    className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-[10px] md:text-xs print:hidden"
                 >
-                    <Printer size={16} />
+                    <Printer size={14} className="md:w-4 md:h-4" />
                     <span>طباعة الجدول</span>
                 </button>
                 <div className="flex items-center gap-4 text-xs font-bold bg-gray-50 p-3 rounded-lg border border-gray-200 self-start md:self-center print:hidden">
