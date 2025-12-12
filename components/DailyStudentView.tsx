@@ -309,7 +309,11 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                       <td className="px-4 py-3 print:hidden">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={async () => {
+                            type="button"
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
                               if (!latestRecord) {
                                 alert({ message: `لا توجد بيانات مرصودة للطالب ${student.name}`, type: 'warning' });
                                 return;
@@ -336,7 +340,7 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                               }
                             }}
                             disabled={isGeneratingPreview === student.id}
-                            className="text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-blue-600 hover:text-blue-700 bg-blue-50 px-2 md:px-3 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             title="معاينة التقرير"
                           >
                             {isGeneratingPreview === student.id ? (
