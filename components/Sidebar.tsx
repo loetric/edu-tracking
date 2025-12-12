@@ -111,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, role,
                     {!isCollapsed && (
                       <span className="text-xs md:text-base truncate flex-1 text-right">{displayLabel}</span>
                     )}
-                    {item.id === 'files' && unreadFilesCount > 0 && (
+                    {item.id === 'files' && unreadFilesCount > 0 && activeTab !== 'files' && (
                       <span className="absolute left-2 top-2 flex items-center justify-center">
                         <Bell size={12} className="text-red-500 animate-pulse" />
                         <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full">
