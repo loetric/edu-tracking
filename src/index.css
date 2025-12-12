@@ -17,6 +17,13 @@
     }
   }
   
+  /* Ensure single page for schedule print */
+  body.schedule-print .schedule-print {
+    height: auto !important;
+    max-height: 100vh !important;
+    overflow: visible !important;
+  }
+  
   /* Hide everything except the schedule table when printing */
   body.schedule-print * {
     visibility: hidden;
@@ -131,20 +138,23 @@
     visibility: hidden !important;
   }
   
-  /* Style the schedule table for print */
+  /* Style the schedule table for print - single page */
   body.schedule-print .schedule-print table {
     width: 100% !important;
     border-collapse: collapse !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    font-size: 9px !important;
+    font-size: 8px !important;
     margin: 0 !important;
+    height: auto !important;
+    max-height: calc(100vh - 30px) !important;
   }
   
   /* Ensure table fits on one page - no page breaks */
   body.schedule-print .schedule-print table {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    page-break-after: avoid !important;
   }
   
   body.schedule-print .schedule-print table thead,
@@ -167,6 +177,7 @@
     display: block !important;
     page-break-before: avoid !important;
     break-before: avoid !important;
+    margin-top: 5px !important;
   }
   
   /* Improve table cell styling for print */
