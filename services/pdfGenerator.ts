@@ -1037,7 +1037,7 @@ export async function generatePDFReport(
 
     const chartX = margin;
     const chartY = cursorY;
-    const chartHeight = summaryBoxHeight * 2 + 5; // Reduced from +10 to +5 (total 95 instead of 120)
+    const chartHeight = summaryBoxHeight * 2 - 5; // Smaller box (total 85 instead of 95)
     
 
     // Chart shadow
@@ -1108,7 +1108,7 @@ export async function generatePDFReport(
 
     if (record.attendance === 'present') {
 
-      const radarChart = await drawRadarChart(chartData, '', chartWidth - 20, chartHeight - 50); // Reduced from 60 to 50
+      const radarChart = await drawRadarChart(chartData, '', chartWidth - 20, chartHeight - 60); // Restored to original size
 
       const radarChartEmb = await pdfDoc.embedPng(radarChart.buffer);
 
@@ -1116,7 +1116,7 @@ export async function generatePDFReport(
 
         x: chartX + 10,
 
-        y: chartY - chartHeight + 25, // Adjusted for smaller box (from 30 to 25)
+        y: chartY - chartHeight + 30, // Restored to original position
 
         width: radarChart.width,
 
@@ -1126,11 +1126,11 @@ export async function generatePDFReport(
 
       
 
-      // Performance text - adjusted for smaller box
+      // Performance text - restored to original
 
       const performanceImg = await textToImage(`التقدير العام: ${performanceLevel}`, {
 
-        fontSize: 9, color: '#0D9488', align: 'center', isBold: true // Reduced from 10 to 9
+        fontSize: 10, color: '#0D9488', align: 'center', isBold: true // Restored to original size
 
       });
 
@@ -1140,7 +1140,7 @@ export async function generatePDFReport(
 
         x: chartX + chartWidth / 2 - performanceImg.width / 2,
 
-        y: chartY - chartHeight + 12, // Adjusted for smaller box (from 15 to 12)
+        y: chartY - chartHeight + 15, // Restored to original position
 
         width: performanceImg.width,
 
@@ -1244,7 +1244,7 @@ export async function generatePDFReport(
       const labelEmb = await pdfDoc.embedPng(labelImg.buffer);
       page.drawImage(labelEmb, {
         x: boxX + (summaryBoxWidth - 10) / 2 - labelImg.width / 2,
-        y: boxY - 12, // Adjusted for smaller box (from -15 to -12)
+        y: boxY - 3, // Under top border by 3px
         width: labelImg.width,
         height: labelImg.height
       });
