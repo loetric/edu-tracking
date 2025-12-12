@@ -464,7 +464,7 @@ function getStatusDisplay(status: string, type: 'attendance' | 'academic') {
   if (type === 'attendance') {
     switch(status) {
       case 'present': return { text: 'حاضر', bg: COLORS.green50, border: COLORS.green200, textCol: COLORS.green800 };
-      case 'excused': return { text: 'مستأذن', bg: COLORS.yellow50, border: COLORS.yellow200, textCol: rgb(0.7, 0.5, 0.0) };
+      case 'excused': return { text: 'مستأذن', bg: COLORS.yellow50, border: COLORS.yellow200, textCol: COLORS.yellow800 };
       case 'absent': return { text: 'غائب', bg: COLORS.red50, border: COLORS.red200, textCol: COLORS.red800 };
       default: return { text: '-', bg: COLORS.gray50, border: COLORS.gray200, textCol: COLORS.gray800 };
     }
@@ -472,7 +472,7 @@ function getStatusDisplay(status: string, type: 'attendance' | 'academic') {
     switch(status) {
       case 'excellent': return { text: 'متميز', bg: COLORS.green50, border: COLORS.green200, textCol: COLORS.teal800 };
       case 'good': return { text: 'جيد', bg: COLORS.blue50, border: COLORS.blue200, textCol: COLORS.blue900 };
-      case 'average': return { text: 'متوسط', bg: COLORS.yellow50, border: COLORS.yellow200, textCol: rgb(0.7, 0.5, 0.0) };
+      case 'average': return { text: 'متوسط', bg: COLORS.yellow50, border: COLORS.yellow200, textCol: COLORS.yellow800 };
       case 'poor': return { text: 'ضعيف', bg: COLORS.red50, border: COLORS.red200, textCol: COLORS.red800 };
       default: return { text: '-', bg: COLORS.gray50, border: COLORS.gray100, textCol: COLORS.gray300 };
     }
