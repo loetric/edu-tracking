@@ -128,13 +128,47 @@ export const TeacherSchedule: React.FC<TeacherScheduleProps> = ({ schedule, comp
         </div>
       )}
 
-      {/* Substitution Requests Admin Panel */}
+      {/* Substitution Requests Admin Modal */}
       {role === 'admin' && showAdminRequestsPanel && (
-        <div>
-          <SubstitutionRequestsAdmin
-            schedule={schedule}
-            onRequestUpdate={onRequestUpdate}
-          />
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto p-2 md:p-4" 
+          dir="rtl"
+          onClick={(e) => e.target === e.currentTarget && setShowAdminRequestsPanel(false)}
+          style={{ touchAction: 'none' }}
+          onTouchMove={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full my-auto max-h-[90vh] overflow-y-auto transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between z-10">
+              <h2 className="text-lg md:text-xl font-bold text-gray-800 flex items-center gap-2">
+                <Bell size={20} className="text-blue-600" />
+                <span>طلبات الإسناد</span>
+                {substitutionRequests.filter(r => r.status === 'pending').length > 0 && (
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {substitutionRequests.filter(r => r.status === 'pending').length}
+                  </span>
+                )}
+              </h2>
+              <button
+                onClick={() => setShowAdminRequestsPanel(false)}
+                className="flex-shrink-0 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} className="text-gray-400" />
+              </button>
+            </div>
+            <div className="p-4 md:p-6">
+              <SubstitutionRequestsAdmin
+                schedule={schedule}
+                onRequestUpdate={() => {
+                  if (onRequestUpdate) onRequestUpdate();
+                }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
