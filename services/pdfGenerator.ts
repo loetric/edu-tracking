@@ -1829,10 +1829,10 @@ export async function generatePDFReport(
     if (counselorMessage && counselorMessage !== '') {
       console.log('Drawing counselor message:', counselorMessage);
       const messageBoxHeight = 50;
-      // Lower the message box by 10px
+      // Lower the message box by 10px more (total 20px from original)
       page.drawRectangle({
         x: margin,
-        y: cursorY - messageBoxHeight - 10, // Lowered 10px
+        y: cursorY - messageBoxHeight - 20, // Lowered 10px more (from -10 to -20)
         width: contentWidth,
         height: messageBoxHeight,
         color: COLORS.blue50,
@@ -1846,7 +1846,7 @@ export async function generatePDFReport(
       const messageTitleEmb = await pdfDoc.embedPng(messageTitleImg.buffer);
       page.drawImage(messageTitleEmb, {
         x: width - margin - messageTitleImg.width - 10,
-        y: cursorY - 30, // Adjusted to maintain text formatting (lowered 10px)
+        y: cursorY - 40, // Adjusted to maintain text formatting (lowered 10px more)
         width: messageTitleImg.width,
         height: messageTitleImg.height
       });
@@ -1857,7 +1857,7 @@ export async function generatePDFReport(
       const messageContentEmb = await pdfDoc.embedPng(messageContentImg.buffer);
       page.drawImage(messageContentEmb, {
         x: margin + contentWidth / 2 - messageContentImg.width / 2,
-        y: cursorY - 50, // Adjusted to maintain text formatting (lowered 10px)
+        y: cursorY - 60, // Adjusted to maintain text formatting (lowered 10px more)
         width: messageContentImg.width,
         height: messageContentImg.height
       });
