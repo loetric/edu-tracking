@@ -305,6 +305,13 @@ export const StudentManagement: React.FC<StudentManagementProps> = ({ students, 
           
           <div className="flex flex-wrap gap-1.5 md:gap-2 w-full md:w-auto">
             <button
+              onClick={() => window.print()}
+              className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-bold shadow-md text-xs md:text-sm print:hidden"
+            >
+              <Printer size={14} className="md:w-4 md:h-4" />
+              <span>طباعة</span>
+            </button>
+            <button
               onClick={() => {
                 setShowAddForm(!showAddForm);
                 setShowImportForm(false);
