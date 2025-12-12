@@ -86,7 +86,7 @@ export const BehaviorTracking: React.FC<BehaviorTrackingProps> = ({ students, re
   // Filter students - require class filter
   const filteredStudents = useMemo(() => {
     // Don't show any students if no class is selected
-    if (selectedClass === 'all') {
+    if (!selectedClass) {
       return [];
     }
 
