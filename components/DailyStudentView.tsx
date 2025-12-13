@@ -266,7 +266,6 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
               <thead className="bg-gray-50 print:bg-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:text-black">الطالب</th>
-                  <th className="px-4 py-3 text-xs font-bold text-gray-700 print:text-black">الفصل</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:text-black">عدد السجلات</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:text-black">آخر سجل</th>
                   <th className="px-4 py-3 text-xs font-bold text-gray-700 print:hidden">إجراءات</th>
@@ -286,13 +285,9 @@ export const DailyStudentView: React.FC<DailyStudentViewProps> = ({
                           </div>
                           <div>
                             <p className="font-bold text-sm text-gray-800">{student.name}</p>
-                            {student.studentNumber && (
-                              <p className="text-xs text-gray-500">#{student.studentNumber}</p>
-                            )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{student.classGrade || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{studentRecords.length}</td>
                       <td className="px-4 py-3">
                         {latestRecord ? (
